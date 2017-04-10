@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScatteredLogic", "ScatteredLogic\ScatteredLogic.csproj", "{861722CC-A914-40E2-8828-743D610FF5AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScatteredLogicTest", "ScatteredLogicTest\ScatteredLogicTest.csproj", "{9F41622F-4B93-400A-A39C-C610D30CC37C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{861722CC-A914-40E2-8828-743D610FF5AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{861722CC-A914-40E2-8828-743D610FF5AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{861722CC-A914-40E2-8828-743D610FF5AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{861722CC-A914-40E2-8828-743D610FF5AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F41622F-4B93-400A-A39C-C610D30CC37C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F41622F-4B93-400A-A39C-C610D30CC37C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F41622F-4B93-400A-A39C-C610D30CC37C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F41622F-4B93-400A-A39C-C610D30CC37C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
