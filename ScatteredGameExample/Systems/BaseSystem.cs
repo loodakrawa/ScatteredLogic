@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using ScatteredLogic;
+﻿using ScatteredLogic;
 using System;
 using System.Collections.Generic;
 
@@ -10,6 +9,8 @@ namespace ScatteredGameExample.Systems
         public SetEnumerable<Entity> Entities { get; set; }
 
         public IEntityManager<Entity> EntityManager { get; set; }
+
+        public EventBus EventBus { get; set; }
 
         public virtual IEnumerable<Type> RequiredComponents => Types.None;
 

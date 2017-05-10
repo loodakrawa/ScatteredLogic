@@ -22,6 +22,7 @@ namespace ScatteredGameExample
         private readonly IEntityManager<Entity> entityManager;
         private readonly HashSet<BaseSystem> systems = new HashSet<BaseSystem>();
         private readonly HashSet<DrawingSystem> drawingSystems = new HashSet<DrawingSystem>();
+        private readonly EventBus eventBus = new EventBus();
 
         public ScatteredGame()
         {
@@ -41,13 +42,12 @@ namespace ScatteredGameExample
 
             var dm = graphics.GraphicsDevice.DisplayMode;
             Window.Position = new Point((dm.Width - Width) / 2, (dm.Height - Height) / 2);
-
-            AddSystem(new RenderingSystem());
-            AddSystem(new VelocitySystem());
         }
 
         protected override void LoadContent()
         {
+            Content.RootDirectory = "Content";
+
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             Texture2D ballTexture = TextureUtil.CreateCircle(GraphicsDevice, 10, Color.White);
@@ -65,6 +65,11 @@ namespace ScatteredGameExample
             ballEntity.AddComponent(ballTexture);
             ballEntity.AddComponent(ballTransform);
             ballEntity.AddComponent(ballVelocity);
+
+            AddSystem(new RenderingSystem());
+            AddSystem(new VelocitySystem());
+            AddSystem(new InputSystem());
+            AddSystem(new HudSystem(Content.Load<Texture2D>("crosshair")));
         }
 
         protected override void UnloadContent()
@@ -74,6 +79,7 @@ namespace ScatteredGameExample
 
         private void AddSystem(BaseSystem system)
         {
+            system.EventBus = eventBus;
             systems.Add(system);
             DrawingSystem ds = system as DrawingSystem;
             if (ds != null) drawingSystems.Add(ds);
