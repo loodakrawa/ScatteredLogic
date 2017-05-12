@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EntityManagerFactory.cs" />
+    <Compile Include="EventBus.cs" />
     <Compile Include="IEntityFactory.cs" />
     <Compile Include="Internal\Bitmask32.cs" />
     <Compile Include="Internal\EntityFactory.cs" />

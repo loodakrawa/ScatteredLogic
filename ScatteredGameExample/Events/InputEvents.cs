@@ -3,37 +3,20 @@ using Microsoft.Xna.Framework.Input;
 
 namespace ScatteredGameExample.Events
 {
-    public struct KeyEvent
+    public class KeyEvent
     {
-        public readonly Keys Key;
-        public readonly bool Pressed;
-
-        public KeyEvent(Keys key, bool pressed)
-        {
-            this.Key = key;
-            this.Pressed = pressed;
-        }
+        public Keys Key { get; set; }
+        public bool Pressed { get; set; }
     }
 
-    public struct MouseButtonEvent
+    public class MouseButtonEvent
     {
-        public readonly MouseButton Button;
-        public readonly bool Pressed;
-
-        public MouseButtonEvent(MouseButton button, bool pressed)
-        {
-            this.Button = button;
-            this.Pressed = pressed;
-        }
+        public MouseButton Button { get; set; }
+        public bool Pressed { get; set; }
     }
 
-    public struct MousePositionEvent
+    public class MousePositionEvent
     {
-        public readonly Vector2 Position;
-        
-        public MousePositionEvent(Vector2 position)
-        {
-            this.Position = position;
-        }
+        public Vector2 Position { get; set; }
     }
 }

@@ -97,6 +97,8 @@ namespace ScatteredGameExample
 
             foreach (BaseSystem system in systems) system.Update(deltaTime);
 
+            eventBus.Update();
+
             entityManager.Update();
         }
 
