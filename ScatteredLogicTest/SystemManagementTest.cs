@@ -15,11 +15,13 @@ namespace ScatteredLogicTest
         public SetEnumerable<Entity> Entities { get; set; }
         public IEntityManager<Entity> EntityManager { get; set; }
         public IEnumerable<Type> RequiredComponents => Types.None;
+        public EventBus EventBus { get; set; }
 
         public void Added() { }
         public void Removed() { }
         public void EntityAdded(Entity entity) { }
         public void EntityRemoved(Entity entity) { }
+        public void Update(float deltaTime) { }
     }
 
     public class TestSystem<T> : ISystem<Entity>
@@ -27,6 +29,7 @@ namespace ScatteredLogicTest
         public SetEnumerable<Entity> Entities { get; set; }
         public IEntityManager<Entity> EntityManager { get; set; }
         public IEnumerable<Type> RequiredComponents => Types.From<T>();
+        public EventBus EventBus { get; set; }
 
         public event Action OnAdded = () => { };
         public event Action OnRemoved = () => { };
@@ -38,6 +41,7 @@ namespace ScatteredLogicTest
         public void Removed() => OnRemoved();
         public void EntityAdded(Entity entity) => OnEntityAdded(entity);
         public void EntityRemoved(Entity entity) => OnEntityRemoved(entity);
+        public void Update(float deltaTime) { }
     }
 
     [TestClass]
@@ -60,7 +64,7 @@ namespace ScatteredLogicTest
             system.OnAdded += () => added = true;
 
             em.AddSystem(system);
-            em.Update();
+            em.Update(0);
 
             Assert.IsTrue(added);
         }
@@ -74,7 +78,7 @@ namespace ScatteredLogicTest
             em.AddSystem(system);
             em.AddSystem(system);
 
-            em.Update();
+            em.Update(0);
 
             Assert.AreEqual(1, count);
         }
@@ -101,7 +105,7 @@ namespace ScatteredLogicTest
 
             Assert.IsFalse(removed);
 
-            em.Update();
+            em.Update(0);
 
             Assert.IsTrue(removed);
         }
@@ -116,7 +120,7 @@ namespace ScatteredLogicTest
             em.RemoveSystem(system);
             em.RemoveSystem(system);
 
-            em.Update();
+            em.Update(0);
 
             Assert.AreEqual(1, count);
         }
@@ -134,7 +138,7 @@ namespace ScatteredLogicTest
 
             Assert.IsFalse(addedEntity.HasValue);
 
-            em.Update();
+            em.Update(0);
 
             Assert.IsTrue(addedEntity.HasValue);
             Assert.AreEqual(entity, addedEntity.Value);
@@ -153,9 +157,9 @@ namespace ScatteredLogicTest
 
             Assert.IsFalse(removedEntity.HasValue);
 
-            em.Update();
+            em.Update(0);
             em.RemoveComponent<string>(entity);
-            em.Update();
+            em.Update(0);
 
             Assert.IsTrue(removedEntity.HasValue);
             Assert.AreEqual(entity, removedEntity.Value);
@@ -172,7 +176,7 @@ namespace ScatteredLogicTest
             Entity entity = em.CreateEntity();
             em.AddComponent(entity, int.MaxValue);
 
-            em.Update();
+            em.Update(0);
 
             Assert.IsFalse(addedEntity.HasValue);
         }
@@ -188,7 +192,7 @@ namespace ScatteredLogicTest
             Entity entity2 = em.CreateEntity();
             em.AddComponent(entity2, int.MaxValue);
 
-            em.Update();
+            em.Update(0);
 
             Assert.AreEqual(1, system.Entities.Count);
         }
@@ -203,7 +207,7 @@ namespace ScatteredLogicTest
             Entity entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
 
-            em.Update();
+            em.Update(0);
 
             Assert.IsFalse(em.ContainsEntity(entity));
         }
@@ -223,13 +227,13 @@ namespace ScatteredLogicTest
             em.AddComponent(entity, string.Empty);
             em.AddComponent(entity, int.MaxValue);
 
-            em.Update();
+            em.Update(0);
 
             em.RemoveComponent<string>(entity);
 
             Assert.IsFalse(removed2Called);
 
-            em.Update();
+            em.Update(0);
 
             Assert.IsTrue(removed2Called);
         }
@@ -241,10 +245,10 @@ namespace ScatteredLogicTest
             em.AddSystem(sys);
 
             Entity entity = em.CreateEntity();
-            em.Update();
+            em.Update(0);
 
             em.DestroyEntity(entity);
-            em.Update();
+            em.Update(0);
 
             Assert.AreEqual(0, sys.Entities.Count);
         }

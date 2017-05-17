@@ -22,7 +22,6 @@ namespace ScatteredGameExample
         private readonly IEntityManager<Entity> entityManager;
         private readonly HashSet<BaseSystem> systems = new HashSet<BaseSystem>();
         private readonly HashSet<DrawingSystem> drawingSystems = new HashSet<DrawingSystem>();
-        private readonly EventBus eventBus = new EventBus();
 
         public ScatteredGame()
         {
@@ -49,26 +48,23 @@ namespace ScatteredGameExample
             Content.RootDirectory = "Content";
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            Texture2D ballTexture = TextureUtil.CreateCircle(GraphicsDevice, 10, Color.White);
-            Transform ballTransform = new Transform
-            {
-                Position = new Vector2(100, 100)
-            };
-
-            Velocity ballVelocity = new Velocity
-            {
-                Speed = new Vector2(10, 20)
-            };
-
+            
             Entity ballEntity = entityManager.CreateEntity();
-            ballEntity.AddComponent(ballTexture);
-            ballEntity.AddComponent(ballTransform);
-            ballEntity.AddComponent(ballVelocity);
+            ballEntity.Name = "Red";
+            ballEntity.AddComponent(TextureUtil.CreateRectangle(GraphicsDevice, 10, 10, Color.Red));
+            ballEntity.AddComponent(new Transform { Position = new Vector2(100, 100), Size = new Vector2(10, 10) });
+            ballEntity.AddComponent(new Velocity { Speed = new Vector2(10, 10) });
+
+            Entity ball2Entity = entityManager.CreateEntity();
+            ball2Entity.Name = "Green";
+            ball2Entity.AddComponent(TextureUtil.CreateRectangle(GraphicsDevice, 10, 10, Color.Green));
+            ball2Entity.AddComponent(new Transform { Position = new Vector2(200, 200), Size = new Vector2(10, 10) });
 
             AddSystem(new RenderingSystem());
             AddSystem(new VelocitySystem());
             AddSystem(new InputSystem());
+            AddSystem(new CollisionSystem());
+            AddSystem(new CollisionResolverSystem());
             AddSystem(new HudSystem(Content.Load<Texture2D>("crosshair")));
         }
 
@@ -79,7 +75,6 @@ namespace ScatteredGameExample
 
         private void AddSystem(BaseSystem system)
         {
-            system.EventBus = eventBus;
             systems.Add(system);
             DrawingSystem ds = system as DrawingSystem;
             if (ds != null) drawingSystems.Add(ds);
@@ -95,11 +90,7 @@ namespace ScatteredGameExample
 
             base.Update(gameTime);
 
-            foreach (BaseSystem system in systems) system.Update(deltaTime);
-
-            eventBus.Update();
-
-            entityManager.Update();
+            entityManager.Update(deltaTime);
         }
 
         protected override void Draw(GameTime gameTime)

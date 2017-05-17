@@ -4,14 +4,8 @@ namespace ScatteredGameExample.Components
 {
     public class Transform
     {
-        private Rectangle bounds;
-
         public Vector2 Position { get; set; }
-        public Vector2 Scale { get; set; }
-        //public Rectangle Bounds
-        //{
-        //    get { return bounds; }
-        //    set { bounds = new Rectangle(value)}
-        //}
+        public Vector2 Size { get; set; }
+        public Rectangle Bounds => new Rectangle(Position.ToPoint(), Size.ToPoint());
     }
 }

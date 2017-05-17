@@ -40,6 +40,6 @@ namespace ScatteredLogic
         void FindEntities(Func<E, bool> predicate, ICollection<E> results);
         SetEnumerable<E> GetAllEntities();
 
-        void Update();
+        void Update(float deltaTime);
     }
 }

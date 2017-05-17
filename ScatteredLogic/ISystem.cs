@@ -13,11 +13,14 @@ namespace ScatteredLogic
         IEnumerable<Type> RequiredComponents { get; }
         IEntityManager<E> EntityManager { get; set; }
         SetEnumerable<E> Entities { get; set; }
+        EventBus EventBus { get; set; }
 
         void Added();
         void Removed();
 
         void EntityAdded(E entity);
         void EntityRemoved(E entity);
+
+        void Update(float deltaTime);
     }
 }

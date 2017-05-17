@@ -18,9 +18,9 @@ namespace ScatteredGameExample.Systems
                 Texture2D texture = entity.GetComponent<Texture2D>();
                 Transform transform = entity.GetComponent<Transform>();
 
-                Vector2 pos = transform.Position - new Vector2(texture.Width, texture.Height);
+                Vector2 pos = transform.Position - transform.Size / 2;
 
-                spriteBatch.Draw(texture, transform.Position, Color.White);
+                spriteBatch.Draw(texture, pos, Color.White);
             }
         }
     }

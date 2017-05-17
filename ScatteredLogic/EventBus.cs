@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ScatteredGameExample
+namespace ScatteredLogic
 {
     public class EventBus
     {
         private readonly Dictionary<object, Action<object>> delegateMappings = new Dictionary<object, Action<object>>();
         private readonly Dictionary<Type, Action<object>> listeners = new Dictionary<Type, Action<object>>();
-
         private readonly Queue<object> queuedEvents = new Queue<object>();
 
         public void Register<T>(Action<T> listener)
