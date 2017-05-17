@@ -5,46 +5,69 @@ namespace ScatteredLogic
 {
     public class EventBus
     {
-        private readonly Dictionary<object, Action<object>> delegateMappings = new Dictionary<object, Action<object>>();
-        private readonly Dictionary<Type, Action<object>> listeners = new Dictionary<Type, Action<object>>();
-        private readonly Queue<object> queuedEvents = new Queue<object>();
+        private readonly Dictionary<Type, IEventQueue> eventQueues = new Dictionary<Type, IEventQueue>();
 
-        public void Register<T>(Action<T> listener)
+        private bool asyncMessagesAvailable;
+
+        public void Register<T>(Action<T> listener) => GetOrCreateEventQueue<T>().Register(listener);
+
+        public void Deregister<T>(Action<T> listener) => GetEventQueue<T>(typeof(T))?.DeRegister(listener);
+
+        public void DispatchSync<T>(T evnt) => GetOrCreateEventQueue<T>().DispatchSync(evnt);
+
+        public void DispatchAsync<T>(T evnt)
         {
-            Action<object> convertedListener = x => listener((T) x);
-            delegateMappings[listener] = convertedListener;
-
-            Type type = typeof(T);
-            Action<object> actions = GetAction(type);
-            listeners[type] = actions + convertedListener;
+            asyncMessagesAvailable = true;
+            GetOrCreateEventQueue<T>().DispatchAsync(evnt);
         }
-
-        public void Deregister<T>(Action<T> listener)
-        {
-            Action<object> convertedListener;
-            delegateMappings.TryGetValue(listener, out convertedListener);
-
-            if (convertedListener == null) return;
-
-            Type type = typeof(T);
-            Action<object> actions = GetAction(type);
-            if (actions != null) listeners[type] = actions - convertedListener;
-        }
-
-        public void DispatchSync<T>(T evnt) => GetAction(evnt.GetType())?.Invoke(evnt);
-        public void DispatchAsync<T>(T evnt) => queuedEvents.Enqueue(evnt);     
 
         public void Update()
         {
-            while (queuedEvents.Count > 0) DispatchSync(queuedEvents.Dequeue());
+            while (asyncMessagesAvailable)
+            {
+                asyncMessagesAvailable = false;
+                foreach (IEventQueue ieq in eventQueues.Values) ieq.DispatchEnquedEvents();
+            }
         }
 
-        private Action<object> GetAction(Type type)
+        private EventQueue<T> GetEventQueue<T>(Type type)
         {
-            Action<object> action;
-            listeners.TryGetValue(type, out action);
+            IEventQueue eqObj;
+            eventQueues.TryGetValue(type, out eqObj);
+            return eqObj as EventQueue<T>;
+        }
 
-            return action;
+        private EventQueue<T> GetOrCreateEventQueue<T>()
+        {
+            Type type = typeof(T);
+            EventQueue<T> eq = GetEventQueue<T>(type);
+            if (eq == null)
+            {
+                eq = new EventQueue<T>();
+                eventQueues[type] = eq;
+            }
+            return eq;
+        }
+
+        private class EventQueue<T> : IEventQueue
+        {
+            private readonly Queue<T> eventQueue = new Queue<T>();
+            private Action<T> listeners;
+
+            public void Register(Action<T> listener) => listeners += listener;
+            public void DeRegister(Action<T> listener) => listeners -= listener;
+            public void DispatchSync(T evt) => listeners?.Invoke(evt);
+            public void DispatchAsync(T evt) => eventQueue.Enqueue(evt);
+
+            public void DispatchEnquedEvents()
+            {
+                while (eventQueue.Count > 0) DispatchSync(eventQueue.Dequeue());
+            }
+        }
+
+        private interface IEventQueue
+        {
+            void DispatchEnquedEvents();
         }
     }
 }
