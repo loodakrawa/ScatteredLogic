@@ -37,6 +37,8 @@ namespace ScatteredGameExample.Systems
 
             CheckAndFire(oldMouse.LeftButton, newMouse.LeftButton, MouseButton.Left);
             CheckAndFire(oldMouse.RightButton, newMouse.RightButton, MouseButton.Right);
+
+            oldKeys = newKeys;
         }
 
         private void CheckAndFire(bool wasDown, bool isDown, Keys key)

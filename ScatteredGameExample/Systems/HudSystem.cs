@@ -1,31 +1,28 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using ScatteredGameExample.Components;
 using ScatteredGameExample.Events;
+using ScatteredLogic;
 
 namespace ScatteredGameExample.Systems
 {
-    public class HudSystem : BaseSystem, DrawingSystem
+    public class HudSystem : BaseSystem
     {
-        private readonly Texture2D crosshair;
-
-        private Vector2 mousePos;
-        private Vector2 mouseOffset;
-
-        public HudSystem(Texture2D crosshair)
-        {
-            this.crosshair = crosshair;
-            mouseOffset = new Vector2(-crosshair.Width / 2, -crosshair.Height / 2);
-        }
+        private Entity crosshairEntity;
+        private Vector2 offset;
 
         public override void Added()
         {
+            crosshairEntity = EntityFactory.CreateCrosshair();
+            offset = crosshairEntity.GetComponent<Texture2D>().Bounds.Size.ToVector2() / 2;
+
             base.Added();
-            EventBus.Register<MousePositionEvent>(e => mousePos = e.Position);
+            EventBus.Register<MousePositionEvent>(OnMousePosition);
         }
 
-        public void Draw(float deltaTime, SpriteBatch spriteBatch)
+        private void OnMousePosition(MousePositionEvent e)
         {
-            spriteBatch.Draw(crosshair, mousePos + mouseOffset, Color.White);
+            crosshairEntity.GetComponent<Transform>().Position = e.Position - offset;
         }
     }
 }

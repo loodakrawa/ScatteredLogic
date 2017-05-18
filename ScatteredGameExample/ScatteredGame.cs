@@ -23,6 +23,8 @@ namespace ScatteredGameExample
         private readonly HashSet<BaseSystem> systems = new HashSet<BaseSystem>();
         private readonly HashSet<DrawingSystem> drawingSystems = new HashSet<DrawingSystem>();
 
+        private readonly EntityFactory entityFactory;
+
         public ScatteredGame()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -33,6 +35,7 @@ namespace ScatteredGameExample
             graphics.SynchronizeWithVerticalRetrace = false;
 
             entityManager = EntityManagerFactory.Create(BitmaskSize.Bit32);
+            entityFactory = new EntityFactory(Content, entityManager);
         }
 
         protected override void Initialize()
@@ -48,24 +51,27 @@ namespace ScatteredGameExample
             Content.RootDirectory = "Content";
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            
-            Entity ballEntity = entityManager.CreateEntity();
-            ballEntity.Name = "Red";
-            ballEntity.AddComponent(TextureUtil.CreateRectangle(GraphicsDevice, 10, 10, Color.Red));
-            ballEntity.AddComponent(new Transform { Position = new Vector2(100, 100), Size = new Vector2(10, 10) });
-            ballEntity.AddComponent(new Velocity { Speed = new Vector2(10, 10) });
 
-            Entity ball2Entity = entityManager.CreateEntity();
-            ball2Entity.Name = "Green";
-            ball2Entity.AddComponent(TextureUtil.CreateRectangle(GraphicsDevice, 10, 10, Color.Green));
-            ball2Entity.AddComponent(new Transform { Position = new Vector2(200, 200), Size = new Vector2(10, 10) });
+            Entity b1 = entityFactory.CreateSquare();
+            b1.Name = "Red";
+            b1.GetComponent<Transform>().Position = new Vector2(100, 100);
+            b1.GetComponent<Transform>().Size = new Vector2(10, 10);
+            b1.AddComponent(new Velocity { Speed = new Vector2(10, 10) });
+            b1.AddComponent(new Collider());
+
+            Entity b2 = entityFactory.CreateSquare();
+            b2.Name = "Red";
+            b2.GetComponent<Transform>().Position = new Vector2(150, 150);
+            b2.GetComponent<Transform>().Size = new Vector2(10, 10);
+            b2.AddComponent(new Collider());
 
             AddSystem(new RenderingSystem());
             AddSystem(new VelocitySystem());
             AddSystem(new InputSystem());
             AddSystem(new CollisionSystem());
             AddSystem(new CollisionResolverSystem());
-            AddSystem(new HudSystem(Content.Load<Texture2D>("crosshair")));
+            AddSystem(new HudSystem());
+            AddSystem(new PlayerControllerSystem());
         }
 
         protected override void UnloadContent()
@@ -78,6 +84,7 @@ namespace ScatteredGameExample
             systems.Add(system);
             DrawingSystem ds = system as DrawingSystem;
             if (ds != null) drawingSystems.Add(ds);
+            system.EntityFactory = entityFactory;
             entityManager.AddSystem(system);
         }
 

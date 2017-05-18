@@ -12,6 +12,8 @@ namespace ScatteredGameExample.Systems
 
         public EventBus EventBus { get; set; }
 
+        public EntityFactory EntityFactory { get; set; }
+
         public virtual IEnumerable<Type> RequiredComponents => Types.None;
 
         public virtual void Added()
