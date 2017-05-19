@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ScatteredGameExample.Components
+﻿namespace ScatteredGameExample.Components
 {
+    public enum ColliderGroup
+    {
+        Player,
+        Bullet
+    }
+
     public class Collider
     {
+        public ColliderGroup Group { get; set; }
     }
 }

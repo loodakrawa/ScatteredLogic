@@ -15,13 +15,14 @@ namespace ScatteredGameExample.Systems
         {
             foreach(Entity entity in Entities)
             {
-                Texture2D texture = entity.GetComponent<Texture2D>();
-                Transform transform = entity.GetComponent<Transform>();
+                Texture2D tx = entity.GetComponent<Texture2D>();
+                Transform tr = entity.GetComponent<Transform>();
 
-                Vector2 pos = transform.Position - transform.Size / 2;
-                Vector2 scale = transform.Size / texture.Bounds.Size.ToVector2();
+                Vector2 scale = tr.Size / tx.Bounds.Size.ToVector2();
+                Vector2 origin = new Vector2(0.5f * tx.Width, 0.5f * tx.Height);
 
-                spriteBatch.Draw(texture, pos, null, Color.White, 0, Vector2.Zero, scale.X, SpriteEffects.None, 0.5f);
+                spriteBatch.Draw(tx, tr.Position, null, Color.White, tr.Rotation, origin, scale, SpriteEffects.None, 0.5f);
+                
             }
         }
     }

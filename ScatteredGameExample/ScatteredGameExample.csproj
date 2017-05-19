@@ -46,6 +46,7 @@
     <Compile Include="Events\InputEvents.cs" />
     <Compile Include="MouseButton.cs" />
     <Compile Include="GroupObjectPool.cs" />
+    <Compile Include="RenderUtil.cs" />
     <Compile Include="ScatteredGame.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -6,6 +6,7 @@ namespace ScatteredGameExample.Components
     {
         public Vector2 Position { get; set; }
         public Vector2 Size { get; set; }
+        public float Rotation { get; set; }
         public Rectangle Bounds => new Rectangle(Position.ToPoint(), Size.ToPoint());
     }
 }

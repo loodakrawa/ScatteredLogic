@@ -8,13 +8,15 @@ namespace ScatteredGameExample.Systems
 {
     public class BoundsSystem : BaseSystem
     {
-        private Rectangle size;
+        private readonly Rectangle bounds;
+        private readonly RenderUtil renderUtil;
 
-        public override IEnumerable<Type> RequiredComponents => Types.From<Velocity, Transform>();
+        public override IEnumerable<Type> RequiredComponents => Types.From<Transform, Collider>();
 
-        public BoundsSystem(int width, int height)
+        public BoundsSystem(int x, int y, int width, int height, RenderUtil renderUtil)
         {
-            size = new Rectangle(-width / 2, -height / 2, width, height);
+            bounds = new Rectangle(x, y, width, height);
+            this.renderUtil = renderUtil;
         }
 
         public override void Update(float deltaTime)
@@ -22,8 +24,13 @@ namespace ScatteredGameExample.Systems
             foreach(Entity entity in Entities)
             {
                 Transform transform = entity.GetComponent<Transform>();
-                //if(size.Intersects(transform.Position))
+                Rectangle bounds = transform.Bounds;
+                Collider collider = entity.GetComponent<Collider>();
+
+                if (collider.Group == ColliderGroup.Bullet && !this.bounds.Contains(bounds) && !this.bounds.Intersects(bounds)) entity.Destroy();
             }
+
+            renderUtil.AddForDrawing(bounds);
         }
     }
 }

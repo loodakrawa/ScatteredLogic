@@ -11,8 +11,8 @@ namespace ScatteredGameExample
 {
     public class ScatteredGame : Game
     {
-        private static readonly int Width = 1000;
-        private static readonly int Height = 625;
+        private static readonly int Width = 768;
+        private static readonly int Height = 768;
 
         private static readonly float SecondsPerTick = 1.0f / TimeSpan.TicksPerMillisecond / 1000.0f;
 
@@ -23,7 +23,8 @@ namespace ScatteredGameExample
         private readonly HashSet<BaseSystem> systems = new HashSet<BaseSystem>();
         private readonly HashSet<DrawingSystem> drawingSystems = new HashSet<DrawingSystem>();
 
-        private readonly EntityFactory entityFactory;
+        private EntityFactory entityFactory;
+        private RenderUtil renderUtil;
 
         public ScatteredGame()
         {
@@ -36,6 +37,8 @@ namespace ScatteredGameExample
 
             entityManager = EntityManagerFactory.Create(BitmaskSize.Bit32);
             entityFactory = new EntityFactory(Content, entityManager);
+
+            IsMouseVisible = true;
         }
 
         protected override void Initialize()
@@ -44,6 +47,17 @@ namespace ScatteredGameExample
 
             var dm = graphics.GraphicsDevice.DisplayMode;
             Window.Position = new Point((dm.Width - Width) / 2, (dm.Height - Height) / 2);
+
+            renderUtil = new RenderUtil(GraphicsDevice);
+
+            AddSystem(new RenderingSystem());
+            AddSystem(new VelocitySystem());
+            AddSystem(new InputSystem());
+            AddSystem(new CollisionSystem());
+            AddSystem(new CollisionResolverSystem());
+            AddSystem(new HudSystem());
+            AddSystem(new PlayerControllerSystem());
+            AddSystem(new BoundsSystem(Width / 2 - 250, Height / 2 - 250, 500, 500, renderUtil));
         }
 
         protected override void LoadContent()
@@ -64,14 +78,6 @@ namespace ScatteredGameExample
             b2.GetComponent<Transform>().Position = new Vector2(150, 150);
             b2.GetComponent<Transform>().Size = new Vector2(10, 10);
             b2.AddComponent(new Collider());
-
-            AddSystem(new RenderingSystem());
-            AddSystem(new VelocitySystem());
-            AddSystem(new InputSystem());
-            AddSystem(new CollisionSystem());
-            AddSystem(new CollisionResolverSystem());
-            AddSystem(new HudSystem());
-            AddSystem(new PlayerControllerSystem());
         }
 
         protected override void UnloadContent()
@@ -109,6 +115,7 @@ namespace ScatteredGameExample
             base.Draw(gameTime);
 
             spriteBatch.Begin(SpriteSortMode.BackToFront);
+            renderUtil.Draw(spriteBatch);
             foreach (DrawingSystem system in drawingSystems) system.Draw(deltaTime, spriteBatch);
             spriteBatch.End();
         }
