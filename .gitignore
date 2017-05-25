@@ -10,3 +10,4 @@ build/
 [Oo]bj/
 packages/
 .vs/
+project.lock.json
