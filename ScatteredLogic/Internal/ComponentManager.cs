@@ -73,7 +73,13 @@ namespace ScatteredLogic.Internal
         {
             foreach (var entry in componentsToRemove)
             {
-                components[entry.Item2].Remove(entry.Item1);
+                E entity = entry.Item1;
+                Type type = entry.Item2;
+
+                // remove only if bitmask is not set
+                B mask;
+                bool hasMask = masks.TryGetValue(entity, out mask);
+                if(!hasMask || !mask.Get(indexer.GetIndex(type))) components[entry.Item2].Remove(entry.Item1);
             }
             componentsToRemove.Clear();
         }

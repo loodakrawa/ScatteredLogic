@@ -10,6 +10,8 @@ namespace ScatteredLogic
 {
     public interface IEntityManager<E> where E : struct, IEquatable<E>
     {
+        EventBus EventBus { get; }
+
         E CreateEntity();
         void DestroyEntity(E entity);
         bool ContainsEntity(E entity);

@@ -153,5 +153,21 @@ namespace ScatteredLogicTest
             string value = em.GetComponent<string>(entity);
             Assert.IsNull(value);
         }
+
+        [TestMethod]
+        public void AddComponent_Update_RemoveComponentAddComponent_Update_ShouldHaveComponent()
+        {
+            Entity entity = em.CreateEntity();
+            string comp = string.Empty;
+
+            em.AddComponent(entity, comp);
+            em.Update(0);
+
+            em.RemoveComponent<string>(entity);
+            em.AddComponent(entity, comp);
+            em.Update(0);
+
+            Assert.AreEqual(comp, em.GetComponent<string>(entity));
+        }
     }
 }

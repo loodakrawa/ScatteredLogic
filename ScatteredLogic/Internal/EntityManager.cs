@@ -10,6 +10,8 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class EntityManager<E, B> : IEntityManager<E> where E : struct, IEquatable<E> where B : IBitmask<B>
     {
+        public EventBus EventBus => this.eventBus;
+
         private readonly ComponentManager<E, B> cm;
         private readonly SystemManager<E, B> sm;
         private readonly NamingManager<E> nm;
@@ -152,6 +154,7 @@ namespace ScatteredLogic.Internal
                 while (dirtyEntities.Count > 0) sm.AddEntityToSystems(dirtyEntities.Pop());
                 while (entitiesToRemove.Count > 0) InternalRemoveEntity(entitiesToRemove.Pop());
             }
+
             sm.UpdateSystems(entities, deltaTime);
             cm.Update();
 
