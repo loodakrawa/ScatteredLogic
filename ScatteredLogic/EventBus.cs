@@ -13,9 +13,7 @@ namespace ScatteredLogic
 
         public void Deregister<T>(Action<T> listener) => GetEventQueue<T>(typeof(T))?.DeRegister(listener);
 
-        public void DispatchSync<T>(T evnt) => GetOrCreateEventQueue<T>().DispatchSync(evnt);
-
-        public void DispatchAsync<T>(T evnt)
+        public void Dispatch<T>(T evnt)
         {
             asyncMessagesAvailable = true;
             GetOrCreateEventQueue<T>().DispatchAsync(evnt);
