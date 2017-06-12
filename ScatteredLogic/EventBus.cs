@@ -1,17 +1,23 @@
-﻿using System;
+﻿using ScatteredLogic.Internal;
+using System;
 using System.Collections.Generic;
 
 namespace ScatteredLogic
 {
     public class EventBus
     {
-        private readonly Dictionary<Type, IEventQueue> eventQueues = new Dictionary<Type, IEventQueue>();
+        private readonly List<IEventQueue> eventQueues = new List<IEventQueue>();
+        private readonly TypeIndexer indexer = new TypeIndexer(int.MaxValue);
 
         private bool asyncMessagesAvailable;
 
         public void Register<T>(Action<T> listener) => GetOrCreateEventQueue<T>().Register(listener);
-
-        public void Deregister<T>(Action<T> listener) => GetEventQueue<T>(typeof(T))?.DeRegister(listener);
+        public void Deregister<T>(Action<T> listener)
+        {
+            int typeIndex = indexer.GetIndex<T>();
+            if (typeIndex >= eventQueues.Count) return;
+            (eventQueues[typeIndex] as EventQueue<T>).DeRegister(listener);
+        }
 
         public void Dispatch<T>(T evnt)
         {
@@ -24,27 +30,15 @@ namespace ScatteredLogic
             while (asyncMessagesAvailable)
             {
                 asyncMessagesAvailable = false;
-                foreach (IEventQueue ieq in eventQueues.Values) ieq.DispatchEnquedEvents();
+                for (int i=0; i<eventQueues.Count; ++i) eventQueues[i].DispatchEnquedEvents();
             }
-        }
-
-        private EventQueue<T> GetEventQueue<T>(Type type)
-        {
-            IEventQueue eqObj;
-            eventQueues.TryGetValue(type, out eqObj);
-            return eqObj as EventQueue<T>;
         }
 
         private EventQueue<T> GetOrCreateEventQueue<T>()
         {
-            Type type = typeof(T);
-            EventQueue<T> eq = GetEventQueue<T>(type);
-            if (eq == null)
-            {
-                eq = new EventQueue<T>();
-                eventQueues[type] = eq;
-            }
-            return eq;
+            int typeIndex = indexer.GetIndex<T>();
+            if (typeIndex >= eventQueues.Count) eventQueues.Add(new EventQueue<T>());
+            return eventQueues[typeIndex] as EventQueue<T>;
         }
 
         private class EventQueue<T> : IEventQueue
