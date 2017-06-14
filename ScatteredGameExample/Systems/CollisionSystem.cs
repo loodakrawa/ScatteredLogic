@@ -34,7 +34,7 @@ namespace ScatteredGameExample.Systems
                         CollisionEvent e = eventPool.Get();
                         e.First = e1;
                         e.Second = e2;
-                        EventBus.DispatchAsync(e);
+                        EventBus.Dispatch(e);
                     }
                 }
             }

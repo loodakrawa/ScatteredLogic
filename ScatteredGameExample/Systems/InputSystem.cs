@@ -33,7 +33,7 @@ namespace ScatteredGameExample.Systems
 
             Point pos = newMouse.Position;
             mpe.Position = new Vector2(pos.X, pos.Y);
-            for (int i=0; i<10000; ++i) EventBus.DispatchAsync(mpe);
+            for (int i=0; i<10000; ++i) EventBus.Dispatch(mpe);
 
             CheckAndFire(oldMouse.LeftButton, newMouse.LeftButton, MouseButton.Left);
             CheckAndFire(oldMouse.RightButton, newMouse.RightButton, MouseButton.Right);
@@ -53,7 +53,7 @@ namespace ScatteredGameExample.Systems
             KeyEvent keyEvent = keyEventPool.Get();
             keyEvent.Key = key;
             keyEvent.Pressed = pressed;
-            EventBus.DispatchAsync(keyEvent);
+            EventBus.Dispatch(keyEvent);
         }
 
         private void CheckAndFire(bool wasDown, bool isDown, MouseButton button)
@@ -72,7 +72,7 @@ namespace ScatteredGameExample.Systems
             MouseButtonEvent mbEvent = mouseButtonPool.Get();
             mbEvent.Button = button;
             mbEvent.Pressed = pressed;
-            EventBus.DispatchAsync(mbEvent);
+            EventBus.Dispatch(mbEvent);
         }
     }
 }
