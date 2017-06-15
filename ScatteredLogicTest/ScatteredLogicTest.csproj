@@ -55,13 +55,15 @@
     <Compile Include="LabelTest.cs" />
     <Compile Include="EntityManagementTest.cs" />
     <Compile Include="SystemManagementTest.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ScatteredLogic\ScatteredLogic.csproj">
       <Project>{861722cc-a914-40e2-8828-743d610ff5ab}</Project>
       <Name>ScatteredLogic</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

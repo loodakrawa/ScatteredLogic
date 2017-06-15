@@ -54,7 +54,7 @@ namespace ScatteredLogic.Internal
             systemsToRemove.Add(system);
         }
 
-        public void UpdateSystems(HashSet<E> allEntities)
+        public void UpdateSystems(HashSet<E> allEntities, float deltaTime)
         {
             foreach (ISystem<E> system in newSystems)
             {
@@ -64,6 +64,8 @@ namespace ScatteredLogic.Internal
 
             foreach (ISystem<E> system in systemsToRemove) InternalRemoveSystem(system);
             systemsToRemove.Clear();
+
+            foreach (ISystem<E> system in systems) system.Update(deltaTime);
         }
 
         public void AddEntityToSystems(E entity)

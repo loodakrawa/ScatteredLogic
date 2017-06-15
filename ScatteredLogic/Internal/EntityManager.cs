@@ -10,6 +10,8 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class EntityManager<E, B> : IEntityManager<E> where E : struct, IEquatable<E> where B : IBitmask<B>
     {
+        public EventBus EventBus => this.eventBus;
+
         private readonly ComponentManager<E, B> cm;
         private readonly SystemManager<E, B> sm;
         private readonly NamingManager<E> nm;
@@ -20,6 +22,8 @@ namespace ScatteredLogic.Internal
         private readonly Stack<E> dirtyEntities = new Stack<E>();
 
         private readonly IEntityFactory<E> entityFactory;
+
+        private readonly EventBus eventBus = new EventBus();
 
         public EntityManager(int length, IEntityFactory<E> entityFactory)
         {
@@ -120,6 +124,7 @@ namespace ScatteredLogic.Internal
         public void AddSystem(ISystem<E> system)
         {
             system.EntityManager = this;
+            system.EventBus = eventBus;
             sm.AddSystem(system);
         }
 
@@ -142,16 +147,18 @@ namespace ScatteredLogic.Internal
 
         public SetEnumerable<E> GetAllEntities() => new SetEnumerable<E>(entities);
 
-        public void Update()
+        public void Update(float deltaTime)
         {
             while (dirtyEntities.Count > 0 || entitiesToRemove.Count > 0)
             {
                 while (dirtyEntities.Count > 0) sm.AddEntityToSystems(dirtyEntities.Pop());
                 while (entitiesToRemove.Count > 0) InternalRemoveEntity(entitiesToRemove.Pop());
             }
-            sm.UpdateSystems(entities);
+
+            sm.UpdateSystems(entities, deltaTime);
             cm.Update();
 
+            eventBus.Update();
         }
 
         private void CheckStale(E entity)

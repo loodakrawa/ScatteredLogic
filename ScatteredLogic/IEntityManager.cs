@@ -10,6 +10,8 @@ namespace ScatteredLogic
 {
     public interface IEntityManager<E> where E : struct, IEquatable<E>
     {
+        EventBus EventBus { get; }
+
         E CreateEntity();
         void DestroyEntity(E entity);
         bool ContainsEntity(E entity);
@@ -40,6 +42,6 @@ namespace ScatteredLogic
         void FindEntities(Func<E, bool> predicate, ICollection<E> results);
         SetEnumerable<E> GetAllEntities();
 
-        void Update();
+        void Update(float deltaTime);
     }
 }

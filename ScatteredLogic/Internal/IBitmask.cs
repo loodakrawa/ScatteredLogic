@@ -9,6 +9,7 @@ namespace ScatteredLogic.Internal
 {
     internal interface IBitmask<T> : IEquatable<T>
     {
+        bool Get(int index);
         T Set(int index);
         T Clear(int index);
         bool Contains(T other);

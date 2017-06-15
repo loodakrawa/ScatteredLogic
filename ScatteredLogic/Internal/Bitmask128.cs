@@ -18,6 +18,7 @@ namespace ScatteredLogic.Internal
             this.m2 = m2;
         }
 
+        public bool Get(int index) => index < Size ? ((m1 & (1u << index)) != 0) : ((m2 & (1u << index - Size)) != 0);
         public Bitmask128 Set(int index) => index < Size ? new Bitmask128(m1 | (1ul << index), m2) : new Bitmask128(m1, m2 | (1ul << (index - Size)));
         public Bitmask128 Clear(int index) => index < Size ? new Bitmask128(m1 & ~(1ul << index), m2) : new Bitmask128(m1, m2 & ~(1ul << (index - Size)));
         public bool Contains(Bitmask128 other) => (m1 & other.m1) == other.m1 && (m2 & other.m2) == other.m2;

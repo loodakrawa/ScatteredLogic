@@ -14,6 +14,7 @@ namespace ScatteredLogic.Internal
             this.m = m;
         }
 
+        public bool Get(int index) => (m & (1ul << index)) != 0;
         public Bitmask64 Set(int index) => new Bitmask64(m | (1ul << index));
         public Bitmask64 Clear(int index) => new Bitmask64(m & ~(1ul << index));
         public bool Contains(Bitmask64 other) => (m & other.m) == other.m;
