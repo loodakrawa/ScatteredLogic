@@ -8,39 +8,29 @@ using System.Collections.Generic;
 
 namespace ScatteredLogic
 {
-    public interface IEntityManager<E> where E : struct, IEquatable<E>
+    public interface IEntityManager
     {
         EventBus EventBus { get; }
 
-        E CreateEntity();
-        void DestroyEntity(E entity);
-        bool ContainsEntity(E entity);
+        Entity CreateEntity();
+        void DestroyEntity(Entity entity);
+        bool ContainsEntity(Entity entity);
 
-        void AddComponent<T>(E entity, T component);
-        void AddComponent(E entity, object component, Type type);
-        void RemoveComponent<T>(E entity);
-        void RemoveComponent(E entity, Type type);
-        void RemoveComponent(E entity, object component);
-        bool HasComponent<T>(E entity);
-        bool HasComponent(E entity, Type type);
-        T GetComponent<T>(E entity);
-        T GetComponent<T>(E entity, Type type);
+        void AddComponent<T>(Entity entity, T component);
+        void AddComponent(Entity entity, object component, Type type);
+        void RemoveComponent<T>(Entity entity);
+        void RemoveComponent(Entity entity, Type type);
+        void RemoveComponent(Entity entity, object component);
+        bool HasComponent<T>(Entity entity);
+        bool HasComponent(Entity entity, Type type);
+        T GetComponent<T>(Entity entity);
+        T GetComponent<T>(Entity entity, Type type);
 
-        void AddSystem(ISystem<E> system);
-        void RemoveSystem(ISystem<E> system);
+        void AddSystem(ISystem system);
+        void RemoveSystem(ISystem system);
 
-        string GetName(E entity);
-        void SetName(E entity, string name);
-
-        void AddTag(E entity, string tag);
-        void RemoveTag(E entity, string tag);
-        bool HasTag(E entity, string tag);
-        SetEnumerable<string> GetEntityTags(E entity);
-        SetEnumerable<E> GetEntitiesWithTag(string tag);
-
-        E? FindEntity(Func<E, bool> predicate);
-        void FindEntities(Func<E, bool> predicate, ICollection<E> results);
-        SetEnumerable<E> GetAllEntities();
+        Entity? FindEntity(Func<Entity, bool> predicate);
+        void FindEntities(Func<Entity, bool> predicate, ICollection<Entity> results);
 
         void Update(float deltaTime);
     }

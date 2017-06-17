@@ -19,7 +19,7 @@ namespace ScatteredGameExample
         private readonly GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
-        private readonly IEntityManager<Entity> entityManager;
+        private readonly IEntityManager entityManager;
         private readonly HashSet<BaseSystem> systems = new HashSet<BaseSystem>();
         private readonly HashSet<DrawingSystem> drawingSystems = new HashSet<DrawingSystem>();
 
@@ -67,14 +67,12 @@ namespace ScatteredGameExample
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             Entity b1 = entityFactory.CreateSquare();
-            b1.Name = "Red";
             b1.GetComponent<Transform>().Position = new Vector2(100, 100);
             b1.GetComponent<Transform>().Size = new Vector2(10, 10);
             b1.AddComponent(new Velocity { Speed = new Vector2(10, 10) });
             b1.AddComponent(new Collider());
 
             Entity b2 = entityFactory.CreateSquare();
-            b2.Name = "Red";
             b2.GetComponent<Transform>().Position = new Vector2(150, 150);
             b2.GetComponent<Transform>().Size = new Vector2(10, 10);
             b2.AddComponent(new Collider());

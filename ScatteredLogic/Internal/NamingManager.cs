@@ -7,22 +7,22 @@ using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
 {
-    internal sealed class NamingManager<E>
+    internal sealed class NamingManager
     {
-        private readonly HashSet<E> emptyEntitySet = new HashSet<E>();
+        private readonly HashSet<Entity> emptyEntitySet = new HashSet<Entity>();
         private readonly HashSet<string> emptyStringSet = new HashSet<string>();
 
-        private readonly Dictionary<E, string> names = new Dictionary<E, string>();
+        private readonly Dictionary<Entity, string> names = new Dictionary<Entity, string>();
 
-        private readonly Dictionary<string, HashSet<E>> entitiesByTag = new Dictionary<string, HashSet<E>>();
-        private readonly Dictionary<E, HashSet<string>> tagsByEntity = new Dictionary<E, HashSet<string>>();
+        private readonly Dictionary<string, HashSet<Entity>> entitiesByTag = new Dictionary<string, HashSet<Entity>>();
+        private readonly Dictionary<Entity, HashSet<string>> tagsByEntity = new Dictionary<Entity, HashSet<string>>();
 
         private readonly Stack<HashSet<string>> stringHashPool = new Stack<HashSet<string>>();
 
-        public string GetName(E entity) => names.TryGet(entity);
-        public void SetName(E entity, string name) => names[entity] = name;
+        public string GetName(Entity entity) => names.TryGet(entity);
+        public void SetName(Entity entity, string name) => names[entity] = name;
 
-        public void RemoveEntitySync(E entity)
+        public void RemoveEntitySync(Entity entity)
         {
             names.Remove(entity);
             HashSet<string> tags = tagsByEntity.TryGet(entity);
@@ -30,7 +30,7 @@ namespace ScatteredLogic.Internal
             {
                 foreach (string tag in tags)
                 {
-                    HashSet<E> entities = entitiesByTag.TryGet(tag);
+                    HashSet<Entity> entities = entitiesByTag.TryGet(tag);
                     if (entities != null) entities.Remove(entity);
                 }
                 tags.Clear();
@@ -39,7 +39,7 @@ namespace ScatteredLogic.Internal
             }
         }
 
-        public void AddTag(E entity, string tag)
+        public void AddTag(Entity entity, string tag)
         {
             HashSet<string> tags = tagsByEntity.TryGet(entity);
             if (tags == null)
@@ -49,28 +49,28 @@ namespace ScatteredLogic.Internal
             }
             tags.Add(tag);
 
-            HashSet<E> entities = entitiesByTag.TryGet(tag);
+            HashSet<Entity> entities = entitiesByTag.TryGet(tag);
             if(entities == null)
             {
-                entities = new HashSet<E>();
+                entities = new HashSet<Entity>();
                 entitiesByTag[tag] = entities;
             }
             entities.Add(entity);
         }
 
-        public void RemoveTag(E entity, string tag)
+        public void RemoveTag(Entity entity, string tag)
         {
             HashSet<string> tags = tagsByEntity.TryGet(entity);
             if (tags != null) tags.Remove(tag);
         }
 
-        public bool HasTag(E entity, string tag)
+        public bool HasTag(Entity entity, string tag)
         {
             HashSet<string> tags = tagsByEntity.TryGet(entity);
             return tags != null ? tags.Contains(tag) : false;
         }
 
-        public HashSet<E> GetEntitiesWithTag(string tag) => entitiesByTag.TryGet(tag) ?? emptyEntitySet;
-        public HashSet<string> GetEntityTags(E entity) => tagsByEntity.TryGet(entity) ?? emptyStringSet;
+        public HashSet<Entity> GetEntitiesWithTag(string tag) => entitiesByTag.TryGet(tag) ?? emptyEntitySet;
+        public HashSet<string> GetEntityTags(Entity entity) => tagsByEntity.TryGet(entity) ?? emptyStringSet;
     }
 }

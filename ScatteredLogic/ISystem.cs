@@ -8,18 +8,18 @@ using System.Collections.Generic;
 
 namespace ScatteredLogic
 {
-    public interface ISystem<E> where E : struct, IEquatable<E>
+    public interface ISystem
     {
         IEnumerable<Type> RequiredComponents { get; }
-        IEntityManager<E> EntityManager { get; set; }
-        SetEnumerable<E> Entities { get; set; }
+        IEntityManager EntityManager { get; set; }
+        SetEnumerable<Entity> Entities { get; set; }
         EventBus EventBus { get; set; }
 
         void Added();
         void Removed();
 
-        void EntityAdded(E entity);
-        void EntityRemoved(E entity);
+        void EntityAdded(Entity entity);
+        void EntityRemoved(Entity entity);
 
         void Update(float deltaTime);
     }

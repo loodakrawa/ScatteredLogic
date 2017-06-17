@@ -12,7 +12,7 @@ namespace ScatteredLogicTest
     [TestClass]
     public class EntityManagerTest
     {
-        private IEntityManager<Entity> em;
+        private IEntityManager em;
 
         [TestInitialize]
         public void SetUp()

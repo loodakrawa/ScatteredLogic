@@ -10,10 +10,10 @@ using System.Collections.Generic;
 
 namespace ScatteredLogicTest
 {
-    public class EmptyTestSystem : ISystem<Entity>
+    public class EmptyTestSystem : ISystem
     {
         public SetEnumerable<Entity> Entities { get; set; }
-        public IEntityManager<Entity> EntityManager { get; set; }
+        public IEntityManager EntityManager { get; set; }
         public IEnumerable<Type> RequiredComponents => Types.None;
         public EventBus EventBus { get; set; }
 
@@ -24,10 +24,10 @@ namespace ScatteredLogicTest
         public void Update(float deltaTime) { }
     }
 
-    public class TestSystem<T> : ISystem<Entity>
+    public class TestSystem<T> : ISystem
     {
         public SetEnumerable<Entity> Entities { get; set; }
-        public IEntityManager<Entity> EntityManager { get; set; }
+        public IEntityManager EntityManager { get; set; }
         public IEnumerable<Type> RequiredComponents => Types.From<T>();
         public EventBus EventBus { get; set; }
 
@@ -47,7 +47,7 @@ namespace ScatteredLogicTest
     [TestClass]
     public class SystemManagementTest
     {
-        private IEntityManager<Entity> em;
+        private IEntityManager em;
         private TestSystem<string> system;
 
         [TestInitialize]
@@ -241,7 +241,7 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void HavingASystemWithNoRequiredComponents_RemovingEntityShouldRemoveItFromSystem()
         {
-            ISystem<Entity> sys = new EmptyTestSystem();
+            ISystem sys = new EmptyTestSystem();
             em.AddSystem(sys);
 
             Entity entity = em.CreateEntity();

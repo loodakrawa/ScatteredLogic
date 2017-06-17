@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 namespace ScatteredGameExample.Systems
 {
-    public abstract class BaseSystem : ISystem<Entity>
+    public abstract class BaseSystem : ISystem
     {
         public SetEnumerable<Entity> Entities { get; set; }
 
-        public IEntityManager<Entity> EntityManager { get; set; }
+        public IEntityManager EntityManager { get; set; }
 
         public EventBus EventBus { get; set; }
 

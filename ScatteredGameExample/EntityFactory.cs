@@ -12,9 +12,9 @@ namespace ScatteredGameExample
         private const string TextureSquare = "square";
 
         private readonly ContentManager content;
-        private readonly IEntityManager<Entity> entityManager;
+        private readonly IEntityManager entityManager;
 
-        public EntityFactory(ContentManager content, IEntityManager<Entity> entityManager)
+        public EntityFactory(ContentManager content, IEntityManager entityManager)
         {
             this.content = content;
             this.entityManager = entityManager;
@@ -23,7 +23,6 @@ namespace ScatteredGameExample
         public Entity CreateCrosshair()
         {
             Entity e = entityManager.CreateEntity();
-            e.Name = "Crosshair";
             e.AddComponent(new Transform { Size = new Vector2(50, 50) });
             e.AddComponent(content.Load<Texture2D>(TextureCrosshair));
             return e;

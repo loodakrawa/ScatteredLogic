@@ -8,144 +8,127 @@ using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
 {
-    internal sealed class EntityManager<E, B> : IEntityManager<E> where E : struct, IEquatable<E> where B : IBitmask<B>
+    internal sealed class EntityManager<B> : IEntityManager where B : IBitmask<B>
     {
         public EventBus EventBus => this.eventBus;
 
-        private readonly ComponentManager<E, B> cm;
-        private readonly SystemManager<E, B> sm;
-        private readonly NamingManager<E> nm;
+        private readonly ComponentManager<B> cm;
+        private readonly SystemManager<B> sm;
+        private readonly NamingManager nm;
 
-        private readonly HashSet<E> entities = new HashSet<E>();
-
-        private readonly Stack<E> entitiesToRemove = new Stack<E>();
-        private readonly Stack<E> dirtyEntities = new Stack<E>();
-
-        private readonly IEntityFactory<E> entityFactory;
+        private readonly Stack<Entity> entitiesToRemove = new Stack<Entity>();
+        private readonly Stack<Entity> dirtyEntities = new Stack<Entity>();
 
         private readonly EventBus eventBus = new EventBus();
 
-        public EntityManager(int length, IEntityFactory<E> entityFactory)
+        private const int ChunkSize = 4;
+
+        private Entity[] entities;
+        private readonly Queue<int> freeIndices = new Queue<int>();
+        private int entityCount;
+
+        public EntityManager(int length)
         {
-            this.entityFactory = entityFactory;
             TypeIndexer indexer = new TypeIndexer(length);
-            cm = new ComponentManager<E, B>(indexer);
-            sm = new SystemManager<E, B>(cm, indexer);
-            nm = new NamingManager<E>();
+            cm = new ComponentManager<B>(indexer);
+            sm = new SystemManager<B>(cm, indexer);
+            nm = new NamingManager();
+
+            Grow();
         }
 
-        public E CreateEntity()
+        public Entity CreateEntity()
         {
-            E entity = entityFactory.Get();
-            cm.AddEntity(entity);
-            entities.Add(entity);
+            if (freeIndices.Count == 0) Grow();
+            int index = freeIndices.Dequeue();
+            Entity entity = entities[index];
+
+            ++entityCount;
+
             dirtyEntities.Push(entity);
+
             return entity;
         }
 
-        public void DestroyEntity(E entity)
+        private void Grow()
+        {
+            int startIndex = entities != null ? entities.Length : 0;
+            Array.Resize(ref entities, startIndex + ChunkSize);
+            for (int i = startIndex; i < entities.Length; ++i)
+            {
+                entities[i] = new Entity(this, i, int.MinValue);
+                freeIndices.Enqueue(i);
+            }
+            cm.Grow(entities.Length);
+        }
+
+        public void DestroyEntity(Entity entity)
         {
             CheckStale(entity);
             entitiesToRemove.Push(entity);
         }
 
-        public bool ContainsEntity(E entity) => entities.Contains(entity);
+        public bool ContainsEntity(Entity entity)
+        {
+            int index = entity.Id;
+            return index < entities.Length && entities[index].Version == entity.Version;
+        }
 
-        public void AddComponent<T>(E entity, T component) => AddComponent(entity, component, typeof(T));
-        public void RemoveComponent<T>(E entity) => RemoveComponent(entity, typeof(T));
-        public void RemoveComponent(E entity, object component) => RemoveComponent(entity, component.GetType());
-        public bool HasComponent<T>(E entity) => HasComponent(entity, typeof(T));
-        public T GetComponent<T>(E entity) => GetComponent<T>(entity, typeof(T));
+        public void AddComponent<T>(Entity entity, T component) => AddComponent(entity, component, typeof(T));
+        public void RemoveComponent<T>(Entity entity) => RemoveComponent(entity, typeof(T));
+        public void RemoveComponent(Entity entity, object component) => RemoveComponent(entity, component.GetType());
+        public bool HasComponent<T>(Entity entity) => HasComponent(entity, typeof(T));
+        public T GetComponent<T>(Entity entity) => GetComponent<T>(entity, typeof(T));
 
-        public void AddComponent(E entity, object component, Type type)
+        public void AddComponent(Entity entity, object component, Type type)
         {
             CheckStale(entity);
-            cm.AddComponent(entity, component, type);
+            cm.AddComponent(entity.Id, component, type);
             dirtyEntities.Push(entity);
         }
 
-        public void RemoveComponent(E entity, Type type)
+        public void RemoveComponent(Entity entity, Type type)
         {
             CheckStale(entity);
-            cm.RemoveComponent(entity, type);
+            cm.RemoveComponent(entity.Id, type);
             dirtyEntities.Push(entity);
         }
 
-        public bool HasComponent(E entity, Type type)
+        public bool HasComponent(Entity entity, Type type)
         {
             CheckStale(entity);
-            return cm.HasComponent(entity, type);
+            return cm.HasComponent(entity.Id, type);
         }
 
-        public T GetComponent<T>(E entity, Type type)
+        public T GetComponent<T>(Entity entity, Type type)
         {
             CheckStale(entity);
-            return cm.GetComponent<T>(entity, type);
+            return cm.GetComponent<T>(entity.Id, type);
         }
 
-        public string GetName(E entity)
-        {
-            CheckStale(entity);
-            return nm.GetName(entity);
-        }
-
-        public void SetName(E entity, string name)
-        {
-            CheckStale(entity);
-            nm.SetName(entity, name);
-        }
-
-        public void AddTag(E entity, string tag)
-        {
-            CheckStale(entity);
-            nm.AddTag(entity, tag);
-        }
-
-        public void RemoveTag(E entity, string tag)
-        {
-            CheckStale(entity);
-            nm.RemoveTag(entity, tag);
-        }
-
-        public bool HasTag(E entity, string tag)
-        {
-            CheckStale(entity);
-            return nm.HasTag(entity, tag);
-        }
-
-        public SetEnumerable<E> GetEntitiesWithTag(string tag) => new SetEnumerable<E>(nm.GetEntitiesWithTag(tag));
-
-        public SetEnumerable<string> GetEntityTags(E entity)
-        {
-            CheckStale(entity);
-            return new SetEnumerable<string>(nm.GetEntityTags(entity));
-        }
-
-        public void AddSystem(ISystem<E> system)
+        public void AddSystem(ISystem system)
         {
             system.EntityManager = this;
             system.EventBus = eventBus;
             sm.AddSystem(system);
         }
 
-        public void RemoveSystem(ISystem<E> system)
+        public void RemoveSystem(ISystem system)
         {
             sm.RemoveSystem(system);
             system.EntityManager = null;
         }
 
-        public E? FindEntity(Func<E, bool> predicate)
+        public Entity? FindEntity(Func<Entity, bool> predicate)
         {
-            foreach (E entity in entities) if (predicate(entity)) return entity;
+            foreach (Entity entity in entities) if (predicate(entity)) return entity;
             return null;
         }
 
-        public void FindEntities(Func<E, bool> predicate, ICollection<E> results)
+        public void FindEntities(Func<Entity, bool> predicate, ICollection<Entity> results)
         {
-            foreach (E entity in entities) if (predicate(entity)) results.Add(entity);
+            foreach (Entity entity in entities) if (predicate(entity)) results.Add(entity);
         }
-
-        public SetEnumerable<E> GetAllEntities() => new SetEnumerable<E>(entities);
 
         public void Update(float deltaTime)
         {
@@ -155,26 +138,30 @@ namespace ScatteredLogic.Internal
                 while (entitiesToRemove.Count > 0) InternalRemoveEntity(entitiesToRemove.Pop());
             }
 
-            sm.UpdateSystems(entities, deltaTime);
+            sm.UpdateSystems(entities, entityCount, deltaTime);
             cm.Update();
 
             eventBus.Update();
         }
 
-        private void CheckStale(E entity)
+        private void CheckStale(Entity entity)
         {
 #if DEBUG
-            if (!ContainsEntity(entity)) throw new ArgumentException("E not managed : " + entity);
+            if (!ContainsEntity(entity)) throw new ArgumentException("Entity not managed : " + entity);
 #endif
         }
 
-        private void InternalRemoveEntity(E entity)
+        private void InternalRemoveEntity(Entity entity)
         {
             sm.RemoveEntitySync(entity);
             nm.RemoveEntitySync(entity);
-            cm.RemoveEntitySync(entity);
-            entities.Remove(entity);
-            entityFactory.Return(entity);
+            cm.RemoveEntitySync(entity.Id);
+
+            int index = entity.Id;
+            entities[index] = new Entity(this, index, entity.Version + 1);
+            freeIndices.Enqueue(index);
+
+            --entityCount;
         }
 
     }

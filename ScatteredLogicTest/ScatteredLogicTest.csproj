@@ -52,7 +52,6 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="LabelTest.cs" />
     <Compile Include="EntityManagementTest.cs" />
     <Compile Include="SystemManagementTest.cs" />
   </ItemGroup>

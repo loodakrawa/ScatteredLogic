@@ -8,12 +8,12 @@ using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
 {
-    internal sealed class ComponentManager<E, B> where B : IBitmask<B>
+    internal sealed class ComponentManager<B> where B : IBitmask<B>
     {
-        private readonly Dictionary<E, B> masks = new Dictionary<E, B>();
-        private readonly Dictionary<Type, Dictionary<E, object>> components = new Dictionary<Type, Dictionary<E, object>>();
+        private B[] masks;
+        private readonly Dictionary<Type, Dictionary<int, object>> components = new Dictionary<Type, Dictionary<int, object>>();
 
-        private readonly List<Pair<E, Type>> componentsToRemove = new List<Pair<E, Type>>();
+        private readonly List<Pair<int, Type>> componentsToRemove = new List<Pair<int, Type>>();
 
         private readonly TypeIndexer indexer;
 
@@ -22,17 +22,22 @@ namespace ScatteredLogic.Internal
             this.indexer = indexer;
         }
 
-        public void AddComponent(E entity, object component, Type type)
+        public void Grow(int count)
+        {
+            Array.Resize(ref masks, count);
+        }
+
+        public void AddComponent(int entity, object component, Type type)
         {
             int compId = indexer.GetIndex(type);
 
             // set component bit
             masks[entity] = masks[entity].Set(compId);
 
-            Dictionary<E, object> ce = components.TryGet(type);
+            Dictionary<int, object> ce = components.TryGet(type);
             if (ce == null)
             {
-                ce = new Dictionary<E, object>();
+                ce = new Dictionary<int, object>();
                 components[type] = ce;
             }
 
@@ -40,7 +45,7 @@ namespace ScatteredLogic.Internal
             ce[entity] = component;
         }
 
-        public void RemoveComponent(E entity, Type type)
+        public void RemoveComponent(int entity, Type type)
         {
             // clear bit
             masks[entity] = masks[entity].Clear(indexer.GetIndex(type));
@@ -49,49 +54,43 @@ namespace ScatteredLogic.Internal
             componentsToRemove.Add(Pair.Of(entity, type));
         }
 
-        public bool HasComponent(E entity, Type type)
+        public bool HasComponent(int entity, Type type)
         {
-            Dictionary<E, object> ce = components.TryGet(type);
+            Dictionary<int, object> ce = components.TryGet(type);
             return ce != null ? ce.ContainsKey(entity) : false;
         }
 
-        public T GetComponent<T>(E entity, Type type)
+        public T GetComponent<T>(int entity, Type type)
         {
-            Dictionary<E, object> ce = components.TryGet(type);
+            Dictionary<int, object> ce = components.TryGet(type);
             if (ce == null) return default(T);
             return (T)ce.TryGet(entity);
         }
 
-        public void AddEntity(E entity)
-        {
-            masks[entity] = default(B);
-        }
-
-        public B GetBitmask(E entity) => masks.TryGet(entity);
+        public B GetBitmask(int entity) => masks[entity];
 
         public void Update()
         {
             foreach (var entry in componentsToRemove)
             {
-                E entity = entry.Item1;
+                int entity = entry.Item1;
                 Type type = entry.Item2;
 
                 // remove only if bitmask is not set
-                B mask;
-                bool hasMask = masks.TryGetValue(entity, out mask);
-                if(!hasMask || !mask.Get(indexer.GetIndex(type))) components[entry.Item2].Remove(entry.Item1);
+                B mask = masks[entity];
+                if(!mask.Get(indexer.GetIndex(type))) components[entry.Item2].Remove(entry.Item1);
             }
             componentsToRemove.Clear();
         }
 
-        public void ClearMask(E entity)
+        public void ClearMask(int entity)
         {
             masks[entity] = default(B);
         }
 
-        public void RemoveEntitySync(E entity)
+        public void RemoveEntitySync(int entity)
         {
-            masks.Remove(entity);
+            masks[entity] = default(B);
             foreach (var entry in components) entry.Value.Remove(entity);
         }
 

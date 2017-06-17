@@ -4,7 +4,6 @@
 // of the zlib license.  See the LICENSE file for details.
 
 using ScatteredLogic.Internal;
-using System;
 
 namespace ScatteredLogic
 {
@@ -17,26 +16,19 @@ namespace ScatteredLogic
 
     public static class EntityManagerFactory
     {
-        public static IEntityManager<Entity> Create(BitmaskSize type)
+        public static IEntityManager Create(BitmaskSize type)
         {
-            EntityFactory ef = new EntityFactory();
-            IEntityManager<Entity> em = InternalCreate(type, ef);
-            ef.EntityManager = em;
+            IEntityManager em = InternalCreate(type);
             return em;
         }
 
-        public static IEntityManager<E> Create<E>(BitmaskSize type, IEntityFactory<E> entityFactory) where E : struct, IEquatable<E>
-        {
-            return InternalCreate(type, entityFactory);
-        }
-
-        private static IEntityManager<E> InternalCreate<E>(BitmaskSize type, IEntityFactory<E> entityFactory) where E : struct, IEquatable<E>
+        private static IEntityManager InternalCreate(BitmaskSize type)
         {
             switch (type)
             {
-                case BitmaskSize.Bit32: return new EntityManager<E, Bitmask32>(32, entityFactory);
-                case BitmaskSize.Bit64: return new EntityManager<E, Bitmask64>(64, entityFactory);
-                case BitmaskSize.Bit128: return new EntityManager<E, Bitmask32>(128, entityFactory);
+                case BitmaskSize.Bit32: return new EntityManager<Bitmask32>(32);
+                case BitmaskSize.Bit64: return new EntityManager<Bitmask64>(64);
+                case BitmaskSize.Bit128: return new EntityManager<Bitmask128>(128);
                 default: return null;
             }
         }

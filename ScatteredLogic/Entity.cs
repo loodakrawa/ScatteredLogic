@@ -10,24 +10,16 @@ namespace ScatteredLogic
     public struct Entity : IEquatable<Entity>
     {
         public readonly int Id;
+        public readonly int Version;
 
-        public string Name
-        {
-            get { return entityManager.GetName(this); }
-            set { entityManager.SetName(this, value); }
-        }
+        private readonly IEntityManager entityManager;
 
-        private readonly IEntityManager<Entity> entityManager;
-
-        public Entity(IEntityManager<Entity> entityManager, int id)
+        public Entity(IEntityManager entityManager, int id, int version)
         {
             Id = id;
+            Version = version;
             this.entityManager = entityManager;
         }
-
-        public void AddTag(string tag) => entityManager.AddTag(this, tag);
-        public void RemoveTag(string tag) => entityManager.RemoveTag(this, tag);
-        public SetEnumerable<string> GetTags() => entityManager.GetEntityTags(this);
 
         public void AddComponent<T>(T component) => entityManager.AddComponent(this, component);
         public void AddComponent(object component, Type type) => entityManager.AddComponent(this, component, type);
