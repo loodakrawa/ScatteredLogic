@@ -12,9 +12,6 @@ namespace ScatteredLogic.Internal
     {
         private Dictionary<Type, int?> componentIndexes = new Dictionary<Type, int?>();
 
-        public int GetIndex(object obj) => GetIndex(obj.GetType());
-        public int GetIndex<T>() => GetIndex(typeof(T));
-
         public readonly int Max;
         public int Count => componentIndexes.Count;
 

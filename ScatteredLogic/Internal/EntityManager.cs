@@ -10,7 +10,9 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class EntityManager<B> : IEntityManager where B : IBitmask<B>
     {
-        public EventBus EventBus => this.eventBus;
+        public EventBus EventBus => eventBus;
+
+        private readonly TypeIndexer indexer;
 
         private readonly ComponentManager<B> cm;
         private readonly SystemManager<B> sm;
@@ -21,25 +23,27 @@ namespace ScatteredLogic.Internal
 
         private readonly EventBus eventBus = new EventBus();
 
-        private const int ChunkSize = 4;
+        private readonly int growthSize;
 
         private Entity[] entities;
         private readonly Queue<int> freeIndices = new Queue<int>();
         private int entityCount;
 
-        public EntityManager(int length)
+        public EntityManager(int maxComponentCount, int initialSize, int growthSize)
         {
-            TypeIndexer indexer = new TypeIndexer(length);
-            cm = new ComponentManager<B>(indexer);
+            indexer = new TypeIndexer(maxComponentCount);
+            cm = new ComponentManager<B>(maxComponentCount);
             sm = new SystemManager<B>(cm, indexer);
             nm = new NamingManager();
 
-            Grow();
+            this.growthSize = growthSize;
+
+            Grow(initialSize);
         }
 
         public Entity CreateEntity()
         {
-            if (freeIndices.Count == 0) Grow();
+            if (freeIndices.Count == 0) Grow(growthSize);
             int index = freeIndices.Dequeue();
             Entity entity = entities[index];
 
@@ -50,10 +54,10 @@ namespace ScatteredLogic.Internal
             return entity;
         }
 
-        private void Grow()
+        private void Grow(int size)
         {
             int startIndex = entities != null ? entities.Length : 0;
-            Array.Resize(ref entities, startIndex + ChunkSize);
+            Array.Resize(ref entities, startIndex + size);
             for (int i = startIndex; i < entities.Length; ++i)
             {
                 entities[i] = new Entity(this, i, int.MinValue);
@@ -66,6 +70,7 @@ namespace ScatteredLogic.Internal
         {
             CheckStale(entity);
             entitiesToRemove.Push(entity);
+            --entityCount;
         }
 
         public bool ContainsEntity(Entity entity)
@@ -74,36 +79,42 @@ namespace ScatteredLogic.Internal
             return index < entities.Length && entities[index].Version == entity.Version;
         }
 
-        public void AddComponent<T>(Entity entity, T component) => AddComponent(entity, component, typeof(T));
+        
         public void RemoveComponent<T>(Entity entity) => RemoveComponent(entity, typeof(T));
         public void RemoveComponent(Entity entity, object component) => RemoveComponent(entity, component.GetType());
         public bool HasComponent<T>(Entity entity) => HasComponent(entity, typeof(T));
-        public T GetComponent<T>(Entity entity) => GetComponent<T>(entity, typeof(T));
+
+        public void AddComponent<T>(Entity entity, T component)
+        {
+            CheckStale(entity);
+            cm.AddComponent(entity.Id, component, indexer.GetIndex(typeof(T)));
+            dirtyEntities.Push(entity);
+        }
 
         public void AddComponent(Entity entity, object component, Type type)
         {
             CheckStale(entity);
-            cm.AddComponent(entity.Id, component, type);
+            cm.AddComponent(entity.Id, component, indexer.GetIndex(type), type);
             dirtyEntities.Push(entity);
         }
 
         public void RemoveComponent(Entity entity, Type type)
         {
             CheckStale(entity);
-            cm.RemoveComponent(entity.Id, type);
+            cm.RemoveComponent(entity.Id, indexer.GetIndex(type));
             dirtyEntities.Push(entity);
         }
 
         public bool HasComponent(Entity entity, Type type)
         {
             CheckStale(entity);
-            return cm.HasComponent(entity.Id, type);
+            return cm.HasComponent(entity.Id, indexer.GetIndex(type));
         }
 
-        public T GetComponent<T>(Entity entity, Type type)
+        public T GetComponent<T>(Entity entity)
         {
             CheckStale(entity);
-            return cm.GetComponent<T>(entity.Id, type);
+            return cm.GetComponent<T>(entity.Id, indexer.GetIndex(typeof(T)));
         }
 
         public void AddSystem(ISystem system)

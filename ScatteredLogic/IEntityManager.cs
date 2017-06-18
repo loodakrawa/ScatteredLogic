@@ -24,7 +24,6 @@ namespace ScatteredLogic
         bool HasComponent<T>(Entity entity);
         bool HasComponent(Entity entity, Type type);
         T GetComponent<T>(Entity entity);
-        T GetComponent<T>(Entity entity, Type type);
 
         void AddSystem(ISystem system);
         void RemoveSystem(ISystem system);

@@ -29,7 +29,6 @@ namespace ScatteredLogic
         public bool HasComponent<T>() => entityManager.HasComponent<T>(this);
         public bool HasComponent(Type type) => entityManager.HasComponent(this, type);
         public T GetComponent<T>() => entityManager.GetComponent<T>(this);
-        public T GetComponent<T>(Type type) => entityManager.GetComponent<T>(this, type);
         public void Destroy() => entityManager.DestroyEntity(this);
 
         public bool Equals(Entity other) => Id == other.Id;

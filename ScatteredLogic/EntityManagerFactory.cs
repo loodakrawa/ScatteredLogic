@@ -16,19 +16,16 @@ namespace ScatteredLogic
 
     public static class EntityManagerFactory
     {
-        public static IEntityManager Create(BitmaskSize type)
-        {
-            IEntityManager em = InternalCreate(type);
-            return em;
-        }
+        private const int DefaultInitialSize = 64;
+        private const int DefaultGrowthSize = 32;
 
-        private static IEntityManager InternalCreate(BitmaskSize type)
+        public static IEntityManager Create(BitmaskSize type, int initialSize = DefaultInitialSize, int growthSize = DefaultGrowthSize)
         {
             switch (type)
             {
-                case BitmaskSize.Bit32: return new EntityManager<Bitmask32>(32);
-                case BitmaskSize.Bit64: return new EntityManager<Bitmask64>(64);
-                case BitmaskSize.Bit128: return new EntityManager<Bitmask128>(128);
+                case BitmaskSize.Bit32: return new EntityManager<Bitmask32>(32, initialSize, growthSize);
+                case BitmaskSize.Bit64: return new EntityManager<Bitmask64>(32, initialSize, growthSize);
+                case BitmaskSize.Bit128: return new EntityManager<Bitmask128>(32, initialSize, growthSize);
                 default: return null;
             }
         }

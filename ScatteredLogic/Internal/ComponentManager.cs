@@ -11,60 +11,75 @@ namespace ScatteredLogic.Internal
     internal sealed class ComponentManager<B> where B : IBitmask<B>
     {
         private B[] masks;
-        private object[][] components;
-
+        private IVector[] components;
+        private int entityCount;
         private readonly List<Pair<int, int>> componentsToRemove = new List<Pair<int, int>>();
 
-        private readonly TypeIndexer indexer;
-
-        public ComponentManager(TypeIndexer indexer)
+        public ComponentManager(int maxComponentCount)
         {
-            this.indexer = indexer;
-            components = new object[indexer.Max][];
+            components = new IVector[maxComponentCount];
         }
 
-        public void Grow(int count)
+        public void Grow(int entityCount)
         {
-            Array.Resize(ref masks, count);
-            for (int i = 0; i < indexer.Count; ++i) Array.Resize(ref components[i], count);
+            this.entityCount = entityCount;
+            Array.Resize(ref masks, entityCount);
+            for (int i = 0; i < components.Length; ++i) components[i]?.Grow(entityCount);
         }
 
-        public void AddComponent(int entity, object component, Type type)
+        public void AddComponent<T>(int entity, T component, int type)
         {
-            int compId = indexer.GetIndex(type);
+            Vector<T> comps = components[type] as Vector<T>;
+            if(comps == null)
+            {
+                comps = new Vector<T>(entityCount);
+                components[type] = comps;
+            }
 
             // set component bit
-            masks[entity] = masks[entity].Set(compId);
-
-            if (components[compId] == null) components[compId] = new object[masks.Length];
+            masks[entity] = masks[entity].Set(type);
 
             // add componenet immediately
-            var comps = components[compId][entity] = component;
+            comps[entity] = component;
         }
 
-        public void RemoveComponent(int entity, Type type)
+        public void AddComponent(int entity, object component, int type, Type compType)
         {
-            int compId = indexer.GetIndex(type);
+            IVector comps = components[type];
+            if (comps == null)
+            {
+                var listType = typeof(Vector<>).MakeGenericType(compType);
+                comps = Activator.CreateInstance(listType) as IVector;
+                comps.Grow(entityCount);
+                components[type] = comps;
+            }
 
+            // set component bit
+            masks[entity] = masks[entity].Set(type);
+
+            // add componenet immediately
+            comps.SetElementAt(component, entity);
+        }
+
+        public void RemoveComponent(int entity, int type)
+        {
             // clear bit
-            masks[entity] = masks[entity].Clear(compId);
+            masks[entity] = masks[entity].Clear(type);
 
             // add it fo later removal
-            componentsToRemove.Add(Pair.Of(entity, compId));
+            componentsToRemove.Add(Pair.Of(entity, type));
         }
 
-        public bool HasComponent(int entity, Type type)
+        public bool HasComponent(int entity, int type)
         {
-            int compId = indexer.GetIndex(type);
-            object[] comps = components[compId];
-            return comps != null && comps[entity] != null;
+            IVector comps = components[type];
+            return comps != null && comps.HasElementAt(entity);
         }
 
-        public T GetComponent<T>(int entity, Type type)
+        public T GetComponent<T>(int entity, int type)
         {
-            int compId = indexer.GetIndex(type);
-            object[] comps = components[compId];
-            return comps != null ? (T) components[compId][entity] : default(T);
+            Vector<T> comps = components[type] as Vector<T>;
+            return comps != null ? comps[entity] : default(T);
         }
 
         public B GetBitmask(int entity) => masks[entity];
@@ -78,7 +93,7 @@ namespace ScatteredLogic.Internal
 
                 // remove only if bitmask is not set
                 B mask = masks[entity];
-                if(!mask.Get(compId)) components[compId][entity] = null;
+                if(!mask.Get(compId)) components[compId].RemoveElementAt(entity);
             }
             componentsToRemove.Clear();
         }
@@ -91,10 +106,10 @@ namespace ScatteredLogic.Internal
         public void RemoveEntitySync(int entity)
         {
             masks[entity] = default(B);
-            for (int i = 0; i < indexer.Count; ++i)
+            for (int i = 0; i < components.Length; ++i)
             {
-                object[] comps = components[i];
-                if (comps != null) comps[entity] = null;
+                IVector comps = components[i];
+                if (comps != null) comps.RemoveElementAt(entity);
             }
         }
 
