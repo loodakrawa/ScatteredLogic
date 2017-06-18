@@ -11,20 +11,22 @@ namespace ScatteredLogic.Internal
     internal sealed class ComponentManager<B> where B : IBitmask<B>
     {
         private B[] masks;
-        private readonly Dictionary<Type, Dictionary<int, object>> components = new Dictionary<Type, Dictionary<int, object>>();
+        private object[][] components;
 
-        private readonly List<Pair<int, Type>> componentsToRemove = new List<Pair<int, Type>>();
+        private readonly List<Pair<int, int>> componentsToRemove = new List<Pair<int, int>>();
 
         private readonly TypeIndexer indexer;
 
         public ComponentManager(TypeIndexer indexer)
         {
             this.indexer = indexer;
+            components = new object[indexer.Max][];
         }
 
         public void Grow(int count)
         {
             Array.Resize(ref masks, count);
+            for (int i = 0; i < indexer.Count; ++i) Array.Resize(ref components[i], count);
         }
 
         public void AddComponent(int entity, object component, Type type)
@@ -34,37 +36,35 @@ namespace ScatteredLogic.Internal
             // set component bit
             masks[entity] = masks[entity].Set(compId);
 
-            Dictionary<int, object> ce = components.TryGet(type);
-            if (ce == null)
-            {
-                ce = new Dictionary<int, object>();
-                components[type] = ce;
-            }
+            if (components[compId] == null) components[compId] = new object[masks.Length];
 
             // add componenet immediately
-            ce[entity] = component;
+            var comps = components[compId][entity] = component;
         }
 
         public void RemoveComponent(int entity, Type type)
         {
+            int compId = indexer.GetIndex(type);
+
             // clear bit
-            masks[entity] = masks[entity].Clear(indexer.GetIndex(type));
+            masks[entity] = masks[entity].Clear(compId);
 
             // add it fo later removal
-            componentsToRemove.Add(Pair.Of(entity, type));
+            componentsToRemove.Add(Pair.Of(entity, compId));
         }
 
         public bool HasComponent(int entity, Type type)
         {
-            Dictionary<int, object> ce = components.TryGet(type);
-            return ce != null ? ce.ContainsKey(entity) : false;
+            int compId = indexer.GetIndex(type);
+            object[] comps = components[compId];
+            return comps != null && comps[entity] != null;
         }
 
         public T GetComponent<T>(int entity, Type type)
         {
-            Dictionary<int, object> ce = components.TryGet(type);
-            if (ce == null) return default(T);
-            return (T)ce.TryGet(entity);
+            int compId = indexer.GetIndex(type);
+            object[] comps = components[compId];
+            return comps != null ? (T) components[compId][entity] : default(T);
         }
 
         public B GetBitmask(int entity) => masks[entity];
@@ -74,11 +74,11 @@ namespace ScatteredLogic.Internal
             foreach (var entry in componentsToRemove)
             {
                 int entity = entry.Item1;
-                Type type = entry.Item2;
+                int compId = entry.Item2;
 
                 // remove only if bitmask is not set
                 B mask = masks[entity];
-                if(!mask.Get(indexer.GetIndex(type))) components[entry.Item2].Remove(entry.Item1);
+                if(!mask.Get(compId)) components[compId][entity] = null;
             }
             componentsToRemove.Clear();
         }
@@ -91,7 +91,11 @@ namespace ScatteredLogic.Internal
         public void RemoveEntitySync(int entity)
         {
             masks[entity] = default(B);
-            foreach (var entry in components) entry.Value.Remove(entity);
+            for (int i = 0; i < indexer.Count; ++i)
+            {
+                object[] comps = components[i];
+                if (comps != null) comps[entity] = null;
+            }
         }
 
         private static class Pair

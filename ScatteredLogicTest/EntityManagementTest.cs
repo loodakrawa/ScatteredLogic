@@ -91,6 +91,20 @@ namespace ScatteredLogicTest
         }
 
         [TestMethod]
+        public void NoComponent_HasComponent()
+        {
+            Entity entity = em.CreateEntity();
+            Assert.IsFalse(em.HasComponent<string>(entity));
+        }
+
+        [TestMethod]
+        public void NoComponent_GetComponent()
+        {
+            Entity entity = em.CreateEntity();
+            Assert.IsNull(em.GetComponent<string>(entity));
+        }
+
+        [TestMethod]
         public void AddComponentAndUpdate_HasComponent()
         {
             Entity entity = em.CreateEntity();

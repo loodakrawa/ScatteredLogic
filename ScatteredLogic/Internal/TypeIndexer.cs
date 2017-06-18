@@ -15,11 +15,12 @@ namespace ScatteredLogic.Internal
         public int GetIndex(object obj) => GetIndex(obj.GetType());
         public int GetIndex<T>() => GetIndex(typeof(T));
 
-        private readonly int max;
+        public readonly int Max;
+        public int Count => componentIndexes.Count;
 
         public TypeIndexer(int max)
         {
-            this.max = max;
+            Max = max;
         }
 
         public int GetIndex(Type type)
@@ -31,7 +32,7 @@ namespace ScatteredLogic.Internal
 
             index = componentIndexes.Count;
 
-            if (index >= max) throw new Exception("Number of components Exceeded: " + max);
+            if (index >= Max) throw new Exception("Number of components Exceeded: " + Max);
 
             componentIndexes[type] = index;
 
