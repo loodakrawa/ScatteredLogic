@@ -31,10 +31,6 @@ namespace ScatteredLogic
         public void RemoveComponent(object component) => entityManager.RemoveComponent(this, component);
         public void RemoveComponent(int typeId) => entityManager.RemoveComponent(this, typeId);
 
-        public bool HasComponent<T>() => entityManager.HasComponent<T>(this);
-        public bool HasComponent(Type type) => entityManager.HasComponent(this, type);
-        public bool HasComponent(int typeId) => entityManager.HasComponent(this, typeId);
-
         public T GetComponent<T>() => entityManager.GetComponent<T>(this);
         public object GetComponent(Type type) => entityManager.GetComponent(this, type);
         public T GetComponent<T>(int typeId) => entityManager.GetComponent<T>(this, typeId);

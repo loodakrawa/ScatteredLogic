@@ -104,15 +104,6 @@ namespace ScatteredLogic.Internal
             dirtyEntities.Push(entity);
         }
 
-        public bool HasComponent<T>(Entity entity) => HasComponent(entity, typeof(T));
-        public bool HasComponent(Entity entity, Type type) => HasComponent(entity, indexer.GetTypeId(type));
-
-        public bool HasComponent(Entity entity, int typeId)
-        {
-            CheckStale(entity);
-            return cm.HasComponent(entity.Id, typeId);
-        }
-
         public T GetComponent<T>(Entity entity) => GetComponent<T>(entity, indexer.GetTypeId(typeof(T)));
 
         public object GetComponent(Entity entity, Type type)

@@ -70,12 +70,6 @@ namespace ScatteredLogic.Internal
             componentsToRemove.Add(Pair.Of(entity, type));
         }
 
-        public bool HasComponent(int entity, int type)
-        {
-            IComponentArray comps = components[type];
-            return comps != null && comps.HasElementAt(entity);
-        }
-
         public T GetComponent<T>(int entity, int type)
         {
             ComponentArray<T> comps = components[type] as ComponentArray<T>;

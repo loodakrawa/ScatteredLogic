@@ -24,10 +24,6 @@ namespace ScatteredLogic
         void RemoveComponent(Entity entity, object component);
         void RemoveComponent(Entity entity, int typeId);
 
-        bool HasComponent<T>(Entity entity);
-        bool HasComponent(Entity entity, Type type);
-        bool HasComponent(Entity entity, int typeId);
-
         T GetComponent<T>(Entity entity);
         object GetComponent(Entity entity, Type type);
         T GetComponent<T>(Entity entity, int typeId);
