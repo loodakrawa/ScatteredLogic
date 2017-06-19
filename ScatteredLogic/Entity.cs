@@ -14,22 +14,30 @@ namespace ScatteredLogic
 
         private readonly IEntityManager entityManager;
 
-        public Entity(IEntityManager entityManager, int id, int version)
+        internal Entity(IEntityManager entityManager, int id, int version)
         {
             Id = id;
             Version = version;
             this.entityManager = entityManager;
         }
 
+        public void Destroy() => entityManager.DestroyEntity(this);
+
         public void AddComponent<T>(T component) => entityManager.AddComponent(this, component);
         public void AddComponent(object component, Type type) => entityManager.AddComponent(this, component, type);
+
         public void RemoveComponent<T>() => entityManager.RemoveComponent<T>(this);
         public void RemoveComponent(Type type) => entityManager.RemoveComponent(this, type);
         public void RemoveComponent(object component) => entityManager.RemoveComponent(this, component);
+        public void RemoveComponent(int typeId) => entityManager.RemoveComponent(this, typeId);
+
         public bool HasComponent<T>() => entityManager.HasComponent<T>(this);
         public bool HasComponent(Type type) => entityManager.HasComponent(this, type);
+        public bool HasComponent(int typeId) => entityManager.HasComponent(this, typeId);
+
         public T GetComponent<T>() => entityManager.GetComponent<T>(this);
-        public void Destroy() => entityManager.DestroyEntity(this);
+        public object GetComponent(Type type) => entityManager.GetComponent(this, type);
+        public T GetComponent<T>(int typeId) => entityManager.GetComponent<T>(this, typeId);
 
         public bool Equals(Entity other) => Id == other.Id;
         public override bool Equals(object obj) => obj is Entity ? Equals((Entity)obj) : false;

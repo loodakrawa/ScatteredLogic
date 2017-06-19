@@ -9,13 +9,22 @@ namespace ScatteredGameExample.Systems
     {
         public override IEnumerable<Type> RequiredComponents => Types.From<Velocity, Transform>();
 
+        private Transform[] transforms;
+        private Velocity[] velocities;
+
+        public override void Added()
+        {
+            base.Added();
+
+            transforms = EntityManager.GetComponents<Transform>();
+            velocities = EntityManager.GetComponents<Velocity>();
+        }
+
         public override void Update(float deltaTime)
         {
             foreach(Entity entity in Entities)
             {
-                Transform transform = entity.GetComponent<Transform>();
-                Velocity velocity = entity.GetComponent<Velocity>();
-                transform.Position += velocity.Speed * deltaTime;
+                transforms[entity.Id].Position += velocities[entity.Id].Speed * deltaTime;
             }
         }
     }

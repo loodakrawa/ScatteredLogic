@@ -4,6 +4,8 @@ namespace ScatteredLogic.Internal
 {
     public class Vector<T> : IVector
     {
+        public T[] Data => data;
+
         private T[] data;
         private bool[] flags;
 
@@ -44,10 +46,9 @@ namespace ScatteredLogic.Internal
             Array.Resize(ref flags, capacity);
         }
 
-        public void SetElementAt(object element, int index)
-        {
-            this[index] = (T) element;
-        }
+        public void SetElementAt(object element, int index) => this[index] = (T) element;
+        
+        public object GetElementAt(int index) => this[index];
     }
 
     public interface IVector
@@ -56,5 +57,6 @@ namespace ScatteredLogic.Internal
         void RemoveElementAt(int index);
         bool HasElementAt(int index);
         void SetElementAt(object element, int index);
+        object GetElementAt(int index);
     }
 }

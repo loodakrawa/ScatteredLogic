@@ -20,7 +20,7 @@ namespace ScatteredLogic.Internal
             Max = max;
         }
 
-        public int GetIndex(Type type)
+        public int GetTypeId(Type type)
         {
             int? index;
             componentIndexes.TryGetValue(type, out index);

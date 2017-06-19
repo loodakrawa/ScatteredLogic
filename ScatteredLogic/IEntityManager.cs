@@ -18,12 +18,25 @@ namespace ScatteredLogic
 
         void AddComponent<T>(Entity entity, T component);
         void AddComponent(Entity entity, object component, Type type);
+
         void RemoveComponent<T>(Entity entity);
         void RemoveComponent(Entity entity, Type type);
         void RemoveComponent(Entity entity, object component);
+        void RemoveComponent(Entity entity, int typeId);
+
         bool HasComponent<T>(Entity entity);
         bool HasComponent(Entity entity, Type type);
+        bool HasComponent(Entity entity, int typeId);
+
         T GetComponent<T>(Entity entity);
+        object GetComponent(Entity entity, Type type);
+        T GetComponent<T>(Entity entity, int typeId);
+
+        T[] GetComponents<T>();
+        T[] GetComponents<T>(int typeId);
+
+        int GetTypeId<T>();
+        int GetTypeId(Type type);
 
         void AddSystem(ISystem system);
         void RemoveSystem(ISystem system);

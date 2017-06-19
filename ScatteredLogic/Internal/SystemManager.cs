@@ -33,7 +33,7 @@ namespace ScatteredLogic.Internal
             B bm = default(B);
             foreach (Type requiredType in system.RequiredComponents)
             {
-                int componentIndex = componentIndexer.GetIndex(requiredType);
+                int componentIndex = componentIndexer.GetTypeId(requiredType);
                 bm = bm.Set(componentIndex);
             }
 

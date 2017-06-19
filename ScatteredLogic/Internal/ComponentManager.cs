@@ -82,6 +82,23 @@ namespace ScatteredLogic.Internal
             return comps != null ? comps[entity] : default(T);
         }
 
+        public object GetComponent(int entity, int type)
+        {
+            IVector comps = components[type];
+            return comps != null ? comps.GetElementAt(entity) : null;
+        }
+
+        public T[] GetComponents<T>(int type)
+        {
+            Vector<T> comps = components[type] as Vector<T>;
+            if (comps == null)
+            {
+                comps = new Vector<T>(entityCount);
+                components[type] = comps;
+            }
+            return comps.Data;
+        }
+
         public B GetBitmask(int entity) => masks[entity];
 
         public void Update()

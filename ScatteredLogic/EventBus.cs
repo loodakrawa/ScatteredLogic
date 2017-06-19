@@ -14,7 +14,7 @@ namespace ScatteredLogic
         public void Register<T>(Action<T> listener) => GetOrCreateEventQueue<T>().Register(listener);
         public void Deregister<T>(Action<T> listener)
         {
-            int typeIndex = indexer.GetIndex(typeof(T));
+            int typeIndex = indexer.GetTypeId(typeof(T));
             if (typeIndex >= eventQueues.Count) return;
             (eventQueues[typeIndex] as EventQueue<T>).DeRegister(listener);
         }
@@ -36,7 +36,7 @@ namespace ScatteredLogic
 
         private EventQueue<T> GetOrCreateEventQueue<T>()
         {
-            int typeIndex = indexer.GetIndex(typeof(T));
+            int typeIndex = indexer.GetTypeId(typeof(T));
             if (typeIndex >= eventQueues.Count) eventQueues.Add(new EventQueue<T>());
             return eventQueues[typeIndex] as EventQueue<T>;
         }

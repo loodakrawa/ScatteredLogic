@@ -77,44 +77,54 @@ namespace ScatteredLogic.Internal
         {
             int index = entity.Id;
             return index < entities.Length && entities[index].Version == entity.Version;
-        }
-
-        
-        public void RemoveComponent<T>(Entity entity) => RemoveComponent(entity, typeof(T));
-        public void RemoveComponent(Entity entity, object component) => RemoveComponent(entity, component.GetType());
-        public bool HasComponent<T>(Entity entity) => HasComponent(entity, typeof(T));
+        }     
 
         public void AddComponent<T>(Entity entity, T component)
         {
             CheckStale(entity);
-            cm.AddComponent(entity.Id, component, indexer.GetIndex(typeof(T)));
+            cm.AddComponent(entity.Id, component, indexer.GetTypeId(typeof(T)));
             dirtyEntities.Push(entity);
         }
 
         public void AddComponent(Entity entity, object component, Type type)
         {
             CheckStale(entity);
-            cm.AddComponent(entity.Id, component, indexer.GetIndex(type), type);
+            cm.AddComponent(entity.Id, component, indexer.GetTypeId(type), type);
             dirtyEntities.Push(entity);
         }
 
-        public void RemoveComponent(Entity entity, Type type)
+        public void RemoveComponent<T>(Entity entity) => RemoveComponent(entity, indexer.GetTypeId(typeof(T)));
+        public void RemoveComponent(Entity entity, object component) => RemoveComponent(entity, indexer.GetTypeId(component.GetType()));
+        public void RemoveComponent(Entity entity, Type type) => RemoveComponent(entity, indexer.GetTypeId(type));
+
+        public void RemoveComponent(Entity entity, int typeId)
         {
             CheckStale(entity);
-            cm.RemoveComponent(entity.Id, indexer.GetIndex(type));
+            cm.RemoveComponent(entity.Id, typeId);
             dirtyEntities.Push(entity);
         }
 
-        public bool HasComponent(Entity entity, Type type)
+        public bool HasComponent<T>(Entity entity) => HasComponent(entity, typeof(T));
+        public bool HasComponent(Entity entity, Type type) => HasComponent(entity, indexer.GetTypeId(type));
+
+        public bool HasComponent(Entity entity, int typeId)
         {
             CheckStale(entity);
-            return cm.HasComponent(entity.Id, indexer.GetIndex(type));
+            return cm.HasComponent(entity.Id, typeId);
         }
 
-        public T GetComponent<T>(Entity entity)
+        public T GetComponent<T>(Entity entity) => GetComponent<T>(entity, indexer.GetTypeId(typeof(T)));
+
+        public object GetComponent(Entity entity, Type type)
         {
             CheckStale(entity);
-            return cm.GetComponent<T>(entity.Id, indexer.GetIndex(typeof(T)));
+            return cm.GetComponent(entity.Id, indexer.GetTypeId(type));
+        }
+
+        public T GetComponent<T>(Entity entity, int typeId)
+        {
+            CheckStale(entity);
+            return cm.GetComponent<T>(entity.Id, typeId);
         }
 
         public void AddSystem(ISystem system)
@@ -129,6 +139,14 @@ namespace ScatteredLogic.Internal
             sm.RemoveSystem(system);
             system.EntityManager = null;
         }
+
+        public int GetTypeId<T>() => GetTypeId(typeof(T));
+
+        public int GetTypeId(Type type) => indexer.GetTypeId(type);
+
+        public T[] GetComponents<T>() => GetComponents<T>(indexer.GetTypeId(typeof(T)));
+
+        public T[] GetComponents<T>(int typeId) => cm.GetComponents<T>(typeId);
 
         public Entity? FindEntity(Func<Entity, bool> predicate)
         {
