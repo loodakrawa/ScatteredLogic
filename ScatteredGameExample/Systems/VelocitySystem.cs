@@ -9,8 +9,8 @@ namespace ScatteredGameExample.Systems
     {
         public override IEnumerable<Type> RequiredComponents => Types.From<Velocity, Transform>();
 
-        private Transform[] transforms;
-        private Velocity[] velocities;
+        private IArray<Transform> transforms;
+        private IArray<Velocity> velocities;
 
         public override void Added()
         {

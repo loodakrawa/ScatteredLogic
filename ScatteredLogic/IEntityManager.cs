@@ -32,8 +32,8 @@ namespace ScatteredLogic
         object GetComponent(Entity entity, Type type);
         T GetComponent<T>(Entity entity, int typeId);
 
-        T[] GetComponents<T>();
-        T[] GetComponents<T>(int typeId);
+        IArray<T> GetComponents<T>();
+        IArray<T> GetComponents<T>(int typeId);
 
         int GetTypeId<T>();
         int GetTypeId(Type type);

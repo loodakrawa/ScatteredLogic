@@ -24,8 +24,8 @@ namespace ScatteredLogic
             switch (type)
             {
                 case BitmaskSize.Bit32: return new EntityManager<Bitmask32>(32, initialSize, growthSize);
-                case BitmaskSize.Bit64: return new EntityManager<Bitmask64>(32, initialSize, growthSize);
-                case BitmaskSize.Bit128: return new EntityManager<Bitmask128>(32, initialSize, growthSize);
+                case BitmaskSize.Bit64: return new EntityManager<Bitmask64>(64, initialSize, growthSize);
+                case BitmaskSize.Bit128: return new EntityManager<Bitmask128>(128, initialSize, growthSize);
                 default: return null;
             }
         }

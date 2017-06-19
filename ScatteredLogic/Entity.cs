@@ -39,7 +39,7 @@ namespace ScatteredLogic
         public object GetComponent(Type type) => entityManager.GetComponent(this, type);
         public T GetComponent<T>(int typeId) => entityManager.GetComponent<T>(this, typeId);
 
-        public bool Equals(Entity other) => Id == other.Id;
+        public bool Equals(Entity other) => Id == other.Id && Version == other.Version;
         public override bool Equals(object obj) => obj is Entity ? Equals((Entity)obj) : false;
 
         public override int GetHashCode() => Id;

@@ -2,18 +2,18 @@
 
 namespace ScatteredLogic.Internal
 {
-    public class Vector<T> : IVector
+    internal class ComponentArray<T> : IComponentArray, IArray<T>
     {
-        public T[] Data => data;
+        public int Length => data.Length;
 
         private T[] data;
         private bool[] flags;
 
-        public Vector()
+        public ComponentArray()
         {
         }
 
-        public Vector(int capacity)
+        public ComponentArray(int capacity)
         {
             data = new T[capacity];
             flags = new bool[capacity];
@@ -51,7 +51,7 @@ namespace ScatteredLogic.Internal
         public object GetElementAt(int index) => this[index];
     }
 
-    public interface IVector
+    internal interface IComponentArray
     {
         void Grow(int capacity);
         void RemoveElementAt(int index);

@@ -67,8 +67,8 @@ namespace ConsoleRunner
         {
             public override IEnumerable<Type> RequiredComponents => Types.From<string, int>();
 
-            private string[] strings;
-            private int[] ints;
+            private IArray<string> strings;
+            private IArray<int> ints;
 
             public override void Added()
             {
@@ -121,7 +121,7 @@ namespace ConsoleRunner
 
                 em.Update(0);
 
-                int[] intz = em.GetComponents<int>(intTypeId);
+                IArray<int> intz = em.GetComponents<int>(intTypeId);
 
                 foreach (Entity en in entities)
                 {

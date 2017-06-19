@@ -13,8 +13,8 @@ namespace ScatteredGameExample.Systems
         private readonly Rectangle bounds;
         private readonly RenderUtil renderUtil;
 
-        private Transform[] transforms;
-        private Collider[] colliders;
+        private IArray<Transform> transforms;
+        private IArray<Collider> colliders;
 
         public BoundsSystem(int x, int y, int width, int height, RenderUtil renderUtil)
         {

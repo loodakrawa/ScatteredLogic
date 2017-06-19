@@ -11,13 +11,13 @@ namespace ScatteredLogic.Internal
     internal sealed class ComponentManager<B> where B : IBitmask<B>
     {
         private B[] masks;
-        private IVector[] components;
+        private IComponentArray[] components;
         private int entityCount;
         private readonly List<Pair<int, int>> componentsToRemove = new List<Pair<int, int>>();
 
         public ComponentManager(int maxComponentCount)
         {
-            components = new IVector[maxComponentCount];
+            components = new IComponentArray[maxComponentCount];
         }
 
         public void Grow(int entityCount)
@@ -29,10 +29,10 @@ namespace ScatteredLogic.Internal
 
         public void AddComponent<T>(int entity, T component, int type)
         {
-            Vector<T> comps = components[type] as Vector<T>;
+            ComponentArray<T> comps = components[type] as ComponentArray<T>;
             if(comps == null)
             {
-                comps = new Vector<T>(entityCount);
+                comps = new ComponentArray<T>(entityCount);
                 components[type] = comps;
             }
 
@@ -45,11 +45,11 @@ namespace ScatteredLogic.Internal
 
         public void AddComponent(int entity, object component, int type, Type compType)
         {
-            IVector comps = components[type];
+            IComponentArray comps = components[type];
             if (comps == null)
             {
-                var listType = typeof(Vector<>).MakeGenericType(compType);
-                comps = Activator.CreateInstance(listType) as IVector;
+                var listType = typeof(ComponentArray<>).MakeGenericType(compType);
+                comps = Activator.CreateInstance(listType) as IComponentArray;
                 comps.Grow(entityCount);
                 components[type] = comps;
             }
@@ -72,31 +72,31 @@ namespace ScatteredLogic.Internal
 
         public bool HasComponent(int entity, int type)
         {
-            IVector comps = components[type];
+            IComponentArray comps = components[type];
             return comps != null && comps.HasElementAt(entity);
         }
 
         public T GetComponent<T>(int entity, int type)
         {
-            Vector<T> comps = components[type] as Vector<T>;
+            ComponentArray<T> comps = components[type] as ComponentArray<T>;
             return comps != null ? comps[entity] : default(T);
         }
 
         public object GetComponent(int entity, int type)
         {
-            IVector comps = components[type];
+            IComponentArray comps = components[type];
             return comps != null ? comps.GetElementAt(entity) : null;
         }
 
-        public T[] GetComponents<T>(int type)
+        public IArray<T> GetComponents<T>(int type)
         {
-            Vector<T> comps = components[type] as Vector<T>;
+            ComponentArray<T> comps = components[type] as ComponentArray<T>;
             if (comps == null)
             {
-                comps = new Vector<T>(entityCount);
+                comps = new ComponentArray<T>(entityCount);
                 components[type] = comps;
             }
-            return comps.Data;
+            return comps;
         }
 
         public B GetBitmask(int entity) => masks[entity];
@@ -125,7 +125,7 @@ namespace ScatteredLogic.Internal
             masks[entity] = default(B);
             for (int i = 0; i < components.Length; ++i)
             {
-                IVector comps = components[i];
+                IComponentArray comps = components[i];
                 if (comps != null) comps.RemoveElementAt(entity);
             }
         }

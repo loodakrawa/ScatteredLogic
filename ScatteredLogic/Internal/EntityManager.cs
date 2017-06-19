@@ -144,9 +144,9 @@ namespace ScatteredLogic.Internal
 
         public int GetTypeId(Type type) => indexer.GetTypeId(type);
 
-        public T[] GetComponents<T>() => GetComponents<T>(indexer.GetTypeId(typeof(T)));
+        public IArray<T> GetComponents<T>() => GetComponents<T>(indexer.GetTypeId(typeof(T)));
 
-        public T[] GetComponents<T>(int typeId) => cm.GetComponents<T>(typeId);
+        public IArray<T> GetComponents<T>(int typeId) => cm.GetComponents<T>(typeId);
 
         public Entity? FindEntity(Func<Entity, bool> predicate)
         {
