@@ -7,6 +7,7 @@ namespace ScatteredLogic
 {
     public interface IArray<T>
     {
+        T[] Raw { get; }
         T this[int i] { get; set; }
     }
 }

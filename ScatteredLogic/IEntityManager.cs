@@ -4,13 +4,13 @@
 // of the zlib license. See the LICENSE file for details.
 
 using System;
-using System.Collections.Generic;
 
 namespace ScatteredLogic
 {
     public interface IEntityManager
     {
         EventBus EventBus { get; }
+        IEntitySet Entities { get; }
 
         Entity CreateEntity();
         void DestroyEntity(Entity entity);

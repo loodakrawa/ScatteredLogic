@@ -9,7 +9,7 @@ namespace ScatteredLogic.Internal.Data
 {
     internal sealed class ComponentArray<T> : IComponentArray, IArray<T>
     {
-        public int Length => data.Length;
+        public T[] Raw => data;
 
         private T[] data;
 

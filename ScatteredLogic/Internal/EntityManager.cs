@@ -13,6 +13,7 @@ namespace ScatteredLogic.Internal
     internal sealed class EntityManager<B> : IEntityManager where B : IBitmask<B>
     {
         public EventBus EventBus => eventBus;
+        public IEntitySet Entities => entities;
 
         private readonly TypeIndexer indexer;
 
@@ -43,7 +44,7 @@ namespace ScatteredLogic.Internal
 
         public Entity CreateEntity()
         {
-            if (freeIndices.Count == 0) Grow(growthSize);
+            if (freeIndices.Count == 0) Grow(entities.Count + growthSize);
             int index = freeIndices.Dequeue();
             Entity entity = entities[index];
 
