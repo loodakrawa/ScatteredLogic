@@ -1,8 +1,10 @@
-﻿// Copyright (c) 2017 The original author or authors
+﻿// Copyright (C) The original author or authors
 //
 // This software may be modified and distributed under the terms
-// of the zlib license.  See the LICENSE file for details.
+// of the zlib license. See the LICENSE file for details.
 
+using ScatteredLogic.Internal.Bitmask;
+using ScatteredLogic.Internal.Data;
 using System;
 using System.Collections.Generic;
 
@@ -16,7 +18,6 @@ namespace ScatteredLogic.Internal
 
         private readonly ComponentManager<B> cm;
         private readonly SystemManager<B> sm;
-        private readonly NamingManager nm;
 
         private readonly EntitySet entitiesToRemove = new EntitySet();
         private readonly EntitySet dirtyEntities = new EntitySet();
@@ -34,7 +35,6 @@ namespace ScatteredLogic.Internal
             indexer = new TypeIndexer(maxComponentCount);
             cm = new ComponentManager<B>(maxComponentCount);
             sm = new SystemManager<B>(cm, indexer);
-            nm = new NamingManager();
 
             this.growthSize = growthSize;
 
@@ -72,7 +72,7 @@ namespace ScatteredLogic.Internal
 
         public void DestroyEntity(Entity entity)
         {
-            CheckStale(entity);
+            ThrowIfStale(entity);
             entitiesToRemove.Add(entity);
             --entityCount;
         }
@@ -85,14 +85,14 @@ namespace ScatteredLogic.Internal
 
         public void AddComponent<T>(Entity entity, T component)
         {
-            CheckStale(entity);
+            ThrowIfStale(entity);
             cm.AddComponent(entity.Id, component, indexer.GetTypeId(typeof(T)));
             dirtyEntities.Add(entity);
         }
 
         public void AddComponent(Entity entity, object component, Type type)
         {
-            CheckStale(entity);
+            ThrowIfStale(entity);
             cm.AddComponent(entity.Id, component, indexer.GetTypeId(type), type);
             dirtyEntities.Add(entity);
         }
@@ -103,7 +103,7 @@ namespace ScatteredLogic.Internal
 
         public void RemoveComponent(Entity entity, int typeId)
         {
-            CheckStale(entity);
+            ThrowIfStale(entity);
             cm.RemoveComponent(entity.Id, typeId);
             dirtyEntities.Add(entity);
         }
@@ -112,13 +112,13 @@ namespace ScatteredLogic.Internal
 
         public object GetComponent(Entity entity, Type type)
         {
-            CheckStale(entity);
+            ThrowIfStale(entity);
             return cm.GetComponent(entity.Id, indexer.GetTypeId(type));
         }
 
         public T GetComponent<T>(Entity entity, int typeId)
         {
-            CheckStale(entity);
+            ThrowIfStale(entity);
             return cm.GetComponent<T>(entity.Id, typeId);
         }
 
@@ -168,7 +168,7 @@ namespace ScatteredLogic.Internal
             eventBus.Update();
         }
 
-        private void CheckStale(Entity entity)
+        private void ThrowIfStale(Entity entity)
         {
 #if DEBUG
             if (!ContainsEntity(entity)) throw new ArgumentException("Entity not managed : " + entity);
@@ -178,7 +178,6 @@ namespace ScatteredLogic.Internal
         private void InternalRemoveEntity(Entity entity)
         {
             sm.RemoveEntitySync(entity);
-            nm.RemoveEntitySync(entity);
             cm.RemoveEntitySync(entity.Id);
 
             int index = entity.Id;

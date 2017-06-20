@@ -1,8 +1,10 @@
-﻿// Copyright (c) 2017 The original author or authors
+﻿// Copyright (C) The original author or authors
 //
 // This software may be modified and distributed under the terms
-// of the zlib license.  See the LICENSE file for details.
+// of the zlib license. See the LICENSE file for details.
 
+using ScatteredLogic.Internal.Bitmask;
+using ScatteredLogic.Internal.Data;
 using System;
 using System.Collections.Generic;
 
@@ -32,7 +34,8 @@ namespace ScatteredLogic.Internal
             ComponentArray<T> comps = components[type] as ComponentArray<T>;
             if(comps == null)
             {
-                comps = new ComponentArray<T>(entityCount);
+                comps = new ComponentArray<T>();
+                comps.Grow(entityCount);
                 components[type] = comps;
             }
 
@@ -87,7 +90,8 @@ namespace ScatteredLogic.Internal
             ComponentArray<T> comps = components[type] as ComponentArray<T>;
             if (comps == null)
             {
-                comps = new ComponentArray<T>(entityCount);
+                comps = new ComponentArray<T>();
+                comps.Grow(entityCount);
                 components[type] = comps;
             }
             return comps;

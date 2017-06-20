@@ -1,9 +1,10 @@
-﻿// Copyright (c) 2017 The original author or authors
+﻿// Copyright (C) The original author or authors
 //
 // This software may be modified and distributed under the terms
-// of the zlib license.  See the LICENSE file for details.
+// of the zlib license. See the LICENSE file for details.
 
 using ScatteredLogic.Internal;
+using ScatteredLogic.Internal.Bitmask;
 
 namespace ScatteredLogic
 {
@@ -19,7 +20,7 @@ namespace ScatteredLogic
         private const int DefaultInitialSize = 64;
         private const int DefaultGrowthSize = 32;
 
-        public static IEntityManager Create(BitmaskSize type, int initialSize = DefaultInitialSize, int growthSize = DefaultGrowthSize)
+        public static IEntityManager Create(BitmaskSize type = BitmaskSize.Bit32, int initialSize = DefaultInitialSize, int growthSize = DefaultGrowthSize)
         {
             switch (type)
             {

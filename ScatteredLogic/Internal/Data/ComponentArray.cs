@@ -1,21 +1,17 @@
-﻿using System;
+﻿// Copyright (C) The original author or authors
+//
+// This software may be modified and distributed under the terms
+// of the zlib license. See the LICENSE file for details.
 
-namespace ScatteredLogic.Internal
+using System;
+
+namespace ScatteredLogic.Internal.Data
 {
-    internal class ComponentArray<T> : IComponentArray, IArray<T>
+    internal sealed class ComponentArray<T> : IComponentArray, IArray<T>
     {
         public int Length => data.Length;
 
         private T[] data;
-
-        public ComponentArray()
-        {
-        }
-
-        public ComponentArray(int capacity)
-        {
-            data = new T[capacity];
-        }
 
         public T this[int i]
         {
