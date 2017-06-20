@@ -14,7 +14,7 @@ namespace ScatteredLogic
 
         private readonly IEntityManager entityManager;
 
-        internal Entity(IEntityManager entityManager, int id, int version)
+        public Entity(IEntityManager entityManager, int id, int version)
         {
             Id = id;
             Version = version;

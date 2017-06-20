@@ -18,8 +18,8 @@ namespace ScatteredLogic.Internal
         private readonly SystemManager<B> sm;
         private readonly NamingManager nm;
 
-        private readonly Stack<Entity> entitiesToRemove = new Stack<Entity>();
-        private readonly Stack<Entity> dirtyEntities = new Stack<Entity>();
+        private readonly EntitySet entitiesToRemove = new EntitySet();
+        private readonly EntitySet dirtyEntities = new EntitySet();
 
         private readonly EventBus eventBus = new EventBus();
 
@@ -49,7 +49,7 @@ namespace ScatteredLogic.Internal
 
             ++entityCount;
 
-            dirtyEntities.Push(entity);
+            dirtyEntities.Add(entity);
 
             return entity;
         }
@@ -65,12 +65,15 @@ namespace ScatteredLogic.Internal
             }
             cm.Grow(entities.Length);
             sm.Grow(entities.Length);
+
+            entitiesToRemove.Grow(entities.Length);
+            dirtyEntities.Grow(entities.Length);
         }
 
         public void DestroyEntity(Entity entity)
         {
             CheckStale(entity);
-            entitiesToRemove.Push(entity);
+            entitiesToRemove.Add(entity);
             --entityCount;
         }
 
@@ -84,14 +87,14 @@ namespace ScatteredLogic.Internal
         {
             CheckStale(entity);
             cm.AddComponent(entity.Id, component, indexer.GetTypeId(typeof(T)));
-            dirtyEntities.Push(entity);
+            dirtyEntities.Add(entity);
         }
 
         public void AddComponent(Entity entity, object component, Type type)
         {
             CheckStale(entity);
             cm.AddComponent(entity.Id, component, indexer.GetTypeId(type), type);
-            dirtyEntities.Push(entity);
+            dirtyEntities.Add(entity);
         }
 
         public void RemoveComponent<T>(Entity entity) => RemoveComponent(entity, indexer.GetTypeId(typeof(T)));
@@ -102,7 +105,7 @@ namespace ScatteredLogic.Internal
         {
             CheckStale(entity);
             cm.RemoveComponent(entity.Id, typeId);
-            dirtyEntities.Push(entity);
+            dirtyEntities.Add(entity);
         }
 
         public T GetComponent<T>(Entity entity) => GetComponent<T>(entity, indexer.GetTypeId(typeof(T)));

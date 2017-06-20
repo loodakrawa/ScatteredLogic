@@ -12,11 +12,6 @@ namespace ScatteredLogic.Internal
 
         public Entity this[int i] { get => entities[i]; }
 
-        public EntitySet(int capacity)
-        {
-            Grow(capacity);
-        }
-
         public void Grow(int capacity)
         {
             int currentLength = entities != null ? entities.Length : 0;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using ScatteredLogic.Internal;
 
 namespace ConsoleRunner
 {
@@ -9,20 +10,89 @@ namespace ConsoleRunner
     {
         static void Main(string[] args)
         {
-            TestArraySystemSpeed();
+            SparseSetAccesSpeedTest();
+            //TestArraySystemSpeed();
             Console.WriteLine("---END---");
             Console.ReadLine();
         }
 
+        private static void SparseSetAccesSpeedTest()
+        {
+            int count = 10000000;
+
+            HashSet<Entity> ehs = new HashSet<Entity>();
+            EntitySet es = new EntitySet();
+            es.Grow(count);
+
+            for (int i = 0; i < count; ++i) ehs.Add(new Entity(null, i, 0));
+            for (int i = 0; i < count; ++i) es.Add(new Entity(null, i, 0));
+            ehs.Clear();
+            es.Clear();
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            for (int i = 0; i < count; ++i) ehs.Add(new Entity(null, i, 0));
+            sw.Stop();
+            Console.WriteLine("HashSet fill: " + sw.ElapsedMilliseconds);
+
+            sw = new Stopwatch();
+            sw.Start();
+            for (int i = 0; i < count; ++i) es.Add(new Entity(null, i, 0));
+            sw.Stop();
+            Console.WriteLine("EntitySet fill: " + sw.ElapsedMilliseconds);
+
+            sw = new Stopwatch();
+            sw.Start();
+            foreach (Entity e in ehs)
+            {
+                int id = e.Id;
+            }
+            sw.Stop();
+            Console.WriteLine("HashSet foreach: " + sw.ElapsedMilliseconds);
+
+            sw = new Stopwatch();
+            sw.Start();
+            foreach (Entity e in es)
+            {
+                int id = e.Id;
+            }
+            sw.Stop();
+            Console.WriteLine("EntitySet foreach: " + sw.ElapsedMilliseconds);
+
+            sw = new Stopwatch();
+            sw.Start();
+            for(int i=0; i<es.Count; ++i)
+            {
+                int id = es[i].Id;
+            }
+            sw.Stop();
+            Console.WriteLine("EntitySet for: " + sw.ElapsedMilliseconds);
+
+            sw = new Stopwatch();
+            sw.Start();
+            for (int i = 0; i < count; ++i) ehs.Remove(new Entity(null, i, 0));
+            sw.Stop();
+            Console.WriteLine("HashSet remove: " + sw.ElapsedMilliseconds);
+
+            sw = new Stopwatch();
+            sw.Start();
+            for (int i = 0; i < count; ++i) es.Remove(new Entity(null, i, 0));
+            sw.Stop();
+            Console.WriteLine("EntitySet remove: " + sw.ElapsedMilliseconds);
+        }
+
         private static void TestArraySystemSpeed()
         {
-            IEntityManager em = EntityManagerFactory.Create(BitmaskSize.Bit64, 1000000, 0);
+            int count = 10000000;
+
+            IEntityManager em = EntityManagerFactory.Create(BitmaskSize.Bit64, count, 0);
             string strComp = "I'm a string";
 
             em.AddSystem(new ArrayAccessSystem());
-            em.AddSystem(new CompAccessSystem());
+            em.AddSystem(new ArrayDirectAccessSystem());
+            //em.AddSystem(new CompAccessSystem());
 
-            for (int i = 0; i < 1000000; ++i)
+            for (int i = 0; i < count; ++i)
             {
                 Entity e = em.CreateEntity();
                 e.AddComponent(i);
@@ -82,6 +152,31 @@ namespace ConsoleRunner
                 {
                     string s = strings[e.Id];
                     int i = ints[e.Id];
+                }
+            }
+        }
+
+        class ArrayDirectAccessSystem : BaseSystem
+        {
+            public override IEnumerable<Type> RequiredComponents => Types.From<string, int>();
+
+            private IArray<string> strings;
+            private IArray<int> ints;
+
+            public override void Added()
+            {
+                strings = EntityManager.GetComponents<string>();
+                ints = EntityManager.GetComponents<int>();
+            }
+
+            public override void Update()
+            {
+                int c = Entities.Count;
+                for (int i=0; i<c; ++i)
+                {
+                    int id = Entities[i].Id;
+                    string s = strings[id];
+                    int ii = ints[id];
                 }
             }
         }

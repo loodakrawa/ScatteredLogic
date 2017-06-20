@@ -46,7 +46,8 @@ namespace ScatteredLogic.Internal
             }
 
             systemMasks[system] = bm;
-            EntitySet se = new EntitySet(entityCount);
+            EntitySet se = new EntitySet();
+            se.Grow(entityCount);
             systemEntitites[system] = se;
             system.Entities = se;
             systems.Add(system);
