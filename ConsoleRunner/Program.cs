@@ -40,7 +40,7 @@ namespace ConsoleRunner
             public abstract IEnumerable<Type> RequiredComponents { get; }
 
             public IEntityManager EntityManager { get; set; }
-            public SetEnumerable<Entity> Entities { get; set; }
+            public IEntitySet Entities { get; set; }
             public EventBus EventBus { get; set; }
 
             public virtual void Added() {}

@@ -12,7 +12,7 @@ namespace ScatteredLogicTest
 {
     public class EmptyTestSystem : ISystem
     {
-        public SetEnumerable<Entity> Entities { get; set; }
+        public IEntitySet Entities { get; set; }
         public IEntityManager EntityManager { get; set; }
         public IEnumerable<Type> RequiredComponents => Types.None;
         public EventBus EventBus { get; set; }
@@ -26,7 +26,7 @@ namespace ScatteredLogicTest
 
     public class TestSystem<T> : ISystem
     {
-        public SetEnumerable<Entity> Entities { get; set; }
+        public IEntitySet Entities { get; set; }
         public IEntityManager EntityManager { get; set; }
         public IEnumerable<Type> RequiredComponents => Types.From<T>();
         public EventBus EventBus { get; set; }

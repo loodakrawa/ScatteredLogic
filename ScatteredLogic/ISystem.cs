@@ -12,7 +12,7 @@ namespace ScatteredLogic
     {
         IEnumerable<Type> RequiredComponents { get; }
         IEntityManager EntityManager { get; set; }
-        SetEnumerable<Entity> Entities { get; set; }
+        IEntitySet Entities { get; set; }
         EventBus EventBus { get; set; }
 
         void Added();

@@ -6,7 +6,7 @@ namespace ScatteredGameExample.Systems
 {
     public abstract class BaseSystem : ISystem
     {
-        public SetEnumerable<Entity> Entities { get; set; }
+        public IEntitySet Entities { get; set; }
 
         public IEntityManager EntityManager { get; set; }
 

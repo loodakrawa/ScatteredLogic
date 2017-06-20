@@ -15,15 +15,23 @@ namespace ScatteredLogic.Internal
 
         private readonly HashSet<ISystem> systems = new HashSet<ISystem>();
         private readonly Dictionary<ISystem, B> systemMasks = new Dictionary<ISystem, B>();
-        private readonly Dictionary<ISystem, HashSet<Entity>> systemEntitites = new Dictionary<ISystem, HashSet<Entity>>();
+        private readonly Dictionary<ISystem, EntitySet> systemEntitites = new Dictionary<ISystem, EntitySet>();
 
         private readonly HashSet<ISystem> systemsToRemove = new HashSet<ISystem>();
         private readonly HashSet<ISystem> newSystems = new HashSet<ISystem>();
+
+        private int entityCount;
 
         public SystemManager(ComponentManager<B> cm, TypeIndexer componentIndexer)
         {
             this.cm = cm;
             this.componentIndexer = componentIndexer;
+        }
+
+        public void Grow(int capacity)
+        {
+            entityCount = capacity;
+            foreach (EntitySet es in systemEntitites.Values) es.Grow(capacity);
         }
 
         public void AddSystem(ISystem system)
@@ -38,9 +46,9 @@ namespace ScatteredLogic.Internal
             }
 
             systemMasks[system] = bm;
-            HashSet<Entity> se = new HashSet<Entity>();
+            EntitySet se = new EntitySet(entityCount);
             systemEntitites[system] = se;
-            system.Entities = new SetEnumerable<Entity>(se);
+            system.Entities = se;
             systems.Add(system);
 
             system.Added();
@@ -78,15 +86,37 @@ namespace ScatteredLogic.Internal
             B entityMask = cm.GetBitmask(entity.Id);
             B systemMask = systemMasks[system];
 
-            HashSet<Entity> entities = systemEntitites[system];
+            EntitySet entities = systemEntitites[system];
 
-            if (entityMask.Contains(systemMask)) if (entities.Add(entity)) system.EntityAdded(entity);
-            if (!entityMask.Contains(systemMask)) if (entities.Remove(entity)) system.EntityRemoved(entity);
+            if (entityMask.Contains(systemMask))
+            {
+                if (!entities.Contains(entity))
+                {
+                    entities.Add(entity);
+                    system.EntityAdded(entity);
+                }
+            }
+            if (!entityMask.Contains(systemMask))
+            {
+                if (entities.Contains(entity))
+                {
+                    entities.Remove(entity);
+                    system.EntityRemoved(entity);
+                }
+            }
         }
 
         public void RemoveEntitySync(Entity entity)
         {
-            foreach (ISystem system in systems) if (systemEntitites[system].Remove(entity)) system.EntityRemoved(entity);
+            foreach (ISystem system in systems)
+            {
+                EntitySet entities = systemEntitites[system];
+                if (entities.Contains(entity))
+                {
+                    entities.Remove(entity);
+                    system.EntityRemoved(entity);
+                }
+            }
         }
 
         private void InternalRemoveSystem(ISystem system)

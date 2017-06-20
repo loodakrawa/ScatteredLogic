@@ -64,6 +64,7 @@ namespace ScatteredLogic.Internal
                 freeIndices.Enqueue(i);
             }
             cm.Grow(entities.Length);
+            sm.Grow(entities.Length);
         }
 
         public void DestroyEntity(Entity entity)
