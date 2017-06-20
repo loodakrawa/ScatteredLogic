@@ -26,7 +26,7 @@ namespace ScatteredLogic.Internal
 
         private readonly int growthSize;
 
-        private Entity[] entities;
+        private EntitySet entities = new EntitySet();
         private readonly Queue<int> freeIndices = new Queue<int>();
         private int entityCount;
 
@@ -56,18 +56,17 @@ namespace ScatteredLogic.Internal
 
         private void Grow(int size)
         {
-            int startIndex = entities != null ? entities.Length : 0;
-            Array.Resize(ref entities, startIndex + size);
-            for (int i = startIndex; i < entities.Length; ++i)
+            entities.Grow(size);
+            int startIndex = entities.Count;
+            for (int i = startIndex; i < size; ++i)
             {
-                entities[i] = new Entity(this, i, int.MinValue);
+                entities.Add(new Entity(this, i, 1));
                 freeIndices.Enqueue(i);
             }
-            cm.Grow(entities.Length);
-            sm.Grow(entities.Length);
-
-            entitiesToRemove.Grow(entities.Length);
-            dirtyEntities.Grow(entities.Length);
+            cm.Grow(entities.Count);
+            sm.Grow(entities.Count);
+            entitiesToRemove.Grow(entities.Count);
+            dirtyEntities.Grow(entities.Count);
         }
 
         public void DestroyEntity(Entity entity)
@@ -80,7 +79,7 @@ namespace ScatteredLogic.Internal
         public bool ContainsEntity(Entity entity)
         {
             int index = entity.Id;
-            return index < entities.Length && entities[index].Version == entity.Version;
+            return index < entities.Count && entities[index].Version == entity.Version;
         }     
 
         public void AddComponent<T>(Entity entity, T component)
@@ -97,29 +96,24 @@ namespace ScatteredLogic.Internal
             dirtyEntities.Add(entity);
         }
 
-        public void RemoveComponent<T>(Entity entity) => RemoveComponent(entity, indexer.GetTypeId(typeof(T)));
-        public void RemoveComponent(Entity entity, object component) => RemoveComponent(entity, indexer.GetTypeId(component.GetType()));
-        public void RemoveComponent(Entity entity, Type type) => RemoveComponent(entity, indexer.GetTypeId(type));
-
-        public void RemoveComponent(Entity entity, int typeId)
+        public void RemoveComponent<T>(Entity entity) => RemoveComponent(entity, typeof(T));
+        public void RemoveComponent(Entity entity, Type type)
         {
             ThrowIfStale(entity);
-            cm.RemoveComponent(entity.Id, typeId);
+            cm.RemoveComponent(entity.Id, indexer.GetTypeId(type));
             dirtyEntities.Add(entity);
         }
 
-        public T GetComponent<T>(Entity entity) => GetComponent<T>(entity, indexer.GetTypeId(typeof(T)));
+        public T GetComponent<T>(Entity entity)
+        {
+            ThrowIfStale(entity);
+            return cm.GetComponent<T>(entity.Id, indexer.GetTypeId(typeof(T)));
+        }
 
         public object GetComponent(Entity entity, Type type)
         {
             ThrowIfStale(entity);
             return cm.GetComponent(entity.Id, indexer.GetTypeId(type));
-        }
-
-        public T GetComponent<T>(Entity entity, int typeId)
-        {
-            ThrowIfStale(entity);
-            return cm.GetComponent<T>(entity.Id, typeId);
         }
 
         public void AddSystem(ISystem system)
@@ -142,17 +136,6 @@ namespace ScatteredLogic.Internal
         public IArray<T> GetComponents<T>() => GetComponents<T>(indexer.GetTypeId(typeof(T)));
 
         public IArray<T> GetComponents<T>(int typeId) => cm.GetComponents<T>(typeId);
-
-        public Entity? FindEntity(Func<Entity, bool> predicate)
-        {
-            foreach (Entity entity in entities) if (predicate(entity)) return entity;
-            return null;
-        }
-
-        public void FindEntities(Func<Entity, bool> predicate, ICollection<Entity> results)
-        {
-            foreach (Entity entity in entities) if (predicate(entity)) results.Add(entity);
-        }
 
         public void Update(float deltaTime)
         {
@@ -181,7 +164,7 @@ namespace ScatteredLogic.Internal
             cm.RemoveEntitySync(entity.Id);
 
             int index = entity.Id;
-            entities[index] = new Entity(this, index, entity.Version + 1);
+            entities.Add(new Entity(this, index, entity.Version + 1));
             freeIndices.Enqueue(index);
 
             --entityCount;

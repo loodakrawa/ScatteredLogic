@@ -21,24 +21,14 @@ namespace ScatteredLogic
 
         void RemoveComponent<T>(Entity entity);
         void RemoveComponent(Entity entity, Type type);
-        void RemoveComponent(Entity entity, object component);
-        void RemoveComponent(Entity entity, int typeId);
 
         T GetComponent<T>(Entity entity);
         object GetComponent(Entity entity, Type type);
-        T GetComponent<T>(Entity entity, int typeId);
 
         IArray<T> GetComponents<T>();
-        IArray<T> GetComponents<T>(int typeId);
-
-        int GetTypeId<T>();
-        int GetTypeId(Type type);
 
         void AddSystem(ISystem system);
         void RemoveSystem(ISystem system);
-
-        Entity? FindEntity(Func<Entity, bool> predicate);
-        void FindEntities(Func<Entity, bool> predicate, ICollection<Entity> results);
 
         void Update(float deltaTime);
     }

@@ -10,80 +10,80 @@ namespace ConsoleRunner
     {
         static void Main(string[] args)
         {
-            SparseSetAccesSpeedTest();
-            //TestArraySystemSpeed();
+            //SparseSetAccesSpeedTest();
+            TestArraySystemSpeed();
             Console.WriteLine("---END---");
             Console.ReadLine();
         }
 
-        private static void SparseSetAccesSpeedTest()
-        {
-            int count = 10000000;
+        //private static void SparseSetAccesSpeedTest()
+        //{
+        //    int count = 10000000;
 
-            HashSet<Entity> ehs = new HashSet<Entity>();
-            EntitySet es = new EntitySet();
-            es.Grow(count);
+        //    HashSet<Entity> ehs = new HashSet<Entity>();
+        //    EntitySet es = new EntitySet();
+        //    es.Grow(count);
 
-            for (int i = 0; i < count; ++i) ehs.Add(new Entity(null, i, 0));
-            for (int i = 0; i < count; ++i) es.Add(new Entity(null, i, 0));
-            ehs.Clear();
-            es.Clear();
+        //    for (int i = 0; i < count; ++i) ehs.Add(new Entity(null, i, 0));
+        //    for (int i = 0; i < count; ++i) es.Add(new Entity(null, i, 0));
+        //    ehs.Clear();
+        //    es.Clear();
 
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            for (int i = 0; i < count; ++i) ehs.Add(new Entity(null, i, 0));
-            sw.Stop();
-            Console.WriteLine("HashSet fill: " + sw.ElapsedMilliseconds);
+        //    Stopwatch sw = new Stopwatch();
+        //    sw.Start();
+        //    for (int i = 0; i < count; ++i) ehs.Add(new Entity(null, i, 0));
+        //    sw.Stop();
+        //    Console.WriteLine("HashSet fill: " + sw.ElapsedMilliseconds);
 
-            sw = new Stopwatch();
-            sw.Start();
-            for (int i = 0; i < count; ++i) es.Add(new Entity(null, i, 0));
-            sw.Stop();
-            Console.WriteLine("EntitySet fill: " + sw.ElapsedMilliseconds);
+        //    sw = new Stopwatch();
+        //    sw.Start();
+        //    for (int i = 0; i < count; ++i) es.Add(new Entity(null, i, 0));
+        //    sw.Stop();
+        //    Console.WriteLine("EntitySet fill: " + sw.ElapsedMilliseconds);
 
-            sw = new Stopwatch();
-            sw.Start();
-            foreach (Entity e in ehs)
-            {
-                int id = e.Id;
-            }
-            sw.Stop();
-            Console.WriteLine("HashSet foreach: " + sw.ElapsedMilliseconds);
+        //    sw = new Stopwatch();
+        //    sw.Start();
+        //    foreach (Entity e in ehs)
+        //    {
+        //        int id = e.Id;
+        //    }
+        //    sw.Stop();
+        //    Console.WriteLine("HashSet foreach: " + sw.ElapsedMilliseconds);
 
-            sw = new Stopwatch();
-            sw.Start();
-            foreach (Entity e in es)
-            {
-                int id = e.Id;
-            }
-            sw.Stop();
-            Console.WriteLine("EntitySet foreach: " + sw.ElapsedMilliseconds);
+        //    sw = new Stopwatch();
+        //    sw.Start();
+        //    foreach (Entity e in es)
+        //    {
+        //        int id = e.Id;
+        //    }
+        //    sw.Stop();
+        //    Console.WriteLine("EntitySet foreach: " + sw.ElapsedMilliseconds);
 
-            sw = new Stopwatch();
-            sw.Start();
-            for(int i=0; i<es.Count; ++i)
-            {
-                int id = es[i].Id;
-            }
-            sw.Stop();
-            Console.WriteLine("EntitySet for: " + sw.ElapsedMilliseconds);
+        //    sw = new Stopwatch();
+        //    sw.Start();
+        //    for(int i=0; i<es.Count; ++i)
+        //    {
+        //        int id = es[i].Id;
+        //    }
+        //    sw.Stop();
+        //    Console.WriteLine("EntitySet for: " + sw.ElapsedMilliseconds);
 
-            sw = new Stopwatch();
-            sw.Start();
-            for (int i = 0; i < count; ++i) ehs.Remove(new Entity(null, i, 0));
-            sw.Stop();
-            Console.WriteLine("HashSet remove: " + sw.ElapsedMilliseconds);
+        //    sw = new Stopwatch();
+        //    sw.Start();
+        //    for (int i = 0; i < count; ++i) ehs.Remove(new Entity(null, i, 0));
+        //    sw.Stop();
+        //    Console.WriteLine("HashSet remove: " + sw.ElapsedMilliseconds);
 
-            sw = new Stopwatch();
-            sw.Start();
-            for (int i = 0; i < count; ++i) es.Remove(new Entity(null, i, 0));
-            sw.Stop();
-            Console.WriteLine("EntitySet remove: " + sw.ElapsedMilliseconds);
-        }
+        //    sw = new Stopwatch();
+        //    sw.Start();
+        //    for (int i = 0; i < count; ++i) es.Remove(new Entity(null, i, 0));
+        //    sw.Stop();
+        //    Console.WriteLine("EntitySet remove: " + sw.ElapsedMilliseconds);
+        //}
 
         private static void TestArraySystemSpeed()
         {
-            int count = 10000000;
+            int count = 1000000;
 
             IEntityManager em = EntityManagerFactory.Create(BitmaskSize.Bit64, count, 0);
             string strComp = "I'm a string";
@@ -201,8 +201,6 @@ namespace ConsoleRunner
             IEntityManager em = EntityManagerFactory.Create(BitmaskSize.Bit64, 256, 256);
             string strComp = "I'm a string";
 
-            int intTypeId = em.GetTypeId<int>();
-
             List<Entity> entities = new List<Entity>();
             while (true)
             {
@@ -216,7 +214,7 @@ namespace ConsoleRunner
 
                 em.Update(0);
 
-                IArray<int> intz = em.GetComponents<int>(intTypeId);
+                IArray<int> intz = em.GetComponents<int>();
 
                 foreach (Entity en in entities)
                 {

@@ -10,7 +10,7 @@ namespace ScatteredLogic
     public struct Entity : IEquatable<Entity>
     {
         public readonly int Id;
-        public readonly int Version;
+        internal readonly int Version;
 
         private readonly IEntityManager entityManager;
 
@@ -28,19 +28,16 @@ namespace ScatteredLogic
 
         public void RemoveComponent<T>() => entityManager.RemoveComponent<T>(this);
         public void RemoveComponent(Type type) => entityManager.RemoveComponent(this, type);
-        public void RemoveComponent(object component) => entityManager.RemoveComponent(this, component);
-        public void RemoveComponent(int typeId) => entityManager.RemoveComponent(this, typeId);
 
         public T GetComponent<T>() => entityManager.GetComponent<T>(this);
         public object GetComponent(Type type) => entityManager.GetComponent(this, type);
-        public T GetComponent<T>(int typeId) => entityManager.GetComponent<T>(this, typeId);
 
         public bool Equals(Entity other) => Id == other.Id && Version == other.Version;
         public override bool Equals(object obj) => obj is Entity ? Equals((Entity)obj) : false;
 
-        public override int GetHashCode() => Id;
+        public override int GetHashCode() => unchecked((92821 + Id.GetHashCode()) * 92821 + Version.GetHashCode());
 
-        public override string ToString() => Id.ToString();
+        public override string ToString() => string.Format("{0}|{1}", Id, Version);
 
         public static bool operator ==(Entity a, Entity b) => a.Id == b.Id;
         public static bool operator !=(Entity a, Entity b) => a.Id != b.Id;
