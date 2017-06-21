@@ -9,61 +9,56 @@ using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
 {
-    internal sealed class SyncComponentManager<B> : ComponentManager<B> where B : IBitmask<B>
+    internal sealed class SyncComponentManager<B> : ComponentManager where B : IBitmask<B>
     {
-        private B[] masks;
         private readonly List<Pair<int, int>> componentsToRemove = new List<Pair<int, int>>();
+        private B[] masks;
 
         public SyncComponentManager(int maxComponentCount) : base(maxComponentCount)
         {
         }
 
-        public override void RemoveEntity(int entity)
+        public override void RemoveEntity(int id)
         {
-            base.RemoveEntity(entity);
-            masks[entity] = default(B);
+            base.RemoveEntity(id);
+            masks[id] = default(B);
         }
 
-        public override void AddComponent<T>(int entity, T component, int type)
+        public override void AddComponent<T>(int id, T component, int type)
         {
-            base.AddComponent<T>(entity, component, type);
-            masks[entity] = masks[entity].Set(type);
+            base.AddComponent(id, component, type);
+            masks[id] = masks[id].Set(type);
         }
 
-        public override void AddComponent(int entity, object component, int type, Type compType)
+        public override void AddComponent(int id, object component, int type, Type compType)
         {
-            base.AddComponent(entity, component, type, compType);
-            masks[entity] = masks[entity].Set(type);
+            base.AddComponent(id, component, type, compType);
+            masks[id] = masks[id].Set(type);
         }
 
-        public override void RemoveComponent(int entity, int type)
+        public override void RemoveComponent(int id, int type)
         {
             // clear bit
-            masks[entity] = masks[entity].Clear(type);
+            masks[id] = masks[id].Clear(type);
 
             // add it fo later removal
-            componentsToRemove.Add(new Pair<int, int>(entity, type));
+            componentsToRemove.Add(new Pair<int, int>(id, type));
         }
 
-        public B GetBitmask(int entity) => masks[entity];
+        public B GetBitmask(int id) => masks[id];
 
         public void Update()
         {
             foreach (var entry in componentsToRemove)
             {
-                int entity = entry.Item1;
+                int id = entry.Item1;
                 int compId = entry.Item2;
 
-                // remove only if bitmask is not set
-                B mask = masks[entity];
-                if(!mask.Get(compId)) base.RemoveComponent(entity, compId);
+                // remove only if bitmask is still cleared
+                B mask = masks[id];
+                if(!mask.Get(compId)) base.RemoveComponent(id, compId);
             }
             componentsToRemove.Clear();
-        }
-
-        public void ClearMask(int entity)
-        {
-            masks[entity] = default(B);
         }
 
         public override void Grow(int entityCount)

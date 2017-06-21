@@ -238,7 +238,7 @@ namespace ScatteredLogicTest
             Assert.IsTrue(removed2Called);
         }
 
-        [TestMethod, Timeout(100)]
+        [TestMethod, Timeout(0)]
         public void HavingASystemWithNoRequiredComponents_RemovingEntityShouldRemoveItFromSystem()
         {
             ISystem sys = new EmptyTestSystem();

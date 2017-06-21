@@ -3,28 +3,27 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
-using ScatteredLogic.Internal.Bitmask;
 using ScatteredLogic.Internal.Data;
 using System;
 
 namespace ScatteredLogic.Internal
 {
-    internal class ComponentManager<B> where B : IBitmask<B>
+    internal class ComponentManager
     {
-        private IComponentArray[] components;
+        private readonly IComponentArray[] components;
         private int entityCount;
 
-        public ComponentManager(int maxComponentCount)
+        public ComponentManager(int maxComponents)
         {
-            components = new IComponentArray[maxComponentCount];
+            components = new IComponentArray[maxComponents];
         }
 
-        public virtual void RemoveEntity(int entity)
+        public virtual void RemoveEntity(int id)
         {
-            for (int i = 0; i < components.Length; ++i) components[i]?.RemoveElementAt(entity);
+            for (int i = 0; i < components.Length; ++i) components[i]?.RemoveElementAt(id);
         }
 
-        public virtual void AddComponent<T>(int entity, T component, int type)
+        public virtual void AddComponent<T>(int id, T component, int type)
         {
             ComponentArray<T> comps = components[type] as ComponentArray<T>;
             if(comps == null)
@@ -34,11 +33,10 @@ namespace ScatteredLogic.Internal
                 components[type] = comps;
             }
 
-            // add componenet immediately
-            comps[entity] = component;
+            comps[id] = component;
         }
 
-        public virtual void AddComponent(int entity, object component, int type, Type compType)
+        public virtual void AddComponent(int id, object component, int type, Type compType)
         {
             IComponentArray comps = components[type];
             if (comps == null)
@@ -49,23 +47,23 @@ namespace ScatteredLogic.Internal
                 components[type] = comps;
             }
 
-            comps.SetElementAt(component, entity);
+            comps.SetElementAt(component, id);
         }
 
-        public virtual void RemoveComponent(int entity, int type)
+        public virtual void RemoveComponent(int id, int type)
         {
-            components[type]?.RemoveElementAt(entity);
+            components[type]?.RemoveElementAt(id);
         }
 
-        public T GetComponent<T>(int entity, int type)
+        public T GetComponent<T>(int id, int type)
         {
             ComponentArray<T> comps = components[type] as ComponentArray<T>;
-            return comps != null ? comps[entity] : default(T);
+            return comps != null ? comps[id] : default(T);
         }
 
-        public object GetComponent(int entity, int type)
+        public object GetComponent(int id, int type)
         {
-            return components[type]?.GetElementAt(entity);
+            return components[type]?.GetElementAt(id);
         }
 
         public IArray<T> GetAllComponents<T>(int type)

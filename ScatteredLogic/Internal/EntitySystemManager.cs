@@ -6,18 +6,14 @@
 using ScatteredLogic.Internal.Bitmask;
 using ScatteredLogic.Internal.Data;
 using System;
-using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
 {
-    internal sealed class EntitySystemManager<B> : IEntitySystemManager where B : IBitmask<B>
+    internal sealed class EntitySystemManager<B> : EntityManager<B>, IEntitySystemManager where B : IBitmask<B>
     {
         public EventBus EventBus => eventBus;
-        public IEntitySet Entities => entities;
 
-        private readonly TypeIndexer indexer;
-
-        private readonly SyncComponentManager<B> cm;
+        private SyncComponentManager<B> cm;
         private readonly SystemManager<B> sm;
 
         private readonly EntitySet entitiesToRemove = new EntitySet();
@@ -25,96 +21,43 @@ namespace ScatteredLogic.Internal
 
         private readonly EventBus eventBus = new EventBus();
 
-        private readonly int growthSize;
-
-        private EntitySet entities = new EntitySet();
-        private readonly Queue<int> freeIndices = new Queue<int>();
         private int entityCount;
 
-        public EntitySystemManager(int maxComponentCount, int initialSize, int growthSize)
+        public EntitySystemManager(int maxComponents, int initialSize, int growthSize) : base(maxComponents, initialSize, growthSize)
         {
-            indexer = new TypeIndexer(maxComponentCount);
-            cm = new SyncComponentManager<B>(maxComponentCount);
-            sm = new SystemManager<B>(cm, indexer);
-
-            this.growthSize = growthSize;
-
-            Grow(initialSize);
+            sm = new SystemManager<B>(cm, Indexer);
         }
 
-        public Entity CreateEntity()
+        public override Entity CreateEntity()
         {
-            if (freeIndices.Count == 0) Grow(entities.Count + growthSize);
-            int index = freeIndices.Dequeue();
-            Entity entity = entities[index];
-
-            ++entityCount;
-
+            Entity entity = base.CreateEntity();
             dirtyEntities.Add(entity);
-
+            ++entityCount;
             return entity;
         }
 
-        private void Grow(int size)
-        {
-            entities.Grow(size);
-            int startIndex = entities.Count;
-            for (int i = startIndex; i < size; ++i)
-            {
-                entities.Add(new Entity(this, i, 1));
-                freeIndices.Enqueue(i);
-            }
-            cm.Grow(entities.Count);
-            sm.Grow(entities.Count);
-            entitiesToRemove.Grow(entities.Count);
-            dirtyEntities.Grow(entities.Count);
-        }
-
-        public void DestroyEntity(Entity entity)
+        public override void DestroyEntity(Entity entity)
         {
             ThrowIfStale(entity);
             entitiesToRemove.Add(entity);
-            --entityCount;
-        }
+        } 
 
-        public bool ContainsEntity(Entity entity)
+        public override void AddComponent<T>(Entity entity, T component)
         {
-            int index = entity.Id;
-            return index < entities.Count && entities[index].Version == entity.Version;
-        }     
-
-        public void AddComponent<T>(Entity entity, T component)
-        {
-            ThrowIfStale(entity);
-            cm.AddComponent(entity.Id, component, indexer.GetTypeId(typeof(T)));
+            base.AddComponent<T>(entity, component);
             dirtyEntities.Add(entity);
         }
 
-        public void AddComponent(Entity entity, object component, Type type)
+        public override void AddComponent(Entity entity, object component, Type type)
         {
-            ThrowIfStale(entity);
-            cm.AddComponent(entity.Id, component, indexer.GetTypeId(type), type);
+            base.AddComponent(entity, component, type);
             dirtyEntities.Add(entity);
         }
 
-        public void RemoveComponent<T>(Entity entity) => RemoveComponent(entity, typeof(T));
-        public void RemoveComponent(Entity entity, Type type)
+        public override void RemoveComponent(Entity entity, Type type)
         {
-            ThrowIfStale(entity);
-            cm.RemoveComponent(entity.Id, indexer.GetTypeId(type));
+            base.RemoveComponent(entity, type);
             dirtyEntities.Add(entity);
-        }
-
-        public T GetComponent<T>(Entity entity)
-        {
-            ThrowIfStale(entity);
-            return cm.GetComponent<T>(entity.Id, indexer.GetTypeId(typeof(T)));
-        }
-
-        public object GetComponent(Entity entity, Type type)
-        {
-            ThrowIfStale(entity);
-            return cm.GetComponent(entity.Id, indexer.GetTypeId(type));
         }
 
         public void AddSystem(ISystem system)
@@ -130,41 +73,41 @@ namespace ScatteredLogic.Internal
             system.EntityManager = null;
         }
 
-        public IArray<T> GetComponents<T>() => GetComponents<T>(indexer.GetTypeId(typeof(T)));
-
-        public IArray<T> GetComponents<T>(int typeId) => cm.GetAllComponents<T>(typeId);
-
         public void Update(float deltaTime)
         {
             while (dirtyEntities.Count > 0 || entitiesToRemove.Count > 0)
             {
                 while (dirtyEntities.Count > 0) sm.AddEntityToSystems(dirtyEntities.Pop());
-                while (entitiesToRemove.Count > 0) InternalRemoveEntity(entitiesToRemove.Pop());
+                while (entitiesToRemove.Count > 0) SyncDestroyEntity(entitiesToRemove.Pop());
             }
 
-            sm.UpdateSystems(entities, entityCount, deltaTime);
+            sm.UpdateSystems(Entities, entityCount, deltaTime);
             cm.Update();
 
             eventBus.Update();
         }
 
-        private void ThrowIfStale(Entity entity)
+
+        protected override void Grow(int size)
         {
-#if DEBUG
-            if (!ContainsEntity(entity)) throw new ArgumentException("Entity not managed : " + entity);
-#endif
+            base.Grow(size);
+            sm.Grow(Entities.Count);
+            entitiesToRemove.Grow(Entities.Count);
+            dirtyEntities.Grow(Entities.Count);
         }
 
-        private void InternalRemoveEntity(Entity entity)
+        protected override ComponentManager CreateComponentManager(int maxComponents)
+        {
+            cm = new SyncComponentManager<B>(maxComponents);
+            return cm;
+        }
+
+        private void SyncDestroyEntity(Entity entity)
         {
             sm.RemoveEntitySync(entity);
             cm.RemoveEntity(entity.Id);
-
-            int index = entity.Id;
-            entities.Add(new Entity(this, index, entity.Version + 1));
-            freeIndices.Enqueue(index);
-
             --entityCount;
+            base.DestroyEntity(entity);
         }
 
     }

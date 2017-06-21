@@ -13,47 +13,47 @@ namespace ScatteredLogic.Internal
     internal class EntityManager<B> : IEntityManager where B : IBitmask<B>
     {
         public IEntitySet Entities => entities;
-        protected readonly TypeIndexer Indexer;
 
+        protected readonly TypeIndexer Indexer;
+        protected readonly int InitialSize;
         protected readonly int GrowthSize;
-        protected readonly ComponentManager<B> ComponentManager;
+
+        private readonly ComponentManager componentManager;
 
         private readonly EntitySet entities = new EntitySet();
         private readonly Queue<int> freeIndices = new Queue<int>();
-        private int entityCount;
 
-        public EntityManager(int maxComponentCount, int initialSize, int growthSize)
+        public EntityManager(int maxComponents, int initialSize, int growthSize)
         {
-            Indexer = new TypeIndexer(maxComponentCount);
-            ComponentManager = new ComponentManager<B>(maxComponentCount);
+            Indexer = new TypeIndexer(maxComponents);
+            componentManager = CreateComponentManager(maxComponents);
 
+            InitialSize = initialSize;
             GrowthSize = growthSize;
-
-            Grow(initialSize);
         }
 
-        public Entity CreateEntity()
+        public virtual Entity CreateEntity()
         {
-            if (freeIndices.Count == 0) Grow(entities.Count + GrowthSize);
+            if (freeIndices.Count == 0)
+            {
+                if(entities.Count == 0) Grow(InitialSize);
+                else Grow(entities.Count + GrowthSize);
+            }
             int index = freeIndices.Dequeue();
             Entity entity = entities[index];
-
-            ++entityCount;
 
             return entity;
         }
 
-        public void DestroyEntity(Entity entity)
+        public virtual void DestroyEntity(Entity entity)
         {
             ThrowIfStale(entity);
 
             int id = entity.Id;
 
-            ComponentManager.RemoveEntity(id);
+            componentManager.RemoveEntity(id);
             entities.Add(new Entity(this, id, entity.Version + 1));
             freeIndices.Enqueue(id);
-
-            --entityCount;
         }
 
         public bool ContainsEntity(Entity entity)
@@ -62,38 +62,38 @@ namespace ScatteredLogic.Internal
             return index < entities.Count && entities[index].Version == entity.Version;
         }     
 
-        public void AddComponent<T>(Entity entity, T component)
+        public virtual void AddComponent<T>(Entity entity, T component)
         {
             ThrowIfStale(entity);
-            ComponentManager.AddComponent(entity.Id, component, Indexer.GetTypeId(typeof(T)));
+            componentManager.AddComponent(entity.Id, component, Indexer.GetTypeId(typeof(T)));
         }
 
-        public void AddComponent(Entity entity, object component, Type type)
+        public virtual void AddComponent(Entity entity, object component, Type type)
         {
             ThrowIfStale(entity);
-            ComponentManager.AddComponent(entity.Id, component, Indexer.GetTypeId(type), type);
+            componentManager.AddComponent(entity.Id, component, Indexer.GetTypeId(type), type);
         }
 
         public void RemoveComponent<T>(Entity entity) => RemoveComponent(entity, typeof(T));
-        public void RemoveComponent(Entity entity, Type type)
+        public virtual void RemoveComponent(Entity entity, Type type)
         {
             ThrowIfStale(entity);
-            ComponentManager.RemoveComponent(entity.Id, Indexer.GetTypeId(type));
+            componentManager.RemoveComponent(entity.Id, Indexer.GetTypeId(type));
         }
 
         public T GetComponent<T>(Entity entity)
         {
             ThrowIfStale(entity);
-            return ComponentManager.GetComponent<T>(entity.Id, Indexer.GetTypeId(typeof(T)));
+            return componentManager.GetComponent<T>(entity.Id, Indexer.GetTypeId(typeof(T)));
         }
 
         public object GetComponent(Entity entity, Type type)
         {
             ThrowIfStale(entity);
-            return ComponentManager.GetComponent(entity.Id, Indexer.GetTypeId(type));
+            return componentManager.GetComponent(entity.Id, Indexer.GetTypeId(type));
         }
 
-        public IArray<T> GetComponents<T>() => ComponentManager.GetAllComponents<T>(Indexer.GetTypeId(typeof(T)));
+        public IArray<T> GetComponents<T>() => componentManager.GetAllComponents<T>(Indexer.GetTypeId(typeof(T)));
 
         protected virtual void Grow(int size)
         {
@@ -104,7 +104,12 @@ namespace ScatteredLogic.Internal
                 entities.Add(new Entity(this, i, 1));
                 freeIndices.Enqueue(i);
             }
-            ComponentManager.Grow(entities.Count);
+            componentManager.Grow(entities.Count);
+        }
+
+        protected virtual ComponentManager CreateComponentManager(int maxComponents)
+        {
+            return new ComponentManager(maxComponents);
         }
 
         protected void ThrowIfStale(Entity entity)

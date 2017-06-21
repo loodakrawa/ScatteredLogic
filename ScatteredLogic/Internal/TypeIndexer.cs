@@ -10,14 +10,12 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class TypeIndexer
     {
-        private Dictionary<Type, int?> componentIndexes = new Dictionary<Type, int?>();
+        private readonly Dictionary<Type, int?> componentIndexes = new Dictionary<Type, int?>();
+        private readonly int maxComponents;
 
-        public readonly int Max;
-        public int Count => componentIndexes.Count;
-
-        public TypeIndexer(int max)
+        public TypeIndexer(int maxComponents)
         {
-            Max = max;
+            this.maxComponents = maxComponents;
         }
 
         public int GetTypeId(Type type)
@@ -29,7 +27,7 @@ namespace ScatteredLogic.Internal
 
             index = componentIndexes.Count;
 
-            if (index >= Max) throw new Exception("Number of components Exceeded: " + Max);
+            if (index >= maxComponents) throw new Exception("Number of components Exceeded: " + maxComponents);
 
             componentIndexes[type] = index;
 
