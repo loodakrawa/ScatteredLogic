@@ -19,7 +19,7 @@ namespace ScatteredGameExample
         private readonly GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
-        private readonly IEntityManager entityManager;
+        private readonly IEntitySystemManager entityManager;
         private readonly HashSet<BaseSystem> systems = new HashSet<BaseSystem>();
         private readonly HashSet<DrawingSystem> drawingSystems = new HashSet<DrawingSystem>();
 
@@ -35,7 +35,7 @@ namespace ScatteredGameExample
             IsFixedTimeStep = false;
             graphics.SynchronizeWithVerticalRetrace = false;
 
-            entityManager = EntityManagerFactory.Create(BitmaskSize.Bit32);
+            entityManager = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit32);
             entityFactory = new EntityFactory(Content, entityManager);
 
             IsMouseVisible = true;

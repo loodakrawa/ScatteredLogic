@@ -85,7 +85,7 @@ namespace ConsoleRunner
         {
             int count = 1000000;
 
-            IEntityManager em = EntityManagerFactory.Create(BitmaskSize.Bit64, count, 0);
+            IEntitySystemManager em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64, count, 0);
             string strComp = "I'm a string";
 
             em.AddSystem(new ArrayAccessSystem());
@@ -110,7 +110,7 @@ namespace ConsoleRunner
         {
             public abstract IEnumerable<Type> RequiredComponents { get; }
 
-            public IEntityManager EntityManager { get; set; }
+            public IEntitySystemManager EntityManager { get; set; }
             public IEntitySet Entities { get; set; }
             public EventBus EventBus { get; set; }
 
@@ -226,7 +226,7 @@ namespace ConsoleRunner
 
         static void RunLoop()
         {
-            IEntityManager em = EntityManagerFactory.Create(BitmaskSize.Bit64, 256, 256);
+            IEntitySystemManager em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64, 256, 256);
             string strComp = "I'm a string";
 
             List<Entity> entities = new List<Entity>();

@@ -20,13 +20,13 @@ namespace ScatteredLogic
         private const int DefaultInitialSize = 64;
         private const int DefaultGrowthSize = 32;
 
-        public static IEntityManager Create(BitmaskSize type = BitmaskSize.Bit32, int initialSize = DefaultInitialSize, int growthSize = DefaultGrowthSize)
+        public static IEntitySystemManager CreateEntitySystemManager(BitmaskSize type = BitmaskSize.Bit32, int initialSize = DefaultInitialSize, int growthSize = DefaultGrowthSize)
         {
             switch (type)
             {
-                case BitmaskSize.Bit32: return new EntityManager<Bitmask32>(32, initialSize, growthSize);
-                case BitmaskSize.Bit64: return new EntityManager<Bitmask64>(64, initialSize, growthSize);
-                case BitmaskSize.Bit128: return new EntityManager<Bitmask128>(128, initialSize, growthSize);
+                case BitmaskSize.Bit32: return new EntitySystemManager<Bitmask32>(32, initialSize, growthSize);
+                case BitmaskSize.Bit64: return new EntitySystemManager<Bitmask64>(64, initialSize, growthSize);
+                case BitmaskSize.Bit128: return new EntitySystemManager<Bitmask128>(128, initialSize, growthSize);
                 default: return null;
             }
         }

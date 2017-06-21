@@ -8,7 +8,7 @@ namespace ScatteredGameExample.Systems
     {
         public IEntitySet Entities { get; set; }
 
-        public IEntityManager EntityManager { get; set; }
+        public IEntitySystemManager EntityManager { get; set; }
 
         public EventBus EventBus { get; set; }
 

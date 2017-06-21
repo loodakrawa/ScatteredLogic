@@ -12,12 +12,12 @@ namespace ScatteredLogicTest
     [TestClass]
     public class EntityManagerTest
     {
-        private IEntityManager em;
+        private IEntitySystemManager em;
 
         [TestInitialize]
         public void SetUp()
         {
-            em = EntityManagerFactory.Create(BitmaskSize.Bit64);
+            em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64);
         }
 
         [TestMethod]

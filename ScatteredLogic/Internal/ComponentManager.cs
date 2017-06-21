@@ -6,30 +6,25 @@
 using ScatteredLogic.Internal.Bitmask;
 using ScatteredLogic.Internal.Data;
 using System;
-using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
 {
-    internal sealed class ComponentManager<B> where B : IBitmask<B>
+    internal class ComponentManager<B> where B : IBitmask<B>
     {
-        private B[] masks;
         private IComponentArray[] components;
         private int entityCount;
-        private readonly List<Pair<int, int>> componentsToRemove = new List<Pair<int, int>>();
 
         public ComponentManager(int maxComponentCount)
         {
             components = new IComponentArray[maxComponentCount];
         }
 
-        public void Grow(int entityCount)
+        public virtual void RemoveEntity(int entity)
         {
-            this.entityCount = entityCount;
-            Array.Resize(ref masks, entityCount);
-            for (int i = 0; i < components.Length; ++i) components[i]?.Grow(entityCount);
+            for (int i = 0; i < components.Length; ++i) components[i]?.RemoveElementAt(entity);
         }
 
-        public void AddComponent<T>(int entity, T component, int type)
+        public virtual void AddComponent<T>(int entity, T component, int type)
         {
             ComponentArray<T> comps = components[type] as ComponentArray<T>;
             if(comps == null)
@@ -39,14 +34,11 @@ namespace ScatteredLogic.Internal
                 components[type] = comps;
             }
 
-            // set component bit
-            masks[entity] = masks[entity].Set(type);
-
             // add componenet immediately
             comps[entity] = component;
         }
 
-        public void AddComponent(int entity, object component, int type, Type compType)
+        public virtual void AddComponent(int entity, object component, int type, Type compType)
         {
             IComponentArray comps = components[type];
             if (comps == null)
@@ -57,20 +49,12 @@ namespace ScatteredLogic.Internal
                 components[type] = comps;
             }
 
-            // set component bit
-            masks[entity] = masks[entity].Set(type);
-
-            // add componenet immediately
             comps.SetElementAt(component, entity);
         }
 
-        public void RemoveComponent(int entity, int type)
+        public virtual void RemoveComponent(int entity, int type)
         {
-            // clear bit
-            masks[entity] = masks[entity].Clear(type);
-
-            // add it fo later removal
-            componentsToRemove.Add(Pair.Of(entity, type));
+            components[type]?.RemoveElementAt(entity);
         }
 
         public T GetComponent<T>(int entity, int type)
@@ -81,11 +65,10 @@ namespace ScatteredLogic.Internal
 
         public object GetComponent(int entity, int type)
         {
-            IComponentArray comps = components[type];
-            return comps != null ? comps.GetElementAt(entity) : null;
+            return components[type]?.GetElementAt(entity);
         }
 
-        public IArray<T> GetComponents<T>(int type)
+        public IArray<T> GetAllComponents<T>(int type)
         {
             ComponentArray<T> comps = components[type] as ComponentArray<T>;
             if (comps == null)
@@ -97,52 +80,10 @@ namespace ScatteredLogic.Internal
             return comps;
         }
 
-        public B GetBitmask(int entity) => masks[entity];
-
-        public void Update()
+        public virtual void Grow(int entityCount)
         {
-            foreach (var entry in componentsToRemove)
-            {
-                int entity = entry.Item1;
-                int compId = entry.Item2;
-
-                // remove only if bitmask is not set
-                B mask = masks[entity];
-                if(!mask.Get(compId)) components[compId].RemoveElementAt(entity);
-            }
-            componentsToRemove.Clear();
-        }
-
-        public void ClearMask(int entity)
-        {
-            masks[entity] = default(B);
-        }
-
-        public void RemoveEntitySync(int entity)
-        {
-            masks[entity] = default(B);
-            for (int i = 0; i < components.Length; ++i)
-            {
-                IComponentArray comps = components[i];
-                if (comps != null) comps.RemoveElementAt(entity);
-            }
-        }
-
-        private static class Pair
-        {
-            public static Pair<T1, T2> Of<T1, T2>(T1 item1, T2 item2) => new Pair<T1, T2>(item1, item2);
-        }
-
-        private struct Pair<T1, T2>
-        {
-            public readonly T1 Item1;
-            public readonly T2 Item2;
-
-            public Pair(T1 item1, T2 item2)
-            {
-                Item1 = item1;
-                Item2 = item2;
-            }
+            this.entityCount = entityCount;
+            for (int i = 0; i < components.Length; ++i) components[i]?.Grow(entityCount);
         }
     }
 }

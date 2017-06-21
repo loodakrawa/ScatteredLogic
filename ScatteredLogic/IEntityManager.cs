@@ -9,7 +9,6 @@ namespace ScatteredLogic
 {
     public interface IEntityManager
     {
-        EventBus EventBus { get; }
         IEntitySet Entities { get; }
 
         Entity CreateEntity();
@@ -26,10 +25,5 @@ namespace ScatteredLogic
         object GetComponent(Entity entity, Type type);
 
         IArray<T> GetComponents<T>();
-
-        void AddSystem(ISystem system);
-        void RemoveSystem(ISystem system);
-
-        void Update(float deltaTime);
     }
 }

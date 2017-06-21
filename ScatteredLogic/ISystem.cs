@@ -11,7 +11,7 @@ namespace ScatteredLogic
     public interface ISystem
     {
         IEnumerable<Type> RequiredComponents { get; }
-        IEntityManager EntityManager { get; set; }
+        IEntitySystemManager EntityManager { get; set; }
         IEntitySet Entities { get; set; }
         EventBus EventBus { get; set; }
 

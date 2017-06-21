@@ -13,7 +13,7 @@ namespace ScatteredLogicTest
     public class EmptyTestSystem : ISystem
     {
         public IEntitySet Entities { get; set; }
-        public IEntityManager EntityManager { get; set; }
+        public IEntitySystemManager EntityManager { get; set; }
         public IEnumerable<Type> RequiredComponents => Types.None;
         public EventBus EventBus { get; set; }
 
@@ -27,7 +27,7 @@ namespace ScatteredLogicTest
     public class TestSystem<T> : ISystem
     {
         public IEntitySet Entities { get; set; }
-        public IEntityManager EntityManager { get; set; }
+        public IEntitySystemManager EntityManager { get; set; }
         public IEnumerable<Type> RequiredComponents => Types.From<T>();
         public EventBus EventBus { get; set; }
 
@@ -47,13 +47,13 @@ namespace ScatteredLogicTest
     [TestClass]
     public class SystemManagementTest
     {
-        private IEntityManager em;
+        private IEntitySystemManager em;
         private TestSystem<string> system;
 
         [TestInitialize]
         public void SetUp()
         {
-            em = EntityManagerFactory.Create(BitmaskSize.Bit64);
+            em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64);
             system = new TestSystem<string>();
         }
 

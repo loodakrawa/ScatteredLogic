@@ -12,7 +12,7 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class SystemManager<B> where B : IBitmask<B>
     {
-        private readonly ComponentManager<B> cm;
+        private readonly SyncComponentManager<B> cm;
         private readonly TypeIndexer componentIndexer;
 
         private readonly HashSet<ISystem> systems = new HashSet<ISystem>();
@@ -24,7 +24,7 @@ namespace ScatteredLogic.Internal
 
         private int entityCount;
 
-        public SystemManager(ComponentManager<B> cm, TypeIndexer componentIndexer)
+        public SystemManager(SyncComponentManager<B> cm, TypeIndexer componentIndexer)
         {
             this.cm = cm;
             this.componentIndexer = componentIndexer;
