@@ -1,7 +1,7 @@
-﻿// Copyright (c) 2017 The original author or authors
+﻿// Copyright (C) The original author or authors
 //
 // This software may be modified and distributed under the terms
-// of the zlib license.  See the LICENSE file for details.
+// of the zlib license. See the LICENSE file for details.
 
 using System;
 using System.Collections.Generic;
@@ -10,19 +10,15 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class TypeIndexer
     {
-        private Dictionary<Type, int?> componentIndexes = new Dictionary<Type, int?>();
+        private readonly Dictionary<Type, int?> componentIndexes = new Dictionary<Type, int?>();
+        private readonly int maxComponents;
 
-        public int GetIndex(object obj) => GetIndex(obj.GetType());
-        public int GetIndex<T>() => GetIndex(typeof(T));
-
-        private readonly int max;
-
-        public TypeIndexer(int max)
+        public TypeIndexer(int maxComponents)
         {
-            this.max = max;
+            this.maxComponents = maxComponents;
         }
 
-        public int GetIndex(Type type)
+        public int GetTypeId(Type type)
         {
             int? index;
             componentIndexes.TryGetValue(type, out index);
@@ -31,7 +27,7 @@ namespace ScatteredLogic.Internal
 
             index = componentIndexes.Count;
 
-            if (index >= max) throw new Exception("Number of components Exceeded: " + max);
+            if (index >= maxComponents) throw new Exception("Number of components Exceeded: " + maxComponents);
 
             componentIndexes[type] = index;
 

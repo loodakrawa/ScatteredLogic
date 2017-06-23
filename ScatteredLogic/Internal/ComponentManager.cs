@@ -1,115 +1,87 @@
-﻿// Copyright (c) 2017 The original author or authors
+﻿// Copyright (C) The original author or authors
 //
 // This software may be modified and distributed under the terms
-// of the zlib license.  See the LICENSE file for details.
+// of the zlib license. See the LICENSE file for details.
 
+using ScatteredLogic.Internal.Data;
 using System;
-using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
 {
-    internal sealed class ComponentManager<E, B> where B : IBitmask<B>
+    internal class ComponentManager
     {
-        private readonly Dictionary<E, B> masks = new Dictionary<E, B>();
-        private readonly Dictionary<Type, Dictionary<E, object>> components = new Dictionary<Type, Dictionary<E, object>>();
+        private readonly IComponentArray[] components;
+        private int entityCount;
 
-        private readonly List<Pair<E, Type>> componentsToRemove = new List<Pair<E, Type>>();
-
-        private readonly TypeIndexer indexer;
-
-        public ComponentManager(TypeIndexer indexer)
+        public ComponentManager(int maxComponents)
         {
-            this.indexer = indexer;
+            components = new IComponentArray[maxComponents];
         }
 
-        public void AddComponent(E entity, object component, Type type)
+        public virtual void RemoveEntity(int id)
         {
-            int compId = indexer.GetIndex(type);
+            for (int i = 0; i < components.Length; ++i) components[i]?.RemoveElementAt(id);
+        }
 
-            // set component bit
-            masks[entity] = masks[entity].Set(compId);
-
-            Dictionary<E, object> ce = components.TryGet(type);
-            if (ce == null)
+        public virtual void AddComponent<T>(int id, T component, int type)
+        {
+            ComponentArray<T> comps = components[type] as ComponentArray<T>;
+            if(comps == null)
             {
-                ce = new Dictionary<E, object>();
-                components[type] = ce;
+                comps = new ComponentArray<T>();
+                comps.Grow(entityCount);
+                components[type] = comps;
             }
 
-            // add componenet immediately
-            ce[entity] = component;
+            comps[id] = component;
         }
 
-        public void RemoveComponent(E entity, Type type)
+        public virtual void AddComponent(int id, object component, int type, Type compType)
         {
-            // clear bit
-            masks[entity] = masks[entity].Clear(indexer.GetIndex(type));
-
-            // add it fo later removal
-            componentsToRemove.Add(Pair.Of(entity, type));
-        }
-
-        public bool HasComponent(E entity, Type type)
-        {
-            Dictionary<E, object> ce = components.TryGet(type);
-            return ce != null ? ce.ContainsKey(entity) : false;
-        }
-
-        public T GetComponent<T>(E entity, Type type)
-        {
-            Dictionary<E, object> ce = components.TryGet(type);
-            if (ce == null) return default(T);
-            return (T)ce.TryGet(entity);
-        }
-
-        public void AddEntity(E entity)
-        {
-            masks[entity] = default(B);
-        }
-
-        public B GetBitmask(E entity) => masks.TryGet(entity);
-
-        public void Update()
-        {
-            foreach (var entry in componentsToRemove)
+            IComponentArray comps = components[type];
+            if (comps == null)
             {
-                E entity = entry.Item1;
-                Type type = entry.Item2;
-
-                // remove only if bitmask is not set
-                B mask;
-                bool hasMask = masks.TryGetValue(entity, out mask);
-                if(!hasMask || !mask.Get(indexer.GetIndex(type))) components[entry.Item2].Remove(entry.Item1);
+                var listType = typeof(ComponentArray<>).MakeGenericType(compType);
+                comps = Activator.CreateInstance(listType) as IComponentArray;
+                comps.Grow(entityCount);
+                components[type] = comps;
             }
-            componentsToRemove.Clear();
+
+            comps.SetElementAt(component, id);
         }
 
-        public void ClearMask(E entity)
+        public virtual void RemoveComponent(int id, int type)
         {
-            masks[entity] = default(B);
+            components[type]?.RemoveElementAt(id);
         }
 
-        public void RemoveEntitySync(E entity)
+        public T GetComponent<T>(int id, int type)
         {
-            masks.Remove(entity);
-            foreach (var entry in components) entry.Value.Remove(entity);
+            ComponentArray<T> comps = components[type] as ComponentArray<T>;
+            return comps != null ? comps[id] : default(T);
         }
 
-        private static class Pair
+        public object GetComponent(int id, int type)
         {
-            public static Pair<T1, T2> Of<T1, T2>(T1 item1, T2 item2) => new Pair<T1, T2>(item1, item2);
+            return components[type]?.GetElementAt(id);
         }
 
-        private struct Pair<T1, T2>
+        public IArray<T> GetAllComponents<T>(int type)
         {
-            public readonly T1 Item1;
-            public readonly T2 Item2;
-
-            public Pair(T1 item1, T2 item2)
+            ComponentArray<T> comps = components[type] as ComponentArray<T>;
+            if (comps == null)
             {
-                Item1 = item1;
-                Item2 = item2;
+                comps = new ComponentArray<T>();
+                comps.Grow(entityCount);
+                components[type] = comps;
             }
+            return comps;
+        }
+
+        public virtual void Grow(int entityCount)
+        {
+            this.entityCount = entityCount;
+            for (int i = 0; i < components.Length; ++i) components[i]?.Grow(entityCount);
         }
     }
 }

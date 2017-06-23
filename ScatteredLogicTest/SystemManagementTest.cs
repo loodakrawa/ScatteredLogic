@@ -1,7 +1,7 @@
-﻿// Copyright (c) 2017 The original author or authors
+﻿// Copyright (C) The original author or authors
 //
 // This software may be modified and distributed under the terms
-// of the zlib license.  See the LICENSE file for details.
+// of the zlib license. See the LICENSE file for details.
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ScatteredLogic;
@@ -10,10 +10,10 @@ using System.Collections.Generic;
 
 namespace ScatteredLogicTest
 {
-    public class EmptyTestSystem : ISystem<Entity>
+    public class EmptyTestSystem : ISystem
     {
-        public SetEnumerable<Entity> Entities { get; set; }
-        public IEntityManager<Entity> EntityManager { get; set; }
+        public IEntitySet Entities { get; set; }
+        public IEntitySystemManager EntityManager { get; set; }
         public IEnumerable<Type> RequiredComponents => Types.None;
         public EventBus EventBus { get; set; }
 
@@ -24,10 +24,10 @@ namespace ScatteredLogicTest
         public void Update(float deltaTime) { }
     }
 
-    public class TestSystem<T> : ISystem<Entity>
+    public class TestSystem<T> : ISystem
     {
-        public SetEnumerable<Entity> Entities { get; set; }
-        public IEntityManager<Entity> EntityManager { get; set; }
+        public IEntitySet Entities { get; set; }
+        public IEntitySystemManager EntityManager { get; set; }
         public IEnumerable<Type> RequiredComponents => Types.From<T>();
         public EventBus EventBus { get; set; }
 
@@ -47,17 +47,17 @@ namespace ScatteredLogicTest
     [TestClass]
     public class SystemManagementTest
     {
-        private IEntityManager<Entity> em;
+        private IEntitySystemManager em;
         private TestSystem<string> system;
 
         [TestInitialize]
         public void SetUp()
         {
-            em = EntityManagerFactory.Create(BitmaskSize.Bit64);
+            em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64);
             system = new TestSystem<string>();
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(100)]
         public void AddSystem_AddedCalled()
         {
             bool added = false;
@@ -69,7 +69,7 @@ namespace ScatteredLogicTest
             Assert.IsTrue(added);
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(100)]
         public void AddSystemTwice_AddedCalledOnce()
         {
             int count = 0;
@@ -83,7 +83,7 @@ namespace ScatteredLogicTest
             Assert.AreEqual(1, count);
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(100)]
         public void RemoveSystemWithoutAdding_RemovedNotCalled()
         {
             bool removed = false;
@@ -94,7 +94,7 @@ namespace ScatteredLogicTest
             Assert.IsFalse(removed);
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(100)]
         public void AddSystemRemoveSystem_RemoveCalled()
         {
             bool removed = false;
@@ -110,7 +110,7 @@ namespace ScatteredLogicTest
             Assert.IsTrue(removed);
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(100)]
         public void AddSystemRemoveSystemTwice_RemoveCalledOnce()
         {
             int count = 0;
@@ -125,7 +125,7 @@ namespace ScatteredLogicTest
             Assert.AreEqual(1, count);
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(100)]
         public void AddEntity_EntityAddedCalled()
         {
             Entity? addedEntity = null;
@@ -144,7 +144,7 @@ namespace ScatteredLogicTest
             Assert.AreEqual(entity, addedEntity.Value);
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(100)]
         public void AddEntityRemoveEntity_EntityRemovedCalled()
         {
             Entity? removedEntity = null;
@@ -165,7 +165,7 @@ namespace ScatteredLogicTest
             Assert.AreEqual(entity, removedEntity.Value);
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(100)]
         public void AddEntityWithDifferentComponent_EntityAddedNotCalled()
         {
             Entity? addedEntity = null;
@@ -181,7 +181,7 @@ namespace ScatteredLogicTest
             Assert.IsFalse(addedEntity.HasValue);
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(100)]
         public void AddTwoEntitiesWithDifferentComponents_OnlyOneEntityAdded()
         {
             em.AddSystem(system);
@@ -197,7 +197,7 @@ namespace ScatteredLogicTest
             Assert.AreEqual(1, system.Entities.Count);
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(100)]
         public void EntityAdded_DestroyEntity()
         {
             em.AddSystem(system);
@@ -212,7 +212,7 @@ namespace ScatteredLogicTest
             Assert.IsFalse(em.ContainsEntity(entity));
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(100)]
         public void EntityAdded_ChainDestroyEntity()
         {
             em.AddSystem(system);
@@ -238,10 +238,10 @@ namespace ScatteredLogicTest
             Assert.IsTrue(removed2Called);
         }
 
-        [TestMethod]
+        [TestMethod, Timeout(0)]
         public void HavingASystemWithNoRequiredComponents_RemovingEntityShouldRemoveItFromSystem()
         {
-            ISystem<Entity> sys = new EmptyTestSystem();
+            ISystem sys = new EmptyTestSystem();
             em.AddSystem(sys);
 
             Entity entity = em.CreateEntity();

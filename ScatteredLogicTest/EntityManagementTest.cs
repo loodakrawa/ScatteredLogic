@@ -1,7 +1,7 @@
-﻿// Copyright (c) 2017 The original author or authors
+﻿// Copyright (C) The original author or authors
 //
 // This software may be modified and distributed under the terms
-// of the zlib license.  See the LICENSE file for details.
+// of the zlib license. See the LICENSE file for details.
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ScatteredLogic;
@@ -12,12 +12,12 @@ namespace ScatteredLogicTest
     [TestClass]
     public class EntityManagerTest
     {
-        private IEntityManager<Entity> em;
+        private IEntitySystemManager em;
 
         [TestInitialize]
         public void SetUp()
         {
-            em = EntityManagerFactory.Create(BitmaskSize.Bit64);
+            em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64);
         }
 
         [TestMethod]
@@ -91,12 +91,26 @@ namespace ScatteredLogicTest
         }
 
         [TestMethod]
+        public void NoComponent_HasComponent()
+        {
+            Entity entity = em.CreateEntity();
+            Assert.IsNull(em.GetComponent<string>(entity));
+        }
+
+        [TestMethod]
+        public void NoComponent_GetComponent()
+        {
+            Entity entity = em.CreateEntity();
+            Assert.IsNull(em.GetComponent<string>(entity));
+        }
+
+        [TestMethod]
         public void AddComponentAndUpdate_HasComponent()
         {
             Entity entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
             em.Update(0);
-            Assert.IsTrue(em.HasComponent<string>(entity));
+            Assert.IsNotNull(em.GetComponent<string>(entity));
         }
 
         [TestMethod]
@@ -104,10 +118,10 @@ namespace ScatteredLogicTest
         {
             Entity entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
-            em.AddComponent(entity, 0);
+            em.AddComponent(entity, 1);
             em.Update(0);
-            Assert.IsTrue(em.HasComponent<string>(entity));
-            Assert.IsTrue(em.HasComponent<int>(entity));
+            Assert.IsNotNull(em.GetComponent<string>(entity));
+            Assert.IsTrue(em.GetComponent<int>(entity) == 1);
         }
 
         [TestMethod]
@@ -115,11 +129,11 @@ namespace ScatteredLogicTest
         {
             Entity entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
-            em.AddComponent(entity, 0);
+            em.AddComponent(entity, 1);
             em.RemoveComponent<int>(entity);
             em.Update(0);
-            Assert.IsTrue(em.HasComponent<string>(entity));
-            Assert.IsFalse(em.HasComponent<int>(entity));
+            Assert.IsNotNull(em.GetComponent<string>(entity));
+            Assert.IsFalse(em.GetComponent<int>(entity) == 1);
         }
 
         [TestMethod]

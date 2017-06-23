@@ -1,4 +1,9 @@
-﻿using ScatteredLogic.Internal;
+﻿// Copyright (C) The original author or authors
+//
+// This software may be modified and distributed under the terms
+// of the zlib license. See the LICENSE file for details.
+
+using ScatteredLogic.Internal;
 using System;
 using System.Collections.Generic;
 
@@ -11,10 +16,12 @@ namespace ScatteredLogic
 
         private bool asyncMessagesAvailable;
 
+        internal EventBus() { }
+
         public void Register<T>(Action<T> listener) => GetOrCreateEventQueue<T>().Register(listener);
         public void Deregister<T>(Action<T> listener)
         {
-            int typeIndex = indexer.GetIndex<T>();
+            int typeIndex = indexer.GetTypeId(typeof(T));
             if (typeIndex >= eventQueues.Count) return;
             (eventQueues[typeIndex] as EventQueue<T>).DeRegister(listener);
         }
@@ -30,13 +37,13 @@ namespace ScatteredLogic
             while (asyncMessagesAvailable)
             {
                 asyncMessagesAvailable = false;
-                for (int i=0; i<eventQueues.Count; ++i) eventQueues[i].DispatchEnquedEvents();
+                for (int i = 0; i < eventQueues.Count; ++i) eventQueues[i].DispatchEnquedEvents();
             }
         }
 
         private EventQueue<T> GetOrCreateEventQueue<T>()
         {
-            int typeIndex = indexer.GetIndex<T>();
+            int typeIndex = indexer.GetTypeId(typeof(T));
             if (typeIndex >= eventQueues.Count) eventQueues.Add(new EventQueue<T>());
             return eventQueues[typeIndex] as EventQueue<T>;
         }

@@ -1,10 +1,10 @@
-﻿// Copyright (c) 2017 The original author or authors
+﻿// Copyright (C) The original author or authors
 //
 // This software may be modified and distributed under the terms
-// of the zlib license.  See the LICENSE file for details.
+// of the zlib license. See the LICENSE file for details.
 
 using ScatteredLogic.Internal;
-using System;
+using ScatteredLogic.Internal.Bitmask;
 
 namespace ScatteredLogic
 {
@@ -17,26 +17,27 @@ namespace ScatteredLogic
 
     public static class EntityManagerFactory
     {
-        public static IEntityManager<Entity> Create(BitmaskSize type)
-        {
-            EntityFactory ef = new EntityFactory();
-            IEntityManager<Entity> em = InternalCreate(type, ef);
-            ef.EntityManager = em;
-            return em;
-        }
+        private const int DefaultInitialSize = 64;
+        private const int DefaultGrowthSize = 32;
 
-        public static IEntityManager<E> Create<E>(BitmaskSize type, IEntityFactory<E> entityFactory) where E : struct, IEquatable<E>
-        {
-            return InternalCreate(type, entityFactory);
-        }
-
-        private static IEntityManager<E> InternalCreate<E>(BitmaskSize type, IEntityFactory<E> entityFactory) where E : struct, IEquatable<E>
+        public static IEntityManager CreateEntityManager(BitmaskSize type = BitmaskSize.Bit32, int initialSize = DefaultInitialSize, int growthSize = DefaultGrowthSize)
         {
             switch (type)
             {
-                case BitmaskSize.Bit32: return new EntityManager<E, Bitmask32>(32, entityFactory);
-                case BitmaskSize.Bit64: return new EntityManager<E, Bitmask64>(64, entityFactory);
-                case BitmaskSize.Bit128: return new EntityManager<E, Bitmask32>(128, entityFactory);
+                case BitmaskSize.Bit32: return new EntityManager<Bitmask32>(32, initialSize, growthSize);
+                case BitmaskSize.Bit64: return new EntityManager<Bitmask64>(64, initialSize, growthSize);
+                case BitmaskSize.Bit128: return new EntityManager<Bitmask128>(128, initialSize, growthSize);
+                default: return null;
+            }
+        }
+
+        public static IEntitySystemManager CreateEntitySystemManager(BitmaskSize type = BitmaskSize.Bit32, int initialSize = DefaultInitialSize, int growthSize = DefaultGrowthSize)
+        {
+            switch (type)
+            {
+                case BitmaskSize.Bit32: return new EntitySystemManager<Bitmask32>(32, initialSize, growthSize);
+                case BitmaskSize.Bit64: return new EntitySystemManager<Bitmask64>(64, initialSize, growthSize);
+                case BitmaskSize.Bit128: return new EntitySystemManager<Bitmask128>(128, initialSize, growthSize);
                 default: return null;
             }
         }
