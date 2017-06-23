@@ -1,8 +1,7 @@
 ﻿using ScatteredLogic;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using ScatteredLogic.Internal;
 
 namespace ConsoleRunner
 {

@@ -34,14 +34,22 @@ namespace ScatteredLogic.Internal
 
         public virtual Entity CreateEntity()
         {
+            // grow if there are no free indices
             if (freeIndices.Count == 0)
             {
                 if(entities.Count == 0) Grow(InitialSize);
                 else Grow(entities.Count + GrowthSize);
             }
+
             int index = freeIndices.Dequeue();
             Entity entity = entities[index];
 
+            // if the entity is in the new expanded range, initialise it
+            if(index >= entities.Count)
+            {
+                entity = new Entity(this, index, entity.Version + 1);
+                entities.Add(entity);
+            }
             return entity;
         }
 
@@ -101,10 +109,9 @@ namespace ScatteredLogic.Internal
             int startIndex = entities.Count;
             for (int i = startIndex; i < size; ++i)
             {
-                entities.Add(new Entity(this, i, 1));
                 freeIndices.Enqueue(i);
             }
-            componentManager.Grow(entities.Count);
+            componentManager.Grow(size);
         }
 
         protected virtual ComponentManager CreateComponentManager(int maxComponents)

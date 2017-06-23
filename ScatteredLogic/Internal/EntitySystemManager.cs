@@ -21,8 +21,6 @@ namespace ScatteredLogic.Internal
 
         private readonly EventBus eventBus = new EventBus();
 
-        private int entityCount;
-
         public EntitySystemManager(int maxComponents, int initialSize, int growthSize) : base(maxComponents, initialSize, growthSize)
         {
             sm = new SystemManager<B>(cm, Indexer);
@@ -32,7 +30,6 @@ namespace ScatteredLogic.Internal
         {
             Entity entity = base.CreateEntity();
             dirtyEntities.Add(entity);
-            ++entityCount;
             return entity;
         }
 
@@ -81,7 +78,7 @@ namespace ScatteredLogic.Internal
                 while (entitiesToRemove.Count > 0) SyncDestroyEntity(entitiesToRemove.Pop());
             }
 
-            sm.UpdateSystems(Entities, entityCount, deltaTime);
+            sm.UpdateSystems(Entities, deltaTime);
             cm.Update();
 
             eventBus.Update();
@@ -91,9 +88,9 @@ namespace ScatteredLogic.Internal
         protected override void Grow(int size)
         {
             base.Grow(size);
-            sm.Grow(Entities.Count);
-            entitiesToRemove.Grow(Entities.Count);
-            dirtyEntities.Grow(Entities.Count);
+            sm.Grow(size);
+            entitiesToRemove.Grow(size);
+            dirtyEntities.Grow(size);
         }
 
         protected override ComponentManager CreateComponentManager(int maxComponents)
@@ -106,7 +103,6 @@ namespace ScatteredLogic.Internal
         {
             sm.RemoveEntitySync(entity);
             cm.RemoveEntity(entity.Id);
-            --entityCount;
             base.DestroyEntity(entity);
         }
 

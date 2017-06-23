@@ -65,11 +65,11 @@ namespace ScatteredLogic.Internal
             systemsToRemove.Add(system);
         }
 
-        public void UpdateSystems(IEntitySet entities, int entityCount, float deltaTime)
+        public void UpdateSystems(IEntitySet entities, float deltaTime)
         {
             foreach (ISystem system in newSystems)
             {
-                for (int i = 0; i < entityCount; ++i) AddEntityToSystem(entities[i], system);
+                for (int i = 0; i < entities.Count; ++i) AddEntityToSystem(entities[i], system);
             }
             newSystems.Clear();
 
