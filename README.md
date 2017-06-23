@@ -1,7 +1,8 @@
 # Scattered Logic #
 
+*Still in heavy development and interface changes before getting to version 1.0.*
+
 A simple, lightweight and fast Entity Component System C# implementation.
-*Still in heavy development and interface changes before getting to version 1.0*
 
 ## About ##
 
