@@ -17,27 +17,24 @@ namespace ScatteredLogic
 
     public static class EntityManagerFactory
     {
-        private const int DefaultInitialSize = 64;
-        private const int DefaultGrowthSize = 32;
-
-        public static IEntityManager CreateEntityManager(BitmaskSize type = BitmaskSize.Bit32, int initialSize = DefaultInitialSize, int growthSize = DefaultGrowthSize)
+        public static IEntityManager CreateEntityManager(BitmaskSize type, int maxEntities)
         {
             switch (type)
             {
-                case BitmaskSize.Bit32: return new EntityManager<Bitmask32>(32, initialSize, growthSize);
-                case BitmaskSize.Bit64: return new EntityManager<Bitmask64>(64, initialSize, growthSize);
-                case BitmaskSize.Bit128: return new EntityManager<Bitmask128>(128, initialSize, growthSize);
+                case BitmaskSize.Bit32: return new EntityManager<Bitmask32>(32, maxEntities);
+                case BitmaskSize.Bit64: return new EntityManager<Bitmask64>(64, maxEntities);
+                case BitmaskSize.Bit128: return new EntityManager<Bitmask128>(128, maxEntities);
                 default: return null;
             }
         }
 
-        public static IEntitySystemManager CreateEntitySystemManager(BitmaskSize type = BitmaskSize.Bit32, int initialSize = DefaultInitialSize, int growthSize = DefaultGrowthSize)
+        public static IEntitySystemManager CreateEntitySystemManager(BitmaskSize type, int maxEntities)
         {
             switch (type)
             {
-                case BitmaskSize.Bit32: return new EntitySystemManager<Bitmask32>(32, initialSize, growthSize);
-                case BitmaskSize.Bit64: return new EntitySystemManager<Bitmask64>(64, initialSize, growthSize);
-                case BitmaskSize.Bit128: return new EntitySystemManager<Bitmask128>(128, initialSize, growthSize);
+                case BitmaskSize.Bit32: return new EntitySystemManager<Bitmask32>(32, maxEntities);
+                case BitmaskSize.Bit64: return new EntitySystemManager<Bitmask64>(64, maxEntities);
+                case BitmaskSize.Bit128: return new EntitySystemManager<Bitmask128>(128, maxEntities);
                 default: return null;
             }
         }

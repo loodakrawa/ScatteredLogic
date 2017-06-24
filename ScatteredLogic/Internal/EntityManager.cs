@@ -15,37 +15,33 @@ namespace ScatteredLogic.Internal
         public IEntitySet Entities => entities;
 
         protected readonly TypeIndexer Indexer;
-        protected readonly int InitialSize;
-        protected readonly int GrowthSize;
 
         private readonly ComponentManager componentManager;
 
-        private readonly EntitySet entities = new EntitySet();
-        private readonly Queue<int> freeIndices = new Queue<int>();
+        private readonly EntitySet entities;
+        private readonly Queue<int> freeIndices;
 
-        public EntityManager(int maxComponents, int initialSize, int growthSize)
+        public EntityManager(int maxComponents, int maxEntities)
         {
             Indexer = new TypeIndexer(maxComponents);
-            componentManager = CreateComponentManager(maxComponents);
+            componentManager = CreateComponentManager(maxComponents, maxEntities);
 
-            InitialSize = initialSize;
-            GrowthSize = growthSize;
+            entities = new EntitySet(maxEntities);
+            freeIndices = new Queue<int>(maxEntities);
+
+            for (int i = 0; i < maxEntities; ++i) freeIndices.Enqueue(i);
         }
 
         public virtual Entity CreateEntity()
         {
             // grow if there are no free indices
-            if (freeIndices.Count == 0)
-            {
-                if(entities.Count == 0) Grow(InitialSize);
-                else Grow(entities.Count + GrowthSize);
-            }
+            if (freeIndices.Count == 0) throw new Exception("Max number of entities reached");
 
             int index = freeIndices.Dequeue();
             Entity entity = entities[index];
 
             // if the entity is in the new expanded range, initialise it
-            if(index >= entities.Count)
+            if (index >= entities.Count)
             {
                 entity = new Entity(this, index, entity.Version + 1);
                 entities.Add(entity);
@@ -68,7 +64,7 @@ namespace ScatteredLogic.Internal
         {
             int index = entity.Id;
             return index < entities.Count && entities[index].Version == entity.Version;
-        }     
+        }
 
         public virtual void AddComponent<T>(Entity entity, T component)
         {
@@ -105,18 +101,12 @@ namespace ScatteredLogic.Internal
 
         protected virtual void Grow(int size)
         {
-            entities.Grow(size);
-            int startIndex = entities.Count;
-            for (int i = startIndex; i < size; ++i)
-            {
-                freeIndices.Enqueue(i);
-            }
-            componentManager.Grow(size);
+
         }
 
-        protected virtual ComponentManager CreateComponentManager(int maxComponents)
+        protected virtual ComponentManager CreateComponentManager(int maxComponents, int maxEntities)
         {
-            return new ComponentManager(maxComponents);
+            return new ComponentManager(maxComponents, maxEntities);
         }
 
         protected void ThrowIfStale(Entity entity)

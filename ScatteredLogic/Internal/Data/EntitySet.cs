@@ -3,28 +3,26 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
-using System;
-
 namespace ScatteredLogic.Internal.Data
 {
     internal sealed class EntitySet : IEntitySet
     {
         public int Count => count;
 
-        private Entity[] entities;
-        private int[] indices;
+        private readonly  Entity[] entities;
+        private readonly int[] indices;
+
         private int count;
 
-        public Entity this[int i] { get => entities[i]; }
-
-        public void Grow(int capacity)
+        public EntitySet(int size)
         {
-            int currentLength = entities != null ? entities.Length : 0;
-            Array.Resize(ref entities, capacity);
-            Array.Resize(ref indices, capacity);
+            entities = new Entity[size];
+            indices = new int[size];
 
-            for (int i = currentLength; i < capacity; ++i) indices[i] = -1;
+            for (int i = 0; i < size; ++i) indices[i] = -1;
         }
+
+        public Entity this[int i] { get => entities[i]; }
 
         public void Clear()
         {

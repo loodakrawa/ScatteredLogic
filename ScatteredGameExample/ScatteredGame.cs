@@ -35,7 +35,7 @@ namespace ScatteredGameExample
             IsFixedTimeStep = false;
             graphics.SynchronizeWithVerticalRetrace = false;
 
-            entityManager = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit32);
+            entityManager = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit32, 256);
             entityFactory = new EntityFactory(Content, entityManager);
 
             IsMouseVisible = true;

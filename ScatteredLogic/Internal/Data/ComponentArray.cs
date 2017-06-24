@@ -11,7 +11,12 @@ namespace ScatteredLogic.Internal.Data
     {
         public T[] Raw => data;
 
-        private T[] data;
+        private readonly T[] data;
+
+        public ComponentArray(int size)
+        {
+            data = new T[size];
+        }
 
         public T this[int i]
         {
@@ -24,11 +29,6 @@ namespace ScatteredLogic.Internal.Data
             data[index] = default(T);
         }
 
-        public void Grow(int capacity)
-        {
-            Array.Resize(ref data, capacity);
-        }
-
         public void SetElementAt(object element, int index) => this[index] = (T) element;
         
         public object GetElementAt(int index) => this[index];
@@ -36,7 +36,6 @@ namespace ScatteredLogic.Internal.Data
 
     internal interface IComponentArray
     {
-        void Grow(int capacity);
         void RemoveElementAt(int index);
         void SetElementAt(object element, int index);
         object GetElementAt(int index);

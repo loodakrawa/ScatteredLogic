@@ -16,14 +16,17 @@ namespace ScatteredLogic.Internal
         private SyncComponentManager<B> cm;
         private readonly SystemManager<B> sm;
 
-        private readonly EntitySet entitiesToRemove = new EntitySet();
-        private readonly EntitySet dirtyEntities = new EntitySet();
+        private readonly EntitySet entitiesToRemove;
+        private readonly EntitySet dirtyEntities;
 
         private readonly EventBus eventBus = new EventBus();
 
-        public EntitySystemManager(int maxComponents, int initialSize, int growthSize) : base(maxComponents, initialSize, growthSize)
+        public EntitySystemManager(int maxComponents, int maxEntities) : base(maxComponents, maxEntities)
         {
-            sm = new SystemManager<B>(cm, Indexer);
+            sm = new SystemManager<B>(cm, Indexer, maxEntities);
+
+            entitiesToRemove = new EntitySet(maxEntities);
+            dirtyEntities = new EntitySet(maxEntities);
         }
 
         public override Entity CreateEntity()
@@ -84,18 +87,9 @@ namespace ScatteredLogic.Internal
             eventBus.Update();
         }
 
-
-        protected override void Grow(int size)
+        protected override ComponentManager CreateComponentManager(int maxComponents, int maxEntities)
         {
-            base.Grow(size);
-            sm.Grow(size);
-            entitiesToRemove.Grow(size);
-            dirtyEntities.Grow(size);
-        }
-
-        protected override ComponentManager CreateComponentManager(int maxComponents)
-        {
-            cm = new SyncComponentManager<B>(maxComponents);
+            cm = new SyncComponentManager<B>(maxComponents, maxEntities);
             return cm;
         }
 

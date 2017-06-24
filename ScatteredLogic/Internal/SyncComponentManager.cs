@@ -12,10 +12,11 @@ namespace ScatteredLogic.Internal
     internal sealed class SyncComponentManager<B> : ComponentManager where B : IBitmask<B>
     {
         private readonly List<Pair<int, int>> componentsToRemove = new List<Pair<int, int>>();
-        private B[] masks;
+        private readonly B[] masks;
 
-        public SyncComponentManager(int maxComponentCount) : base(maxComponentCount)
+        public SyncComponentManager(int maxComponentCount, int maxEntities) : base(maxComponentCount, maxEntities)
         {
+            masks = new B[maxEntities];
         }
 
         public override void RemoveEntity(int id)
@@ -59,12 +60,6 @@ namespace ScatteredLogic.Internal
                 if(!mask.Get(compId)) base.RemoveComponent(id, compId);
             }
             componentsToRemove.Clear();
-        }
-
-        public override void Grow(int entityCount)
-        {
-            base.Grow(entityCount);
-            Array.Resize(ref masks, entityCount);
         }
 
         private struct Pair<T1, T2>

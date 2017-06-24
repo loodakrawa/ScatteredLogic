@@ -22,18 +22,13 @@ namespace ScatteredLogic.Internal
         private readonly HashSet<ISystem> systemsToRemove = new HashSet<ISystem>();
         private readonly HashSet<ISystem> newSystems = new HashSet<ISystem>();
 
-        private int entityCount;
+        private int maxEntities;
 
-        public SystemManager(SyncComponentManager<B> cm, TypeIndexer componentIndexer)
+        public SystemManager(SyncComponentManager<B> cm, TypeIndexer componentIndexer, int maxEntities)
         {
             this.cm = cm;
             this.componentIndexer = componentIndexer;
-        }
-
-        public void Grow(int capacity)
-        {
-            entityCount = capacity;
-            foreach (EntitySet es in systemEntitites.Values) es.Grow(capacity);
+            this.maxEntities = maxEntities;
         }
 
         public void AddSystem(ISystem system)
@@ -48,8 +43,7 @@ namespace ScatteredLogic.Internal
             }
 
             systemMasks[system] = bm;
-            EntitySet se = new EntitySet();
-            se.Grow(entityCount);
+            EntitySet se = new EntitySet(maxEntities);
             systemEntitites[system] = se;
             system.Entities = se;
             systems.Add(system);

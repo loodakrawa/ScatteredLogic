@@ -37,7 +37,7 @@ namespace ScatteredLogic
 
         public override int GetHashCode() => unchecked((92821 + Id.GetHashCode()) * 92821 + Version.GetHashCode());
 
-        public override string ToString() => string.Format("{0}|{1}", Id, Version);
+        public override string ToString() => string.Format("{0}|{1}|{2}", Id, Version, entityManager != null ? GetComponent<string>() : "");
 
         public static bool operator ==(Entity a, Entity b) => a.Id == b.Id;
         public static bool operator !=(Entity a, Entity b) => a.Id != b.Id;

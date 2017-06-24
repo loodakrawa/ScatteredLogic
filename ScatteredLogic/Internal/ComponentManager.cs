@@ -10,12 +10,13 @@ namespace ScatteredLogic.Internal
 {
     internal class ComponentManager
     {
+        private readonly int maxEntities;
         private readonly IComponentArray[] components;
-        private int entityCount;
 
-        public ComponentManager(int maxComponents)
+        public ComponentManager(int maxComponents, int maxEntities)
         {
             components = new IComponentArray[maxComponents];
+            this.maxEntities = maxEntities;
         }
 
         public virtual void RemoveEntity(int id)
@@ -28,8 +29,7 @@ namespace ScatteredLogic.Internal
             ComponentArray<T> comps = components[type] as ComponentArray<T>;
             if(comps == null)
             {
-                comps = new ComponentArray<T>();
-                comps.Grow(entityCount);
+                comps = new ComponentArray<T>(maxEntities);
                 components[type] = comps;
             }
 
@@ -42,8 +42,7 @@ namespace ScatteredLogic.Internal
             if (comps == null)
             {
                 var listType = typeof(ComponentArray<>).MakeGenericType(compType);
-                comps = Activator.CreateInstance(listType) as IComponentArray;
-                comps.Grow(entityCount);
+                comps = Activator.CreateInstance(listType, maxEntities) as IComponentArray;
                 components[type] = comps;
             }
 
@@ -71,17 +70,10 @@ namespace ScatteredLogic.Internal
             ComponentArray<T> comps = components[type] as ComponentArray<T>;
             if (comps == null)
             {
-                comps = new ComponentArray<T>();
-                comps.Grow(entityCount);
+                comps = new ComponentArray<T>(maxEntities);
                 components[type] = comps;
             }
             return comps;
-        }
-
-        public virtual void Grow(int entityCount)
-        {
-            this.entityCount = entityCount;
-            for (int i = 0; i < components.Length; ++i) components[i]?.Grow(entityCount);
         }
     }
 }

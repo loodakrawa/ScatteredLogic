@@ -53,7 +53,7 @@ namespace ScatteredLogicTest
         [TestInitialize]
         public void SetUp()
         {
-            em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64);
+            em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64, 256);
             system = new TestSystem<string>();
         }
 
