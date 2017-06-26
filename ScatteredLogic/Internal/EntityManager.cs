@@ -15,8 +15,7 @@ namespace ScatteredLogic.Internal
         public IEntitySet Entities => entities;
 
         protected readonly TypeIndexer Indexer;
-
-        private readonly ComponentManager componentManager;
+        protected readonly ComponentManager ComponentManager;
 
         private readonly EntitySet entities;
         private readonly Queue<int> freeIndices;
@@ -24,7 +23,7 @@ namespace ScatteredLogic.Internal
         public EntityManager(int maxComponents, int maxEntities)
         {
             Indexer = new TypeIndexer(maxComponents);
-            componentManager = CreateComponentManager(maxComponents, maxEntities);
+            ComponentManager = new ComponentManager(maxComponents, maxEntities);
 
             entities = new EntitySet(maxEntities);
             freeIndices = new Queue<int>(maxEntities);
@@ -55,7 +54,7 @@ namespace ScatteredLogic.Internal
 
             int id = entity.Id;
 
-            componentManager.RemoveEntity(id);
+            ComponentManager.RemoveEntity(id);
             entities.Add(new Entity(this, id, entity.Version + 1));
             freeIndices.Enqueue(id);
         }
@@ -69,45 +68,35 @@ namespace ScatteredLogic.Internal
         public virtual void AddComponent<T>(Entity entity, T component)
         {
             ThrowIfStale(entity);
-            componentManager.AddComponent(entity.Id, component, Indexer.GetTypeId(typeof(T)));
+            ComponentManager.AddComponent(entity.Id, component, Indexer.GetTypeId(typeof(T)));
         }
 
         public virtual void AddComponent(Entity entity, object component, Type type)
         {
             ThrowIfStale(entity);
-            componentManager.AddComponent(entity.Id, component, Indexer.GetTypeId(type), type);
+            ComponentManager.AddComponent(entity.Id, component, Indexer.GetTypeId(type), type);
         }
 
         public void RemoveComponent<T>(Entity entity) => RemoveComponent(entity, typeof(T));
         public virtual void RemoveComponent(Entity entity, Type type)
         {
             ThrowIfStale(entity);
-            componentManager.RemoveComponent(entity.Id, Indexer.GetTypeId(type));
+            ComponentManager.RemoveComponent(entity.Id, Indexer.GetTypeId(type));
         }
 
         public T GetComponent<T>(Entity entity)
         {
             ThrowIfStale(entity);
-            return componentManager.GetComponent<T>(entity.Id, Indexer.GetTypeId(typeof(T)));
+            return ComponentManager.GetComponent<T>(entity.Id, Indexer.GetTypeId(typeof(T)));
         }
 
         public object GetComponent(Entity entity, Type type)
         {
             ThrowIfStale(entity);
-            return componentManager.GetComponent(entity.Id, Indexer.GetTypeId(type));
+            return ComponentManager.GetComponent(entity.Id, Indexer.GetTypeId(type));
         }
 
-        public IArray<T> GetComponents<T>() => componentManager.GetAllComponents<T>(Indexer.GetTypeId(typeof(T)));
-
-        protected virtual void Grow(int size)
-        {
-
-        }
-
-        protected virtual ComponentManager CreateComponentManager(int maxComponents, int maxEntities)
-        {
-            return new ComponentManager(maxComponents, maxEntities);
-        }
+        public IArray<T> GetComponents<T>() => ComponentManager.GetAllComponents<T>(Indexer.GetTypeId(typeof(T)));
 
         protected void ThrowIfStale(Entity entity)
         {

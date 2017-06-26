@@ -3,14 +3,10 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
-using System;
-
 namespace ScatteredLogic.Internal.Data
 {
     internal sealed class ComponentArray<T> : IComponentArray, IArray<T>
     {
-        public T[] Raw => data;
-
         private readonly T[] data;
 
         public ComponentArray(int size)
@@ -24,14 +20,9 @@ namespace ScatteredLogic.Internal.Data
             set => data[i] = value;
         }
 
-        public void RemoveElementAt(int index)
-        {
-            data[index] = default(T);
-        }
-
-        public void SetElementAt(object element, int index) => this[index] = (T) element;
-        
-        public object GetElementAt(int index) => this[index];
+        public void RemoveElementAt(int index) => data[index] = default(T);
+        public void SetElementAt(object element, int index) => data[index] = (T) element;
+        public object GetElementAt(int index) => data[index];
     }
 
     internal interface IComponentArray

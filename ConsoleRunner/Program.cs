@@ -89,7 +89,6 @@ namespace ConsoleRunner
 
             em.AddSystem(new ArrayAccessSystem());
             em.AddSystem(new ArrayDirectAccessSystem());
-            em.AddSystem(new ArrayDirectRawAccessSystem());
             //em.AddSystem(new CompAccessSystem());
 
             for (int i = 0; i < count; ++i)
@@ -177,33 +176,6 @@ namespace ConsoleRunner
                     int id = Entities[i].Id;
                     string s = strings[id];
                     int ii = ints[id];
-                }
-            }
-        }
-
-        class ArrayDirectRawAccessSystem : BaseSystem
-        {
-            public override IEnumerable<Type> RequiredComponents => Types.From<string, int>();
-
-            private IArray<string> strings;
-            private IArray<int> ints;
-
-            public override void Added()
-            {
-                strings = EntityManager.GetComponents<string>();
-                ints = EntityManager.GetComponents<int>();
-            }
-
-            public override void Update()
-            {
-                string[] sr = strings.Raw;
-                int[] ir = ints.Raw;
-                int c = Entities.Count;
-                for (int i = 0; i < c; ++i)
-                {
-                    int id = Entities[i].Id;
-                    string s = sr[id];
-                    int ii = ir[id];
                 }
             }
         }

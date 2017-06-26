@@ -12,7 +12,7 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class SystemManager<B> where B : IBitmask<B>
     {
-        private readonly SyncComponentManager<B> cm;
+        private readonly Func<Entity, B> bitmaskFunc;
         private readonly TypeIndexer componentIndexer;
 
         private readonly HashSet<ISystem> systems = new HashSet<ISystem>();
@@ -24,9 +24,9 @@ namespace ScatteredLogic.Internal
 
         private int maxEntities;
 
-        public SystemManager(SyncComponentManager<B> cm, TypeIndexer componentIndexer, int maxEntities)
+        public SystemManager(Func<Entity, B> bitmaskFunc, TypeIndexer componentIndexer, int maxEntities)
         {
-            this.cm = cm;
+            this.bitmaskFunc = bitmaskFunc;
             this.componentIndexer = componentIndexer;
             this.maxEntities = maxEntities;
         }
@@ -80,7 +80,7 @@ namespace ScatteredLogic.Internal
 
         private void AddEntityToSystem(Entity entity, ISystem system)
         {
-            B entityMask = cm.GetBitmask(entity.Id);
+            B entityMask = bitmaskFunc(entity);
             B systemMask = systemMasks[system];
 
             EntitySet entities = systemEntitites[system];

@@ -6,6 +6,7 @@
 using ScatteredLogic.Internal.Bitmask;
 using ScatteredLogic.Internal.Data;
 using System;
+using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
 {
@@ -13,7 +14,6 @@ namespace ScatteredLogic.Internal
     {
         public EventBus EventBus => eventBus;
 
-        private SyncComponentManager<B> cm;
         private readonly SystemManager<B> sm;
 
         private readonly EntitySet entitiesToRemove;
@@ -21,12 +21,16 @@ namespace ScatteredLogic.Internal
 
         private readonly EventBus eventBus = new EventBus();
 
+        private readonly List<Pair<int, int>> componentsToRemove = new List<Pair<int, int>>();
+        private readonly B[] masks;
+
         public EntitySystemManager(int maxComponents, int maxEntities) : base(maxComponents, maxEntities)
         {
-            sm = new SystemManager<B>(cm, Indexer, maxEntities);
+            sm = new SystemManager<B>(e => masks[e.Id], Indexer, maxEntities);
 
             entitiesToRemove = new EntitySet(maxEntities);
             dirtyEntities = new EntitySet(maxEntities);
+            masks = new B[maxEntities];
         }
 
         public override Entity CreateEntity()
@@ -40,12 +44,14 @@ namespace ScatteredLogic.Internal
         {
             ThrowIfStale(entity);
             entitiesToRemove.Add(entity);
-        } 
+            masks[entity.Id] = default(B);
+        }
 
         public override void AddComponent<T>(Entity entity, T component)
         {
             base.AddComponent<T>(entity, component);
             dirtyEntities.Add(entity);
+            masks[entity.Id] = masks[entity.Id].Set(Indexer.GetTypeId(typeof(T)));
         }
 
         public override void AddComponent(Entity entity, object component, Type type)
@@ -54,10 +60,18 @@ namespace ScatteredLogic.Internal
             dirtyEntities.Add(entity);
         }
 
-        public override void RemoveComponent(Entity entity, Type type)
+        public override void RemoveComponent(Entity entity, Type compType)
         {
-            base.RemoveComponent(entity, type);
             dirtyEntities.Add(entity);
+
+            int id = entity.Id;
+            int type = Indexer.GetTypeId(compType);
+
+            // clear bit
+            masks[id] = masks[id].Clear(type);
+
+            // add it fo later removal
+            componentsToRemove.Add(new Pair<int, int>(id, type));
         }
 
         public void AddSystem(ISystem system)
@@ -82,23 +96,38 @@ namespace ScatteredLogic.Internal
             }
 
             sm.UpdateSystems(Entities, deltaTime);
-            cm.Update();
+
+            foreach (var entry in componentsToRemove)
+            {
+                int id = entry.Item1;
+                int compId = entry.Item2;
+
+                // remove only if bitmask is still cleared
+                B mask = masks[id];
+                if (!mask.Get(compId)) ComponentManager.RemoveComponent(id, compId);
+            }
+            componentsToRemove.Clear();
 
             eventBus.Update();
-        }
-
-        protected override ComponentManager CreateComponentManager(int maxComponents, int maxEntities)
-        {
-            cm = new SyncComponentManager<B>(maxComponents, maxEntities);
-            return cm;
         }
 
         private void SyncDestroyEntity(Entity entity)
         {
             sm.RemoveEntitySync(entity);
-            cm.RemoveEntity(entity.Id);
+            ComponentManager.RemoveEntity(entity.Id);
             base.DestroyEntity(entity);
         }
 
+        private struct Pair<T1, T2>
+        {
+            public readonly T1 Item1;
+            public readonly T2 Item2;
+
+            public Pair(T1 item1, T2 item2)
+            {
+                Item1 = item1;
+                Item2 = item2;
+            }
+        }
     }
 }

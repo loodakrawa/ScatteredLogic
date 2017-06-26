@@ -8,7 +8,7 @@ using System;
 
 namespace ScatteredLogic.Internal
 {
-    internal class ComponentManager
+    internal sealed class ComponentManager
     {
         private readonly int maxEntities;
         private readonly IComponentArray[] components;
@@ -19,12 +19,12 @@ namespace ScatteredLogic.Internal
             this.maxEntities = maxEntities;
         }
 
-        public virtual void RemoveEntity(int id)
+        public void RemoveEntity(int id)
         {
             for (int i = 0; i < components.Length; ++i) components[i]?.RemoveElementAt(id);
         }
 
-        public virtual void AddComponent<T>(int id, T component, int type)
+        public void AddComponent<T>(int id, T component, int type)
         {
             ComponentArray<T> comps = components[type] as ComponentArray<T>;
             if(comps == null)
@@ -36,7 +36,7 @@ namespace ScatteredLogic.Internal
             comps[id] = component;
         }
 
-        public virtual void AddComponent(int id, object component, int type, Type compType)
+        public void AddComponent(int id, object component, int type, Type compType)
         {
             IComponentArray comps = components[type];
             if (comps == null)
@@ -49,7 +49,7 @@ namespace ScatteredLogic.Internal
             comps.SetElementAt(component, id);
         }
 
-        public virtual void RemoveComponent(int id, int type)
+        public void RemoveComponent(int id, int type)
         {
             components[type]?.RemoveElementAt(id);
         }
