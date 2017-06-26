@@ -14,7 +14,7 @@ namespace ScatteredLogic.Internal
     {
         public IEntitySet Entities => entities;
 
-        protected readonly TypeIndexer Indexer;
+        protected readonly TypeIndexer TypeIndexer;
         protected readonly ComponentManager ComponentManager;
 
         private readonly EntitySet entities;
@@ -22,7 +22,7 @@ namespace ScatteredLogic.Internal
 
         public EntityManager(int maxComponents, int maxEntities)
         {
-            Indexer = new TypeIndexer(maxComponents);
+            TypeIndexer = new TypeIndexer(maxComponents);
             ComponentManager = new ComponentManager(maxComponents, maxEntities);
 
             entities = new EntitySet(maxEntities);
@@ -68,35 +68,35 @@ namespace ScatteredLogic.Internal
         public virtual void AddComponent<T>(Entity entity, T component)
         {
             ThrowIfStale(entity);
-            ComponentManager.AddComponent(entity.Id, component, Indexer.GetTypeId(typeof(T)));
+            ComponentManager.AddComponent(entity.Id, component, TypeIndexer.GetTypeId(typeof(T)));
         }
 
         public virtual void AddComponent(Entity entity, object component, Type type)
         {
             ThrowIfStale(entity);
-            ComponentManager.AddComponent(entity.Id, component, Indexer.GetTypeId(type), type);
+            ComponentManager.AddComponent(entity.Id, component, TypeIndexer.GetTypeId(type), type);
         }
 
         public void RemoveComponent<T>(Entity entity) => RemoveComponent(entity, typeof(T));
         public virtual void RemoveComponent(Entity entity, Type type)
         {
             ThrowIfStale(entity);
-            ComponentManager.RemoveComponent(entity.Id, Indexer.GetTypeId(type));
+            ComponentManager.RemoveComponent(entity.Id, TypeIndexer.GetTypeId(type));
         }
 
         public T GetComponent<T>(Entity entity)
         {
             ThrowIfStale(entity);
-            return ComponentManager.GetComponent<T>(entity.Id, Indexer.GetTypeId(typeof(T)));
+            return ComponentManager.GetComponent<T>(entity.Id, TypeIndexer.GetTypeId(typeof(T)));
         }
 
         public object GetComponent(Entity entity, Type type)
         {
             ThrowIfStale(entity);
-            return ComponentManager.GetComponent(entity.Id, Indexer.GetTypeId(type));
+            return ComponentManager.GetComponent(entity.Id, TypeIndexer.GetTypeId(type));
         }
 
-        public IArray<T> GetComponents<T>() => ComponentManager.GetAllComponents<T>(Indexer.GetTypeId(typeof(T)));
+        public IArray<T> GetComponents<T>() => ComponentManager.GetAllComponents<T>(TypeIndexer.GetTypeId(typeof(T)));
 
         protected void ThrowIfStale(Entity entity)
         {

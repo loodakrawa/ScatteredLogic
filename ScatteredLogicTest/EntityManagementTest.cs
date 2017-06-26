@@ -38,7 +38,7 @@ namespace ScatteredLogicTest
         {
             Entity entity = em.CreateEntity();
             em.DestroyEntity(entity);
-            em.Update(0);
+            em.Update();
 
             Assert.IsFalse(em.ContainsEntity(entity));
         }
@@ -49,7 +49,7 @@ namespace ScatteredLogicTest
             Entity entity = em.CreateEntity();
             em.DestroyEntity(entity);
             em.DestroyEntity(entity);
-            em.Update(0);
+            em.Update();
 
             Assert.IsFalse(em.ContainsEntity(entity));
         }
@@ -86,7 +86,7 @@ namespace ScatteredLogicTest
             Entity entity = em.CreateEntity();
             Entity id2 = em.CreateEntity();
             em.DestroyEntity(id2);
-            em.Update(0);
+            em.Update();
             Assert.IsFalse(em.ContainsEntity(id2));
         }
 
@@ -109,7 +109,7 @@ namespace ScatteredLogicTest
         {
             Entity entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
-            em.Update(0);
+            em.Update();
             Assert.IsNotNull(em.GetComponent<string>(entity));
         }
 
@@ -119,7 +119,7 @@ namespace ScatteredLogicTest
             Entity entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
             em.AddComponent(entity, 1);
-            em.Update(0);
+            em.Update();
             Assert.IsNotNull(em.GetComponent<string>(entity));
             Assert.IsTrue(em.GetComponent<int>(entity) == 1);
         }
@@ -131,7 +131,7 @@ namespace ScatteredLogicTest
             em.AddComponent(entity, string.Empty);
             em.AddComponent(entity, 1);
             em.RemoveComponent<int>(entity);
-            em.Update(0);
+            em.Update();
             Assert.IsNotNull(em.GetComponent<string>(entity));
             Assert.IsFalse(em.GetComponent<int>(entity) == 1);
         }
@@ -142,7 +142,7 @@ namespace ScatteredLogicTest
             Entity entity = em.CreateEntity();
             string component = string.Empty;
             em.AddComponent(entity, component);
-            em.Update(0);
+            em.Update();
             Assert.AreEqual(component, em.GetComponent<string>(entity));
         }
 
@@ -154,7 +154,7 @@ namespace ScatteredLogicTest
             int comp2 = 256;
             em.AddComponent(entity, comp1);
             em.AddComponent(entity, comp2);
-            em.Update(0);
+            em.Update();
             Assert.AreEqual(comp1, em.GetComponent<string>(entity));
             Assert.AreEqual(comp2, em.GetComponent<int>(entity));
         }
@@ -175,11 +175,11 @@ namespace ScatteredLogicTest
             string comp = string.Empty;
 
             em.AddComponent(entity, comp);
-            em.Update(0);
+            em.Update();
 
             em.RemoveComponent<string>(entity);
             em.AddComponent(entity, comp);
-            em.Update(0);
+            em.Update();
 
             Assert.AreEqual(comp, em.GetComponent<string>(entity));
         }

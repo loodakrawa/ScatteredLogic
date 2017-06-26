@@ -22,7 +22,6 @@ namespace ScatteredGameExample.Systems
                 Vector2 origin = new Vector2(0.5f * tx.Width, 0.5f * tx.Height);
 
                 spriteBatch.Draw(tx, tr.Position, null, Color.White, tr.Rotation, origin, scale, SpriteEffects.None, 0.5f);
-                
             }
         }
     }

@@ -12,102 +12,65 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class SystemManager<B> where B : IBitmask<B>
     {
-        private readonly Func<Entity, B> bitmaskFunc;
-        private readonly TypeIndexer componentIndexer;
+        private readonly int maxEntities;
 
-        private readonly HashSet<ISystem> systems = new HashSet<ISystem>();
-        private readonly Dictionary<ISystem, B> systemMasks = new Dictionary<ISystem, B>();
-        private readonly Dictionary<ISystem, EntitySet> systemEntitites = new Dictionary<ISystem, EntitySet>();
+        private readonly List<B> systemBitmasks = new List<B>();
+        private readonly List<ISystem> systems = new List<ISystem>();
+        private readonly List<EntitySet> systemEntities = new List<EntitySet>();
 
-        private readonly HashSet<ISystem> systemsToRemove = new HashSet<ISystem>();
-        private readonly HashSet<ISystem> newSystems = new HashSet<ISystem>();
-
-        private int maxEntities;
-
-        public SystemManager(Func<Entity, B> bitmaskFunc, TypeIndexer componentIndexer, int maxEntities)
+        public SystemManager(int maxEntities)
         {
-            this.bitmaskFunc = bitmaskFunc;
-            this.componentIndexer = componentIndexer;
             this.maxEntities = maxEntities;
         }
 
-        public void AddSystem(ISystem system)
+        public void AddSystem(ISystem system, B systemBitmask, IEntitySet allEntities, B[] bitmasks)
         {
-            if (systems.Contains(system)) return;
+            int index = system.Index;
 
-            B bm = default(B);
-            foreach (Type requiredType in system.RequiredComponents)
-            {
-                int componentIndex = componentIndexer.GetTypeId(requiredType);
-                bm = bm.Set(componentIndex);
-            }
+            // do not add same system more than once
+            if (systems.Count > index && systems[index] == system) return;
 
-            systemMasks[system] = bm;
-            EntitySet se = new EntitySet(maxEntities);
-            systemEntitites[system] = se;
-            system.Entities = se;
+            // assign it the next index
+            index = systems.Count;
+            system.Index = index;
+
+            // add it to internal lists
             systems.Add(system);
+            systemBitmasks.Add(systemBitmask);
 
+            EntitySet entities = new EntitySet(maxEntities);
+            systemEntities.Add(entities);
+            system.Entities = entities;
+
+            // try to add all entities to the system
+            for (int i = 0; i < allEntities.Count; ++i) AddEntityToSystem(allEntities[i], bitmasks[i], system);
+
+            // notify the system it's been added
             system.Added();
-            newSystems.Add(system);
         }
 
         public void RemoveSystem(ISystem system)
         {
-            if ((!systems.Contains(system) && !newSystems.Contains(system)) || systemsToRemove.Contains(system)) return;
+            int index = system.Index;
+            if (systems.Count <= index || systems[index] == null) return;
 
-            systemsToRemove.Add(system);
+            system.Removed();
+            system.Entities = null;
+            systems.RemoveAt(index);
+            systemBitmasks.RemoveAt(index);
+            systemEntities.RemoveAt(index);
         }
 
-        public void UpdateSystems(IEntitySet entities, float deltaTime)
+        public void AddEntityToSystems(Entity entity, B entityMask)
         {
-            foreach (ISystem system in newSystems)
-            {
-                for (int i = 0; i < entities.Count; ++i) AddEntityToSystem(entities[i], system);
-            }
-            newSystems.Clear();
-
-            foreach (ISystem system in systemsToRemove) InternalRemoveSystem(system);
-            systemsToRemove.Clear();
-
-            foreach (ISystem system in systems) system.Update(deltaTime);
+            foreach (ISystem system in systems) AddEntityToSystem(entity, entityMask, system);
         }
 
-        public void AddEntityToSystems(Entity entity)
-        {
-            foreach (ISystem system in systems) AddEntityToSystem(entity, system);
-        }
-
-        private void AddEntityToSystem(Entity entity, ISystem system)
-        {
-            B entityMask = bitmaskFunc(entity);
-            B systemMask = systemMasks[system];
-
-            EntitySet entities = systemEntitites[system];
-
-            if (entityMask.Contains(systemMask))
-            {
-                if (!entities.Contains(entity))
-                {
-                    entities.Add(entity);
-                    system.EntityAdded(entity);
-                }
-            }
-            if (!entityMask.Contains(systemMask))
-            {
-                if (entities.Contains(entity))
-                {
-                    entities.Remove(entity);
-                    system.EntityRemoved(entity);
-                }
-            }
-        }
-
-        public void RemoveEntitySync(Entity entity)
+        public void RemoveEntity(Entity entity)
         {
             foreach (ISystem system in systems)
             {
-                EntitySet entities = systemEntitites[system];
+                EntitySet entities = systemEntities[system.Index];
                 if (entities.Contains(entity))
                 {
                     entities.Remove(entity);
@@ -116,12 +79,21 @@ namespace ScatteredLogic.Internal
             }
         }
 
-        private void InternalRemoveSystem(ISystem system)
+        private void AddEntityToSystem(Entity entity, B entityMask, ISystem system)
         {
-            system.Removed();
-            systemMasks.Remove(system);
-            systemEntitites.Remove(system);
-            systems.Remove(system);
+            B systemMask = systemBitmasks[system.Index];
+            EntitySet entities = systemEntities[system.Index];
+
+            if (entityMask.Contains(systemMask) && !entities.Contains(entity))
+            {
+                entities.Add(entity);
+                system.EntityAdded(entity);
+            }
+            if (!entityMask.Contains(systemMask) && entities.Contains(entity))
+            {
+                entities.Remove(entity);
+                system.EntityRemoved(entity);
+            }
         }
     }
 }

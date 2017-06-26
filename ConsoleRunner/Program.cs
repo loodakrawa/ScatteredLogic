@@ -9,76 +9,11 @@ namespace ConsoleRunner
     {
         static void Main(string[] args)
         {
-            //SparseSetAccesSpeedTest();
             TestArraySystemSpeed();
             Console.WriteLine("---END---");
             Console.ReadLine();
         }
 
-        //private static void SparseSetAccesSpeedTest()
-        //{
-        //    int count = 10000000;
-
-        //    HashSet<Entity> ehs = new HashSet<Entity>();
-        //    EntitySet es = new EntitySet();
-        //    es.Grow(count);
-
-        //    for (int i = 0; i < count; ++i) ehs.Add(new Entity(null, i, 0));
-        //    for (int i = 0; i < count; ++i) es.Add(new Entity(null, i, 0));
-        //    ehs.Clear();
-        //    es.Clear();
-
-        //    Stopwatch sw = new Stopwatch();
-        //    sw.Start();
-        //    for (int i = 0; i < count; ++i) ehs.Add(new Entity(null, i, 0));
-        //    sw.Stop();
-        //    Console.WriteLine("HashSet fill: " + sw.ElapsedMilliseconds);
-
-        //    sw = new Stopwatch();
-        //    sw.Start();
-        //    for (int i = 0; i < count; ++i) es.Add(new Entity(null, i, 0));
-        //    sw.Stop();
-        //    Console.WriteLine("EntitySet fill: " + sw.ElapsedMilliseconds);
-
-        //    sw = new Stopwatch();
-        //    sw.Start();
-        //    foreach (Entity e in ehs)
-        //    {
-        //        int id = e.Id;
-        //    }
-        //    sw.Stop();
-        //    Console.WriteLine("HashSet foreach: " + sw.ElapsedMilliseconds);
-
-        //    sw = new Stopwatch();
-        //    sw.Start();
-        //    foreach (Entity e in es)
-        //    {
-        //        int id = e.Id;
-        //    }
-        //    sw.Stop();
-        //    Console.WriteLine("EntitySet foreach: " + sw.ElapsedMilliseconds);
-
-        //    sw = new Stopwatch();
-        //    sw.Start();
-        //    for(int i=0; i<es.Count; ++i)
-        //    {
-        //        int id = es[i].Id;
-        //    }
-        //    sw.Stop();
-        //    Console.WriteLine("EntitySet for: " + sw.ElapsedMilliseconds);
-
-        //    sw = new Stopwatch();
-        //    sw.Start();
-        //    for (int i = 0; i < count; ++i) ehs.Remove(new Entity(null, i, 0));
-        //    sw.Stop();
-        //    Console.WriteLine("HashSet remove: " + sw.ElapsedMilliseconds);
-
-        //    sw = new Stopwatch();
-        //    sw.Start();
-        //    for (int i = 0; i < count; ++i) es.Remove(new Entity(null, i, 0));
-        //    sw.Stop();
-        //    Console.WriteLine("EntitySet remove: " + sw.ElapsedMilliseconds);
-        //}
 
         private static void TestArraySystemSpeed()
         {
@@ -87,8 +22,11 @@ namespace ConsoleRunner
             IEntitySystemManager em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64, count);
             string strComp = "I'm a string";
 
-            em.AddSystem(new ArrayAccessSystem());
-            em.AddSystem(new ArrayDirectAccessSystem());
+            ArrayAccessSystem s1 = new ArrayAccessSystem();
+            ArrayDirectAccessSystem s2 = new ArrayDirectAccessSystem();
+
+            em.AddSystem(s1);
+            em.AddSystem(s2);
             //em.AddSystem(new CompAccessSystem());
 
             for (int i = 0; i < count; ++i)
@@ -98,10 +36,11 @@ namespace ConsoleRunner
                 e.AddComponent(strComp);
             }
 
-            for(int i=0; i<4; ++i)
-            {
-                em.Update(0);
-            }
+            em.Update();
+
+            for (int i = 0; i < 10; ++i) s1.Update();
+            for (int i = 0; i < 10; ++i) s2.Update();
+
         }
 
         abstract class BaseSystem : ISystem
@@ -110,26 +49,26 @@ namespace ConsoleRunner
 
             public IEntitySystemManager EntityManager { get; set; }
             public IEntitySet Entities { get; set; }
-            public EventBus EventBus { get; set; }
+            public int Index { get; set; }
 
             public virtual void Added() {}
             public virtual void EntityAdded(Entity entity) { }
             public virtual void EntityRemoved(Entity entity) { }
             public virtual void Removed() { }
 
-            public virtual void Update(float deltaTime)
+            public virtual void Update()
             {
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
 
-                Update();
+                DoWork();
 
                 sw.Stop();
 
                 Console.WriteLine(GetType().Name + " : " + sw.ElapsedMilliseconds);
             }
 
-            public abstract void Update();
+            public abstract void DoWork();
         }
 
         class ArrayAccessSystem : BaseSystem
@@ -145,7 +84,7 @@ namespace ConsoleRunner
                 ints = EntityManager.GetComponents<int>();
             }
             
-            public override void Update()
+            public override void DoWork()
             {
                 foreach(Entity e in Entities)
                 {
@@ -168,7 +107,7 @@ namespace ConsoleRunner
                 ints = EntityManager.GetComponents<int>();
             }
 
-            public override void Update()
+            public override void DoWork()
             {
                 int c = Entities.Count;
                 for (int i=0; i<c; ++i)
@@ -184,7 +123,7 @@ namespace ConsoleRunner
         {
             public override IEnumerable<Type> RequiredComponents => Types.From<string, int>();
 
-            public override void Update()
+            public override void DoWork()
             {
                 foreach (Entity e in Entities)
                 {
@@ -211,7 +150,7 @@ namespace ConsoleRunner
                     e.AddComponent(strComp);
                 }
 
-                em.Update(0);
+                em.Update();
 
                 IArray<int> intz = em.GetComponents<int>();
 
@@ -222,7 +161,7 @@ namespace ConsoleRunner
                     em.DestroyEntity(en);
                 }
 
-                em.Update(0);
+                em.Update();
 
                 entities.Clear();
             }

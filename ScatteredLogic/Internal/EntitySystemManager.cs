@@ -12,21 +12,20 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class EntitySystemManager<B> : EntityManager<B>, IEntitySystemManager where B : IBitmask<B>
     {
-        public EventBus EventBus => eventBus;
-
         private readonly SystemManager<B> sm;
 
         private readonly EntitySet entitiesToRemove;
         private readonly EntitySet dirtyEntities;
 
-        private readonly EventBus eventBus = new EventBus();
+        private readonly Queue<Pair<int, int>> componentsToRemove = new Queue<Pair<int, int>>();
+        private readonly Queue<ISystem> systemsToRemove = new Queue<ISystem>();
+        private readonly Queue<ISystem> systemsToAdd = new Queue<ISystem>();
 
-        private readonly List<Pair<int, int>> componentsToRemove = new List<Pair<int, int>>();
         private readonly B[] masks;
 
         public EntitySystemManager(int maxComponents, int maxEntities) : base(maxComponents, maxEntities)
         {
-            sm = new SystemManager<B>(e => masks[e.Id], Indexer, maxEntities);
+            sm = new SystemManager<B>(maxEntities);
 
             entitiesToRemove = new EntitySet(maxEntities);
             dirtyEntities = new EntitySet(maxEntities);
@@ -51,13 +50,14 @@ namespace ScatteredLogic.Internal
         {
             base.AddComponent<T>(entity, component);
             dirtyEntities.Add(entity);
-            masks[entity.Id] = masks[entity.Id].Set(Indexer.GetTypeId(typeof(T)));
+            masks[entity.Id] = masks[entity.Id].Set(TypeIndexer.GetTypeId(typeof(T)));
         }
 
         public override void AddComponent(Entity entity, object component, Type type)
         {
             base.AddComponent(entity, component, type);
             dirtyEntities.Add(entity);
+            masks[entity.Id] = masks[entity.Id].Set(TypeIndexer.GetTypeId(type));
         }
 
         public override void RemoveComponent(Entity entity, Type compType)
@@ -65,40 +65,54 @@ namespace ScatteredLogic.Internal
             dirtyEntities.Add(entity);
 
             int id = entity.Id;
-            int type = Indexer.GetTypeId(compType);
+            int type = TypeIndexer.GetTypeId(compType);
 
             // clear bit
             masks[id] = masks[id].Clear(type);
 
             // add it fo later removal
-            componentsToRemove.Add(new Pair<int, int>(id, type));
+            componentsToRemove.Enqueue(new Pair<int, int>(id, type));
         }
 
         public void AddSystem(ISystem system)
         {
             system.EntityManager = this;
-            system.EventBus = eventBus;
-            sm.AddSystem(system);
+            systemsToAdd.Enqueue(system);
         }
 
         public void RemoveSystem(ISystem system)
         {
-            sm.RemoveSystem(system);
+            systemsToRemove.Enqueue(system);
             system.EntityManager = null;
         }
 
-        public void Update(float deltaTime)
+        public void Update()
         {
+            // process newly added systems
+            while (systemsToAdd.Count > 0)
+            {
+                ISystem system = systemsToAdd.Dequeue();
+                sm.AddSystem(system, CreateSystemBitmask(system), Entities, masks);
+            }
+
+            // remove systems
+            while (systemsToRemove.Count > 0) sm.RemoveSystem(systemsToRemove.Dequeue());
+
+            // process entities
             while (dirtyEntities.Count > 0 || entitiesToRemove.Count > 0)
             {
-                while (dirtyEntities.Count > 0) sm.AddEntityToSystems(dirtyEntities.Pop());
+                while (dirtyEntities.Count > 0)
+                {
+                    Entity e = dirtyEntities.Pop();
+                    sm.AddEntityToSystems(e, masks[e.Id]);
+                }
                 while (entitiesToRemove.Count > 0) SyncDestroyEntity(entitiesToRemove.Pop());
             }
 
-            sm.UpdateSystems(Entities, deltaTime);
-
-            foreach (var entry in componentsToRemove)
+            while(componentsToRemove.Count > 0)
             {
+                var entry = componentsToRemove.Dequeue();
+
                 int id = entry.Item1;
                 int compId = entry.Item2;
 
@@ -107,15 +121,24 @@ namespace ScatteredLogic.Internal
                 if (!mask.Get(compId)) ComponentManager.RemoveComponent(id, compId);
             }
             componentsToRemove.Clear();
-
-            eventBus.Update();
         }
 
         private void SyncDestroyEntity(Entity entity)
         {
-            sm.RemoveEntitySync(entity);
+            sm.RemoveEntity(entity);
             ComponentManager.RemoveEntity(entity.Id);
             base.DestroyEntity(entity);
+        }
+
+        private B CreateSystemBitmask(ISystem system)
+        {
+            B bitmask = default(B);
+            foreach (Type requiredType in system.RequiredComponents)
+            {
+                int componentIndex = TypeIndexer.GetTypeId(requiredType);
+                bitmask = bitmask.Set(componentIndex);
+            }
+            return bitmask;
         }
 
         private struct Pair<T1, T2>
@@ -129,5 +152,6 @@ namespace ScatteredLogic.Internal
                 Item2 = item2;
             }
         }
+
     }
 }

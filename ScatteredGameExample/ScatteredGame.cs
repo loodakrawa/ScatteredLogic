@@ -22,6 +22,7 @@ namespace ScatteredGameExample
         private readonly IEntitySystemManager entityManager;
         private readonly HashSet<BaseSystem> systems = new HashSet<BaseSystem>();
         private readonly HashSet<DrawingSystem> drawingSystems = new HashSet<DrawingSystem>();
+        private readonly EventBus eventBus = new EventBus();
 
         private EntityFactory entityFactory;
         private RenderUtil renderUtil;
@@ -89,6 +90,7 @@ namespace ScatteredGameExample
             DrawingSystem ds = system as DrawingSystem;
             if (ds != null) drawingSystems.Add(ds);
             system.EntityFactory = entityFactory;
+            system.EventBus = eventBus;
             entityManager.AddSystem(system);
         }
 
@@ -101,7 +103,9 @@ namespace ScatteredGameExample
 
             base.Update(gameTime);
 
-            entityManager.Update(deltaTime);
+            entityManager.Update();
+            foreach (BaseSystem system in systems) system.Update(deltaTime);
+            eventBus.Update();
         }
 
         protected override void Draw(GameTime gameTime)

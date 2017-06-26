@@ -9,6 +9,7 @@ namespace ScatteredLogic
     {
         int Count { get; }
         Entity this[int i] { get; }
+        bool Contains(Entity entity);
         EntitySetEnumerator GetEnumerator();
     }
 }

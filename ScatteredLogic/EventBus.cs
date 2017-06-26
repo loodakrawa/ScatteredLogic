@@ -16,7 +16,7 @@ namespace ScatteredLogic
 
         private bool asyncMessagesAvailable;
 
-        internal EventBus() { }
+        public EventBus() { }
 
         public void Register<T>(Action<T> listener) => GetOrCreateEventQueue<T>().Register(listener);
         public void Deregister<T>(Action<T> listener)
