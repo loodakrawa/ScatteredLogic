@@ -3,8 +3,8 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
-using ScatteredLogic.Internal.Bitmask;
-using ScatteredLogic.Internal.Data;
+using ScatteredLogic.Internal.Bitmasks;
+using ScatteredLogic.Internal.DataStructures;
 using System;
 using System.Collections.Generic;
 
@@ -48,7 +48,7 @@ namespace ScatteredLogic.Internal
 
         public override void AddComponent<T>(Entity entity, T component)
         {
-            base.AddComponent<T>(entity, component);
+            base.AddComponent(entity, component);
             dirtyEntities.Add(entity);
             masks[entity.Id] = masks[entity.Id].Set(TypeIndexer.GetTypeId(typeof(T)));
         }

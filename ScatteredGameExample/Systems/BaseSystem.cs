@@ -6,10 +6,10 @@ namespace ScatteredGameExample.Systems
 {
     public abstract class BaseSystem : ISystem
     {
-        public virtual IEnumerable<Type> RequiredComponents => Types.None;
+        public virtual IEnumerable<Type> RequiredComponents => RequiredTypes.None;
         public IEntitySet Entities { get; set; }
         public IEntitySystemManager EntityManager { get; set; }
-        public int Index { get; set; }
+        public ISystemInfo Info { get; set; }
 
         public EntityFactory EntityFactory { get; set; }
         public EventBus EventBus { get; set; }

@@ -3,9 +3,8 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
-using ScatteredLogic.Internal.Bitmask;
-using ScatteredLogic.Internal.Data;
-using System;
+using ScatteredLogic.Internal.Bitmasks;
+using ScatteredLogic.Internal.DataStructures;
 using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
@@ -14,8 +13,8 @@ namespace ScatteredLogic.Internal
     {
         private readonly int maxEntities;
 
-        private readonly List<B> systemBitmasks = new List<B>();
         private readonly List<ISystem> systems = new List<ISystem>();
+        private readonly List<B> systemBitmasks = new List<B>();
         private readonly List<EntitySet> systemEntities = new List<EntitySet>();
 
         public SystemManager(int maxEntities)
@@ -25,14 +24,13 @@ namespace ScatteredLogic.Internal
 
         public void AddSystem(ISystem system, B systemBitmask, IEntitySet allEntities, B[] bitmasks)
         {
-            int index = system.Index;
+            int index = system.Info?.Index ?? 0;
 
             // do not add same system more than once
             if (systems.Count > index && systems[index] == system) return;
 
             // assign it the next index
-            index = systems.Count;
-            system.Index = index;
+            system.Info = new SystemInfo { Index = systems.Count };
 
             // add it to internal lists
             systems.Add(system);
@@ -51,11 +49,15 @@ namespace ScatteredLogic.Internal
 
         public void RemoveSystem(ISystem system)
         {
-            int index = system.Index;
+            if (system.Info == null) return;
+
+            int index = system.Info.Index;
             if (systems.Count <= index || systems[index] == null) return;
 
             system.Removed();
             system.Entities = null;
+            system.Info = null;
+
             systems.RemoveAt(index);
             systemBitmasks.RemoveAt(index);
             systemEntities.RemoveAt(index);
@@ -70,7 +72,7 @@ namespace ScatteredLogic.Internal
         {
             foreach (ISystem system in systems)
             {
-                EntitySet entities = systemEntities[system.Index];
+                EntitySet entities = systemEntities[system.Info.Index];
                 if (entities.Contains(entity))
                 {
                     entities.Remove(entity);
@@ -81,8 +83,10 @@ namespace ScatteredLogic.Internal
 
         private void AddEntityToSystem(Entity entity, B entityMask, ISystem system)
         {
-            B systemMask = systemBitmasks[system.Index];
-            EntitySet entities = systemEntities[system.Index];
+            int index = system.Info.Index;
+
+            B systemMask = systemBitmasks[system.Info.Index];
+            EntitySet entities = systemEntities[system.Info.Index];
 
             if (entityMask.Contains(systemMask) && !entities.Contains(entity))
             {
@@ -94,6 +98,11 @@ namespace ScatteredLogic.Internal
                 entities.Remove(entity);
                 system.EntityRemoved(entity);
             }
+        }
+
+        private class SystemInfo : ISystemInfo
+        {
+            public int Index { get; set; }
         }
     }
 }

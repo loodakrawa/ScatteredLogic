@@ -3,8 +3,8 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
-using ScatteredLogic.Internal.Bitmask;
-using ScatteredLogic.Internal.Data;
+using ScatteredLogic.Internal.Bitmasks;
+using ScatteredLogic.Internal.DataStructures;
 using System;
 using System.Collections.Generic;
 

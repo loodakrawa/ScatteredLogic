@@ -7,7 +7,7 @@ namespace ScatteredGameExample.Systems
 {
     public class VelocitySystem : BaseSystem
     {
-        public override IEnumerable<Type> RequiredComponents => Types.From<Velocity, Transform>();
+        public override IEnumerable<Type> RequiredComponents => RequiredTypes.From<Velocity, Transform>();
 
         private IArray<Transform> transforms;
         private IArray<Velocity> velocities;

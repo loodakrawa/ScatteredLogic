@@ -9,6 +9,7 @@ namespace ConsoleRunner
     {
         static void Main(string[] args)
         {
+            //RunLoop();
             TestArraySystemSpeed();
             Console.WriteLine("---END---");
             Console.ReadLine();
@@ -23,7 +24,7 @@ namespace ConsoleRunner
             string strComp = "I'm a string";
 
             ArrayAccessSystem s1 = new ArrayAccessSystem();
-            ArrayDirectAccessSystem s2 = new ArrayDirectAccessSystem();
+            CompAccessSystem s2 = new CompAccessSystem();
 
             em.AddSystem(s1);
             em.AddSystem(s2);
@@ -49,7 +50,7 @@ namespace ConsoleRunner
 
             public IEntitySystemManager EntityManager { get; set; }
             public IEntitySet Entities { get; set; }
-            public int Index { get; set; }
+            public ISystemInfo Info { get; set; }
 
             public virtual void Added() {}
             public virtual void EntityAdded(Entity entity) { }
@@ -73,7 +74,7 @@ namespace ConsoleRunner
 
         class ArrayAccessSystem : BaseSystem
         {
-            public override IEnumerable<Type> RequiredComponents => Types.From<string, int>();
+            public override IEnumerable<Type> RequiredComponents => RequiredTypes.From<string, int>();
 
             private IArray<string> strings;
             private IArray<int> ints;
@@ -94,34 +95,9 @@ namespace ConsoleRunner
             }
         }
 
-        class ArrayDirectAccessSystem : BaseSystem
-        {
-            public override IEnumerable<Type> RequiredComponents => Types.From<string, int>();
-
-            private IArray<string> strings;
-            private IArray<int> ints;
-
-            public override void Added()
-            {
-                strings = EntityManager.GetComponents<string>();
-                ints = EntityManager.GetComponents<int>();
-            }
-
-            public override void DoWork()
-            {
-                int c = Entities.Count;
-                for (int i=0; i<c; ++i)
-                {
-                    int id = Entities[i].Id;
-                    string s = strings[id];
-                    int ii = ints[id];
-                }
-            }
-        }
-
         class CompAccessSystem : BaseSystem
         {
-            public override IEnumerable<Type> RequiredComponents => Types.From<string, int>();
+            public override IEnumerable<Type> RequiredComponents => RequiredTypes.From<string, int>();
 
             public override void DoWork()
             {

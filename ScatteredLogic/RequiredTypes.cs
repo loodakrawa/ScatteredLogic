@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace ScatteredLogic
 {
-    public static class Types
+    public static class RequiredTypes
     {
         public static readonly IEnumerable<Type> None = new Type[] { };
         public static IEnumerable<Type> From<T1>() => new Type[] { typeof(T1) };

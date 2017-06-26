@@ -9,7 +9,7 @@ namespace ScatteredGameExample.Systems
 {
     public class RenderingSystem : BaseSystem, DrawingSystem
     {
-        public override IEnumerable<Type> RequiredComponents => Types.From<Texture2D, Transform>();
+        public override IEnumerable<Type> RequiredComponents => RequiredTypes.From<Texture2D, Transform>();
 
         public void Draw(float deltaTime, SpriteBatch spriteBatch)
         {

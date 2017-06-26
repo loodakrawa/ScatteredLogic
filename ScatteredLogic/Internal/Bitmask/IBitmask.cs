@@ -5,7 +5,7 @@
 
 using System;
 
-namespace ScatteredLogic.Internal.Bitmask
+namespace ScatteredLogic.Internal.Bitmasks
 {
     internal interface IBitmask<T> : IEquatable<T>
     {

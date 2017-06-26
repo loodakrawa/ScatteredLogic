@@ -3,7 +3,7 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
-using ScatteredLogic.Internal.Data;
+using ScatteredLogic.Internal.DataStructures;
 using System;
 
 namespace ScatteredLogic.Internal
@@ -41,8 +41,8 @@ namespace ScatteredLogic.Internal
             IComponentArray comps = components[type];
             if (comps == null)
             {
-                var listType = typeof(ComponentArray<>).MakeGenericType(compType);
-                comps = Activator.CreateInstance(listType, maxEntities) as IComponentArray;
+                Type genericType = typeof(ComponentArray<>).MakeGenericType(compType);
+                comps = Activator.CreateInstance(genericType, maxEntities) as IComponentArray;
                 components[type] = comps;
             }
 

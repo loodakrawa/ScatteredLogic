@@ -13,9 +13,9 @@ namespace ScatteredLogicTest
     public class EmptyTestSystem : ISystem
     {
         public IEntitySystemManager EntityManager { get; set; }
-        public virtual IEnumerable<Type> RequiredComponents => Types.None;
+        public virtual IEnumerable<Type> RequiredComponents => RequiredTypes.None;
         public IEntitySet Entities { get; set; }
-        public int Index { get; set; }
+        public ISystemInfo Info { get; set; }
 
         public void Added() { }
         public void Removed() { }
@@ -26,8 +26,9 @@ namespace ScatteredLogicTest
     public class TestSystem<T> : ISystem
     {
         public IEntitySystemManager EntityManager { get; set; }
-        public IEnumerable<Type> RequiredComponents => Types.From<T>();
+        public IEnumerable<Type> RequiredComponents => RequiredTypes.From<T>();
         public IEntitySet Entities { get; set; }
+        public ISystemInfo Info { get; set; }
 
         public int Index { get; set; }
 

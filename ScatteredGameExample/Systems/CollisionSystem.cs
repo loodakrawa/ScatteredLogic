@@ -8,7 +8,7 @@ namespace ScatteredGameExample.Systems
 {
     public class CollisionSystem : BaseSystem
     {
-        public override IEnumerable<Type> RequiredComponents => Types.From<Transform, Collider>();
+        public override IEnumerable<Type> RequiredComponents => RequiredTypes.From<Transform, Collider>();
 
         private List<Entity> entities = new List<Entity>();
 
