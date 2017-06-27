@@ -13,35 +13,35 @@ namespace ScatteredLogic
         T this[int i] { get; }
     }
 
-    public interface IEntitySet
+    public interface IHandleSet
     {
         int Count { get; }
-        Entity this[int i] { get; }
-        bool Contains(Entity entity);
+        Handle this[int i] { get; }
+        bool Contains(Handle entity);
         EntitySetEnumerator GetEnumerator();
     }
 
-    public interface IEntityManager
+    public interface IEntityWorld
     {
-        IEntitySet Entities { get; }
+        IHandleSet Entities { get; }
 
-        Entity CreateEntity();
-        void DestroyEntity(Entity entity);
-        bool ContainsEntity(Entity entity);
+        Handle CreateEntity();
+        void DestroyEntity(Handle entity);
+        bool ContainsEntity(Handle entity);
 
-        void AddComponent<T>(Entity entity, T component);
-        void AddComponent(Entity entity, object component, Type type);
+        void AddComponent<T>(Handle entity, T component);
+        void AddComponent(Handle entity, object component, Type type);
 
-        void RemoveComponent<T>(Entity entity);
-        void RemoveComponent(Entity entity, Type type);
+        void RemoveComponent<T>(Handle entity);
+        void RemoveComponent(Handle entity, Type type);
 
-        T GetComponent<T>(Entity entity);
-        object GetComponent(Entity entity, Type type);
+        T GetComponent<T>(Handle entity);
+        object GetComponent(Handle entity, Type type);
 
         IArray<T> GetComponents<T>();
     }
 
-    public interface IEntitySystemManager : IEntityManager
+    public interface IEntitySystemManager : IEntityWorld
     {
         void AddSystem(ISystem system);
         void RemoveSystem(ISystem system);
@@ -52,15 +52,15 @@ namespace ScatteredLogic
     public interface ISystem
     {
         IEnumerable<Type> RequiredComponents { get; }
-        IEntitySystemManager EntityManager { get; set; }
-        IEntitySet Entities { get; set; }
+        IEntitySystemManager EntityWorld { get; set; }
+        IHandleSet Entities { get; set; }
         ISystemInfo Info { get; set; }
 
         void Added();
         void Removed();
 
-        void EntityAdded(Entity entity);
-        void EntityRemoved(Entity entity);
+        void EntityAdded(Handle entity);
+        void EntityRemoved(Handle entity);
     }
 
     public interface ISystemInfo

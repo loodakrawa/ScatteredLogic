@@ -10,12 +10,12 @@ using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
 {
-    internal sealed class EntitySystemManager<B> : EntityManager<B>, IEntitySystemManager where B : IBitmask<B>
+    internal sealed class EntitySystemManager<B> : EntityWorld<B>, IEntitySystemManager where B : IBitmask<B>
     {
         private readonly SystemManager<B> sm;
 
-        private readonly EntitySet entitiesToRemove;
-        private readonly EntitySet dirtyEntities;
+        private readonly HandleSet entitiesToRemove;
+        private readonly HandleSet dirtyEntities;
 
         private readonly Queue<Pair<int, int>> componentsToRemove = new Queue<Pair<int, int>>();
         private readonly Queue<ISystem> systemsToRemove = new Queue<ISystem>();
@@ -27,44 +27,44 @@ namespace ScatteredLogic.Internal
         {
             sm = new SystemManager<B>(maxEntities);
 
-            entitiesToRemove = new EntitySet(maxEntities);
-            dirtyEntities = new EntitySet(maxEntities);
+            entitiesToRemove = new HandleSet(maxEntities);
+            dirtyEntities = new HandleSet(maxEntities);
             masks = new B[maxEntities];
         }
 
-        public override Entity CreateEntity()
+        public override Handle CreateEntity()
         {
-            Entity entity = base.CreateEntity();
+            Handle entity = base.CreateEntity();
             dirtyEntities.Add(entity);
             return entity;
         }
 
-        public override void DestroyEntity(Entity entity)
+        public override void DestroyEntity(Handle entity)
         {
             ThrowIfStale(entity);
             entitiesToRemove.Add(entity);
-            masks[entity.Id] = default(B);
+            masks[entity.Index] = default(B);
         }
 
-        public override void AddComponent<T>(Entity entity, T component)
+        public override void AddComponent<T>(Handle entity, T component)
         {
             base.AddComponent(entity, component);
             dirtyEntities.Add(entity);
-            masks[entity.Id] = masks[entity.Id].Set(TypeIndexer.GetTypeId(typeof(T)));
+            masks[entity.Index] = masks[entity.Index].Set(TypeIndexer.GetTypeId(typeof(T)));
         }
 
-        public override void AddComponent(Entity entity, object component, Type type)
+        public override void AddComponent(Handle entity, object component, Type type)
         {
             base.AddComponent(entity, component, type);
             dirtyEntities.Add(entity);
-            masks[entity.Id] = masks[entity.Id].Set(TypeIndexer.GetTypeId(type));
+            masks[entity.Index] = masks[entity.Index].Set(TypeIndexer.GetTypeId(type));
         }
 
-        public override void RemoveComponent(Entity entity, Type compType)
+        public override void RemoveComponent(Handle entity, Type compType)
         {
             dirtyEntities.Add(entity);
 
-            int id = entity.Id;
+            int id = entity.Index;
             int type = TypeIndexer.GetTypeId(compType);
 
             // clear bit
@@ -76,14 +76,14 @@ namespace ScatteredLogic.Internal
 
         public void AddSystem(ISystem system)
         {
-            system.EntityManager = this;
+            system.EntityWorld = this;
             systemsToAdd.Enqueue(system);
         }
 
         public void RemoveSystem(ISystem system)
         {
             systemsToRemove.Enqueue(system);
-            system.EntityManager = null;
+            system.EntityWorld = null;
         }
 
         public void Update()
@@ -103,8 +103,8 @@ namespace ScatteredLogic.Internal
             {
                 while (dirtyEntities.Count > 0)
                 {
-                    Entity e = dirtyEntities.Pop();
-                    sm.AddEntityToSystems(e, masks[e.Id]);
+                    Handle e = dirtyEntities.Pop();
+                    sm.AddEntityToSystems(e, masks[e.Index]);
                 }
                 while (entitiesToRemove.Count > 0) SyncDestroyEntity(entitiesToRemove.Pop());
             }
@@ -123,10 +123,10 @@ namespace ScatteredLogic.Internal
             componentsToRemove.Clear();
         }
 
-        private void SyncDestroyEntity(Entity entity)
+        private void SyncDestroyEntity(Handle entity)
         {
             sm.RemoveEntity(entity);
-            ComponentManager.RemoveEntity(entity.Id);
+            ComponentManager.RemoveEntity(entity.Index);
             base.DestroyEntity(entity);
         }
 

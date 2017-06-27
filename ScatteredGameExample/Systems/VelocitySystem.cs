@@ -16,8 +16,8 @@ namespace ScatteredGameExample.Systems
         {
             base.Added();
 
-            transforms = EntityManager.GetComponents<Transform>();
-            velocities = EntityManager.GetComponents<Velocity>();
+            transforms = EntityWorld.GetComponents<Transform>();
+            velocities = EntityWorld.GetComponents<Velocity>();
         }
 
         public override void Update(float deltaTime)

@@ -15,14 +15,14 @@ namespace ScatteredLogic.Internal
 
         private readonly List<ISystem> systems = new List<ISystem>();
         private readonly List<B> systemBitmasks = new List<B>();
-        private readonly List<EntitySet> systemEntities = new List<EntitySet>();
+        private readonly List<HandleSet> systemEntities = new List<HandleSet>();
 
         public SystemManager(int maxEntities)
         {
             this.maxEntities = maxEntities;
         }
 
-        public void AddSystem(ISystem system, B systemBitmask, IEntitySet allEntities, B[] bitmasks)
+        public void AddSystem(ISystem system, B systemBitmask, IHandleSet allEntities, B[] bitmasks)
         {
             int index = system.Info?.Index ?? 0;
 
@@ -36,7 +36,7 @@ namespace ScatteredLogic.Internal
             systems.Add(system);
             systemBitmasks.Add(systemBitmask);
 
-            EntitySet entities = new EntitySet(maxEntities);
+            HandleSet entities = new HandleSet(maxEntities);
             systemEntities.Add(entities);
             system.Entities = entities;
 
@@ -63,16 +63,16 @@ namespace ScatteredLogic.Internal
             systemEntities.RemoveAt(index);
         }
 
-        public void AddEntityToSystems(Entity entity, B entityMask)
+        public void AddEntityToSystems(Handle entity, B entityMask)
         {
             foreach (ISystem system in systems) AddEntityToSystem(entity, entityMask, system);
         }
 
-        public void RemoveEntity(Entity entity)
+        public void RemoveEntity(Handle entity)
         {
             foreach (ISystem system in systems)
             {
-                EntitySet entities = systemEntities[system.Info.Index];
+                HandleSet entities = systemEntities[system.Info.Index];
                 if (entities.Contains(entity))
                 {
                     entities.Remove(entity);
@@ -81,12 +81,12 @@ namespace ScatteredLogic.Internal
             }
         }
 
-        private void AddEntityToSystem(Entity entity, B entityMask, ISystem system)
+        private void AddEntityToSystem(Handle entity, B entityMask, ISystem system)
         {
             int index = system.Info.Index;
 
             B systemMask = systemBitmasks[system.Info.Index];
-            EntitySet entities = systemEntities[system.Info.Index];
+            HandleSet entities = systemEntities[system.Info.Index];
 
             if (entityMask.Contains(systemMask) && !entities.Contains(entity))
             {

@@ -8,7 +8,7 @@ namespace ScatteredGameExample.Systems
     {
         public virtual IEnumerable<Type> RequiredComponents => RequiredTypes.None;
         public IEntitySet Entities { get; set; }
-        public IEntitySystemManager EntityManager { get; set; }
+        public IEntitySystemManager EntityWorld { get; set; }
         public ISystemInfo Info { get; set; }
 
         public EntityFactory EntityFactory { get; set; }

@@ -12,9 +12,9 @@ namespace ScatteredGameExample
         private const string TextureSquare = "square";
 
         private readonly ContentManager content;
-        private readonly IEntityManager entityManager;
+        private readonly IEntityWorld entityManager;
 
-        public EntityFactory(ContentManager content, IEntityManager entityManager)
+        public EntityFactory(ContentManager content, IEntityWorld entityManager)
         {
             this.content = content;
             this.entityManager = entityManager;

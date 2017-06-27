@@ -9,12 +9,11 @@ namespace ConsoleRunner
     {
         static void Main(string[] args)
         {
-            //RunLoop();
+            RunLoop();
             TestArraySystemSpeed();
             Console.WriteLine("---END---");
             Console.ReadLine();
         }
-
 
         private static void TestArraySystemSpeed()
         {
@@ -32,9 +31,9 @@ namespace ConsoleRunner
 
             for (int i = 0; i < count; ++i)
             {
-                Entity e = em.CreateEntity();
-                e.AddComponent(i);
-                e.AddComponent(strComp);
+                Handle e = em.CreateEntity();
+                em.AddComponent(e, i);
+                em.AddComponent(e, strComp);
             }
 
             em.Update();
@@ -48,13 +47,13 @@ namespace ConsoleRunner
         {
             public abstract IEnumerable<Type> RequiredComponents { get; }
 
-            public IEntitySystemManager EntityManager { get; set; }
-            public IEntitySet Entities { get; set; }
+            public IEntitySystemManager EntityWorld { get; set; }
+            public IHandleSet Entities { get; set; }
             public ISystemInfo Info { get; set; }
 
             public virtual void Added() {}
-            public virtual void EntityAdded(Entity entity) { }
-            public virtual void EntityRemoved(Entity entity) { }
+            public virtual void EntityAdded(Handle entity) { }
+            public virtual void EntityRemoved(Handle entity) { }
             public virtual void Removed() { }
 
             public virtual void Update()
@@ -81,16 +80,16 @@ namespace ConsoleRunner
 
             public override void Added()
             {
-                strings = EntityManager.GetComponents<string>();
-                ints = EntityManager.GetComponents<int>();
+                strings = EntityWorld.GetComponents<string>();
+                ints = EntityWorld.GetComponents<int>();
             }
             
             public override void DoWork()
             {
-                foreach(Entity e in Entities)
+                foreach(Handle e in Entities)
                 {
-                    string s = strings[e.Id];
-                    int i = ints[e.Id];
+                    string s = strings[e.Index];
+                    int i = ints[e.Index];
                 }
             }
         }
@@ -101,10 +100,10 @@ namespace ConsoleRunner
 
             public override void DoWork()
             {
-                foreach (Entity e in Entities)
+                foreach (Handle e in Entities)
                 {
-                    string s = e.GetComponent<string>();
-                    int i = e.GetComponent<int>();
+                    string s = EntityWorld.GetComponent<string>(e);
+                    int i = EntityWorld.GetComponent<int>(e);
                 }
             }
         }
@@ -112,32 +111,30 @@ namespace ConsoleRunner
 
         static void RunLoop()
         {
-            IEntitySystemManager em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64, 10000);
+            int count = 1024;
+
+            IEntityWorld em = EntityManagerFactory.CreateEntityManager(BitmaskSize.Bit64, count);
             string strComp = "I'm a string";
 
-            List<Entity> entities = new List<Entity>();
+            List<Handle> entities = new List<Handle>();
             while (true)
             {
-                for (int i = 0; i < 10000; ++i)
+                for (int i = 0; i < count; ++i)
                 {
-                    Entity e = em.CreateEntity();
+                    Handle e = em.CreateEntity();
                     entities.Add(e);
-                    e.AddComponent(i);
-                    e.AddComponent(strComp);
+                    em.AddComponent(e, i);
+                    em.AddComponent(e, strComp);
                 }
-
-                em.Update();
 
                 IArray<int> intz = em.GetComponents<int>();
 
-                foreach (Entity en in entities)
+                foreach (Handle en in entities)
                 {
-                    int n = en.GetComponent<int>();
-                    string str = en.GetComponent<string>();
+                    int n = em.GetComponent<int>(en);
+                    string str = em.GetComponent<string>(en);
                     em.DestroyEntity(en);
                 }
-
-                em.Update();
 
                 entities.Clear();
             }
