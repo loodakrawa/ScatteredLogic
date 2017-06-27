@@ -4,6 +4,7 @@
 // of the zlib license. See the LICENSE file for details.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace ScatteredLogic
@@ -41,30 +42,11 @@ namespace ScatteredLogic
         IArray<T> GetComponents<T>();
     }
 
-    public interface IEntitySystemManager : IEntityWorld
+    public interface IGroupedEntityWorld : IEntityWorld
     {
-        void AddSystem(ISystem system);
-        void RemoveSystem(ISystem system);
-
-        void Update();
+        int GetGroupId(IEnumerable<Type> types);
+        IHandleSet GetEntitiesForGroup(int groupId);
+        void Flush();
     }
 
-    public interface ISystem
-    {
-        IEnumerable<Type> RequiredComponents { get; }
-        IEntitySystemManager EntityWorld { get; set; }
-        IHandleSet Entities { get; set; }
-        ISystemInfo Info { get; set; }
-
-        void Added();
-        void Removed();
-
-        void EntityAdded(Handle entity);
-        void EntityRemoved(Handle entity);
-    }
-
-    public interface ISystemInfo
-    {
-        int Index { get; }
-    }
 }

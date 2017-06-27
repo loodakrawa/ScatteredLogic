@@ -3,81 +3,79 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
-using ScatteredLogic.Internal.Bitmasks;
 using System;
 
 namespace ScatteredLogic.Internal
 {
-    internal class EntityWorld<B> : IEntityWorld where B : IBitmask<B>
+    internal sealed class EntityWorld : IEntityWorld
     {
-        public IHandleSet Entities => EntityManager.Entities;
+        public IHandleSet Entities => entityManager.Entities;
 
-        protected readonly TypeIndexer TypeIndexer;
+        private readonly TypeIndexer typeIndexer;
+        private readonly ComponentManager componentManager;
+        private readonly EntityManager entityManager;
 
-        protected readonly ComponentManager ComponentManager;
-        protected readonly EntityManager EntityManager;
-
-        public EntityWorld(int maxComponents, int maxEntities)
+        public EntityWorld(int maxEntities, int maxComponentTypes)
         {
-            TypeIndexer = new TypeIndexer(maxComponents);
-            EntityManager = new EntityManager(maxEntities);
-            ComponentManager = new ComponentManager(maxComponents, maxEntities);
+            typeIndexer = new TypeIndexer(maxComponentTypes);
+            entityManager = new EntityManager(maxEntities);
+            componentManager = new ComponentManager(maxComponentTypes, maxEntities);
         }
 
-        public virtual Handle CreateEntity()
+        public Handle CreateEntity()
         {
-            return EntityManager.CreateEntity();
+            return entityManager.CreateEntity();
         }
 
-        public virtual void DestroyEntity(Handle entity)
+        public void DestroyEntity(Handle entity)
         {
             ThrowIfStale(entity);
-            ComponentManager.RemoveEntity(entity.Index);
-            EntityManager.DestroyEntity(entity);
+            componentManager.RemoveEntity(entity.Index);
+            entityManager.DestroyEntity(entity);
         }
 
         public bool ContainsEntity(Handle entity)
         {
-            return EntityManager.ContainsEntity(entity);
+            return entityManager.ContainsEntity(entity);
         }
 
-        public virtual void AddComponent<T>(Handle entity, T component)
+        public void AddComponent<T>(Handle entity, T component)
         {
             ThrowIfStale(entity);
-            ComponentManager.AddComponent(entity.Index, component, TypeIndexer.GetTypeId(typeof(T)));
+            componentManager.AddComponent(entity.Index, component, typeIndexer.GetTypeId(typeof(T)));
         }
 
-        public virtual void AddComponent(Handle entity, object component, Type type)
+        public void AddComponent(Handle entity, object component, Type type)
         {
             ThrowIfStale(entity);
-            ComponentManager.AddComponent(entity.Index, component, TypeIndexer.GetTypeId(type), type);
+            componentManager.AddComponent(entity.Index, component, typeIndexer.GetTypeId(type), type);
         }
 
         public void RemoveComponent<T>(Handle entity) => RemoveComponent(entity, typeof(T));
-        public virtual void RemoveComponent(Handle entity, Type type)
+        public void RemoveComponent(Handle entity, Type type)
         {
             ThrowIfStale(entity);
-            ComponentManager.RemoveComponent(entity.Index, TypeIndexer.GetTypeId(type));
+            componentManager.RemoveComponent(entity.Index, typeIndexer.GetTypeId(type));
         }
 
         public T GetComponent<T>(Handle entity)
         {
             ThrowIfStale(entity);
-            return ComponentManager.GetComponent<T>(entity.Index, TypeIndexer.GetTypeId(typeof(T)));
+            return componentManager.GetComponent<T>(entity.Index, typeIndexer.GetTypeId(typeof(T)));
         }
 
         public object GetComponent(Handle entity, Type type)
         {
             ThrowIfStale(entity);
-            return ComponentManager.GetComponent(entity.Index, TypeIndexer.GetTypeId(type));
+            return componentManager.GetComponent(entity.Index, typeIndexer.GetTypeId(type));
         }
 
-        public IArray<T> GetComponents<T>() => ComponentManager.GetAllComponents<T>(TypeIndexer.GetTypeId(typeof(T)));
+        public IArray<T> GetComponents<T>() => componentManager.GetAllComponents<T>(typeIndexer.GetTypeId(typeof(T)));
 
-        protected void ThrowIfStale(Handle entity)
+        private void ThrowIfStale(Handle entity)
         {
 #if DEBUG
-            if (!EntityManager.ContainsEntity(entity)) throw new ArgumentException("Entity not managed : " + entity);
+            if (!entityManager.ContainsEntity(entity)) throw new ArgumentException("Entity not managed : " + entity);
 #endif
         }
     }

@@ -3,6 +3,8 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
+using System;
+
 namespace ScatteredLogic.Internal.DataStructures
 {
     internal sealed class HandleSet : IHandleSet
@@ -20,6 +22,13 @@ namespace ScatteredLogic.Internal.DataStructures
             indices = new int[size];
 
             for (int i = 0; i < size; ++i) indices[i] = -1;
+        }
+
+        public void CopyFrom(HandleSet other)
+        {
+            Array.Copy(other.entities, entities, count);
+            Array.Copy(other.indices, indices, count);
+            count = other.count;
         }
 
         public Handle this[int i] { get => entities[i]; }
@@ -57,6 +66,9 @@ namespace ScatteredLogic.Internal.DataStructures
         {
             // find position of entity to remove
             int position = indices[entity.Index];
+
+            // return if it's not contained
+            if (position < 0) return;
 
             // remove the index
             indices[entity.Index] = -1;

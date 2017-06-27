@@ -13,9 +13,9 @@ namespace ScatteredLogic.Internal
         private readonly int maxEntities;
         private readonly IComponentArray[] components;
 
-        public ComponentManager(int maxComponents, int maxEntities)
+        public ComponentManager(int maxComponentTypes, int maxEntities)
         {
-            components = new IComponentArray[maxComponents];
+            components = new IComponentArray[maxComponentTypes];
             this.maxEntities = maxEntities;
         }
 
