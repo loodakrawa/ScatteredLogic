@@ -11,11 +11,11 @@ namespace ScatteredLogic.Internal
     internal sealed class ComponentManager
     {
         private readonly int maxEntities;
-        private readonly IComponentArray[] components;
+        private readonly IArrayWrapper[] components;
 
         public ComponentManager(int maxComponentTypes, int maxEntities)
         {
-            components = new IComponentArray[maxComponentTypes];
+            components = new IArrayWrapper[maxComponentTypes];
             this.maxEntities = maxEntities;
         }
 
@@ -26,10 +26,10 @@ namespace ScatteredLogic.Internal
 
         public void AddComponent<T>(int id, T component, int type)
         {
-            ComponentArray<T> comps = components[type] as ComponentArray<T>;
+            ArrayWrapper<T> comps = components[type] as ArrayWrapper<T>;
             if(comps == null)
             {
-                comps = new ComponentArray<T>(maxEntities);
+                comps = new ArrayWrapper<T>(maxEntities);
                 components[type] = comps;
             }
 
@@ -38,11 +38,11 @@ namespace ScatteredLogic.Internal
 
         public void AddComponent(int id, object component, int type, Type compType)
         {
-            IComponentArray comps = components[type];
+            IArrayWrapper comps = components[type];
             if (comps == null)
             {
-                Type genericType = typeof(ComponentArray<>).MakeGenericType(compType);
-                comps = Activator.CreateInstance(genericType, maxEntities) as IComponentArray;
+                Type genericType = typeof(ArrayWrapper<>).MakeGenericType(compType);
+                comps = Activator.CreateInstance(genericType, maxEntities) as IArrayWrapper;
                 components[type] = comps;
             }
 
@@ -56,7 +56,7 @@ namespace ScatteredLogic.Internal
 
         public T GetComponent<T>(int id, int type)
         {
-            ComponentArray<T> comps = components[type] as ComponentArray<T>;
+            ArrayWrapper<T> comps = components[type] as ArrayWrapper<T>;
             return comps != null ? comps[id] : default(T);
         }
 
@@ -67,10 +67,10 @@ namespace ScatteredLogic.Internal
 
         public IArray<T> GetAllComponents<T>(int type)
         {
-            ComponentArray<T> comps = components[type] as ComponentArray<T>;
+            ArrayWrapper<T> comps = components[type] as ArrayWrapper<T>;
             if (comps == null)
             {
-                comps = new ComponentArray<T>(maxEntities);
+                comps = new ArrayWrapper<T>(maxEntities);
                 components[type] = comps;
             }
             return comps;

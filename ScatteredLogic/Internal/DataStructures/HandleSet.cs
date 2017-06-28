@@ -3,7 +3,6 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
-using System;
 
 namespace ScatteredLogic.Internal.DataStructures
 {
@@ -96,13 +95,5 @@ namespace ScatteredLogic.Internal.DataStructures
         }
 
         public ArrayEnumerator<Handle> GetEnumerator() => new ArrayEnumerator<Handle>(entities, count);
-
-        public static void Copy(HandleSet source, HandleSet destination)
-        {
-            int count = source.count;
-            Array.Copy(source.entities, destination.entities, count);
-            Array.Copy(source.indices, destination.indices, count);
-            destination.count = count;
-        }
     }
 }

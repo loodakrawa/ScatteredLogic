@@ -9,7 +9,7 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class EntityWorld : IEntityWorld
     {
-        public IArray<Handle> Entities => null;
+        public IArray<Handle> Entities => entityManager.Entities;
 
         private readonly TypeIndexer typeIndexer;
         private readonly ComponentManager componentManager;

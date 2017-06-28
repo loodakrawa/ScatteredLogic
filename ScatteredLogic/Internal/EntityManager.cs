@@ -1,10 +1,13 @@
-﻿using System;
+﻿using ScatteredLogic.Internal.DataStructures;
+using System;
 using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
 {
     internal class EntityManager
     {
+        public IArray<Handle> Entities { get; private set; }
+
         private readonly Handle[] entities;
         private readonly Queue<int> freeIndices;
 
@@ -19,6 +22,8 @@ namespace ScatteredLogic.Internal
 
             entities = new Handle[maxEntities];
             freeIndices = new Queue<int>(maxEntities);
+
+            Entities = new ArrayWrapper<Handle>(entities);
 
             for (int i = 0; i < maxEntities; ++i) freeIndices.Enqueue(i);
         }
