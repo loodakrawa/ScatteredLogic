@@ -20,9 +20,9 @@ namespace ScatteredLogic.Internal
 
         private B[] entityMasks;
         private readonly List<HandleSet> groupEntities = new List<HandleSet>();
+        private readonly List<HandleSet> groupEntityChanges = new List<HandleSet>();
 
-        private B[] entityMasksDelta;
-        private readonly List<HandleSet> groupEntitiesDelta = new List<HandleSet>();
+        private readonly DeltaQueue<B> deltaQueue;
 
         public GroupedEntityWorld(IEntityWorld ew, int maxEntities, int maxComponentCount)
         {
@@ -30,7 +30,7 @@ namespace ScatteredLogic.Internal
             this.maxEntities = maxEntities;
             typeIndexer = new TypeIndexer(maxComponentCount);
             entityMasks = new B[maxEntities];
-            entityMasksDelta = new B[maxEntities];
+            deltaQueue = new DeltaQueue<B>(maxEntities, typeIndexer);
         }
 
         public int GetGroupId(IEnumerable<Type> types)
@@ -43,80 +43,65 @@ namespace ScatteredLogic.Internal
                 index = groupMasks.Count;
                 groupMasks.Add(bitmask);
                 groupEntities.Add(new HandleSet(maxEntities));
-                groupEntitiesDelta.Add(new HandleSet(maxEntities));
+                groupEntityChanges.Add(new HandleSet(maxEntities));
             }
 
             return index;
         }
 
-        public void Flush()
+        public void Commit()
         {
-            Buffer.BlockCopy(entityMasksDelta, 0, entityMasks, 0, entityMasks.Length);
-            for (int i = 0; i < groupEntities.Count; ++i) groupEntities[i].CopyFrom(groupEntitiesDelta[i]);
+            foreach (HandleSet set in groupEntityChanges) set.Clear();
+
+            deltaQueue.Flush(ew);
+
+            B[] newBitmasks = deltaQueue.entityMasks;
+            System.Diagnostics.Debug.WriteLine("Updating dirty entities: "  + deltaQueue.dirtyEntities.Count);
+            foreach (Handle entity in deltaQueue.dirtyEntities) UpdateEntityGroups(entity, newBitmasks[entity.Index]);
+
+            Array.Copy(newBitmasks, entityMasks, entityMasks.Length);
         }
 
-        public IHandleSet GetEntitiesForGroup(int groupId)
+        private void UpdateEntityGroups(Handle entity, B newBitmask)
+        {
+            B mask = entityMasks[entity.Index];
+            if (mask.Equals(newBitmask)) return;
+
+            for (int i = 0; i < groupMasks.Count; ++i)
+            {
+                B groupMask = groupMasks[i];
+                HandleSet set = groupEntities[i];
+
+                if (newBitmask.Contains(groupMask))
+                {
+                    set.Add(entity);
+                    groupEntityChanges[i].Add(entity);
+                }
+                else set.Remove(entity);
+            }
+        }
+
+        public IArray<Handle> GetEntitiesForGroup(int groupId)
         {
             if (groupId < 0 || groupId >= groupEntities.Count) return null;
             return groupEntities[groupId];
         }
 
-        private void UpdateEntityGroups(Handle entity)
+        public IArray<Handle> GetChangesForGroup(int groupId)
         {
-            B mask = entityMasksDelta[entity.Index];
-
-            for(int i=0; i<groupMasks.Count; ++i)
-            {
-                B groupMask = groupMasks[i];
-                HandleSet set = groupEntitiesDelta[i];
-
-                if (mask.Contains(groupMask)) set.Add(entity);
-                else set.Remove(entity);
-            }
+            if (groupId < 0 || groupId >= groupEntityChanges.Count) return null;
+            return groupEntityChanges[groupId];
         }
 
-        public void DestroyEntity(Handle entity)
-        {
-            ew.DestroyEntity(entity);
-            entityMasksDelta[entity.Index] = default(B);
-            UpdateEntityGroups(entity);
-        }
+        public Handle CreateEntity() => deltaQueue.CreateEntity();
+        public void DestroyEntity(Handle entity) => deltaQueue.DestroyEntity(entity);
+        public void AddComponent<T>(Handle entity, T component) => deltaQueue.AddComponent<T>(entity, component);
+        public void AddComponent(Handle entity, object component, Type type) => deltaQueue.AddComponent(entity, component, type);
+        public void RemoveComponent<T>(Handle entity) => deltaQueue.RemoveComponent(entity, typeof(T));
+        public void RemoveComponent(Handle entity, Type type) => deltaQueue.RemoveComponent(entity, type);
 
-        public void AddComponent<T>(Handle entity, T component)
-        {
-            ew.AddComponent(entity, component);
-            int entityIndex = entity.Index;
-            entityMasksDelta[entityIndex] = entityMasksDelta[entityIndex].Set(typeIndexer.GetTypeId(typeof(T)));
-            UpdateEntityGroups(entity);
-        }
-
-        public void AddComponent(Handle entity, object component, Type type)
-        {
-            ew.AddComponent(entity, component, type);
-            int entityIndex = entity.Index;
-            entityMasksDelta[entityIndex] = entityMasksDelta[entityIndex].Set(typeIndexer.GetTypeId(type));
-            UpdateEntityGroups(entity);
-        }
-
-        public void RemoveComponent<T>(Handle entity)
-        {
-            ew.RemoveComponent<T>(entity);
-            int entityIndex = entity.Index;
-            entityMasksDelta[entityIndex] = entityMasksDelta[entityIndex].Clear(typeIndexer.GetTypeId(typeof(T)));
-            UpdateEntityGroups(entity);
-        }
-
-        public void RemoveComponent(Handle entity, Type type)
-        {
-            ew.RemoveComponent(entity, type);
-            int entityIndex = entity.Index;
-            entityMasksDelta[entityIndex] = entityMasksDelta[entityIndex].Clear(typeIndexer.GetTypeId(type));
-            UpdateEntityGroups(entity);
-        }
-
-        public IHandleSet Entities => ew.Entities;
+        public IArray<Handle> Entities => ew.Entities;
         public bool ContainsEntity(Handle entity) => ew.ContainsEntity(entity);
-        public Handle CreateEntity() => ew.CreateEntity();
         public T GetComponent<T>(Handle entity) => ew.GetComponent<T>(entity);
         public object GetComponent(Handle entity, Type type) => ew.GetComponent(entity, type);
         public IArray<T> GetComponents<T>() => ew.GetComponents<T>();

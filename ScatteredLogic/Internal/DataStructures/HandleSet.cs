@@ -7,11 +7,11 @@ using System;
 
 namespace ScatteredLogic.Internal.DataStructures
 {
-    internal sealed class HandleSet : IHandleSet
+    internal sealed class HandleSet : IArray<Handle>
     {
         public int Count => count;
-
-        private readonly  Handle[] entities;
+       
+        private readonly Handle[] entities;
         private readonly int[] indices;
 
         private int count;
@@ -24,13 +24,6 @@ namespace ScatteredLogic.Internal.DataStructures
             for (int i = 0; i < size; ++i) indices[i] = -1;
         }
 
-        public void CopyFrom(HandleSet other)
-        {
-            Array.Copy(other.entities, entities, count);
-            Array.Copy(other.indices, indices, count);
-            count = other.count;
-        }
-
         public Handle this[int i] { get => entities[i]; }
 
         public void Clear()
@@ -38,6 +31,8 @@ namespace ScatteredLogic.Internal.DataStructures
             count = 0;
             for (int i = 0; i < indices.Length; ++i) indices[i] = -1;
         }
+
+        public Handle GetWithIndex(int index) => this[indices[index]];
 
         public void Add(Handle entity)
         {
@@ -54,12 +49,6 @@ namespace ScatteredLogic.Internal.DataStructures
                 indices[entity.Index] = count;
                 ++count;
             }
-        }
-
-        public bool Contains(Handle entity)
-        {
-            int id = entity.Index;
-            return indices.Length > id ? indices[id] >= 0 : false;
         }
 
         public void Remove(Handle entity)
@@ -106,6 +95,14 @@ namespace ScatteredLogic.Internal.DataStructures
             return entities[indices[entityId]];
         }
 
-        public EntitySetEnumerator GetEnumerator() => new EntitySetEnumerator(entities, count);
+        public ArrayEnumerator<Handle> GetEnumerator() => new ArrayEnumerator<Handle>(entities, count);
+
+        public static void Copy(HandleSet source, HandleSet destination)
+        {
+            int count = source.count;
+            Array.Copy(source.entities, destination.entities, count);
+            Array.Copy(source.indices, destination.indices, count);
+            destination.count = count;
+        }
     }
 }

@@ -1,17 +1,15 @@
-﻿using ScatteredLogic.Internal.DataStructures;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal
 {
     internal class EntityManager
     {
-        public IHandleSet Entities => entities;
-
-        private readonly HandleSet entities;
+        private readonly Handle[] entities;
         private readonly Queue<int> freeIndices;
 
         private readonly int maxEntities;
+        private int count;
 
         public EntityManager(int maxEntities)
         {
@@ -19,7 +17,7 @@ namespace ScatteredLogic.Internal
 
             this.maxEntities = maxEntities;
 
-            entities = new HandleSet(maxEntities);
+            entities = new Handle[maxEntities];
             freeIndices = new Queue<int>(maxEntities);
 
             for (int i = 0; i < maxEntities; ++i) freeIndices.Enqueue(i);
@@ -28,24 +26,26 @@ namespace ScatteredLogic.Internal
         public virtual Handle CreateEntity()
         {
             // blow up if capacity reached
-            if (freeIndices.Count == 0) throw new Exception("Max number of entities reached: " + entities.Count);
+            if (freeIndices.Count == 0) throw new Exception("Max number of entities reached: " + maxEntities);
 
             int index = freeIndices.Dequeue();
             Handle entity = entities[index];
 
-            // if the entity is in the new expanded range, initialise it
-            if (index >= entities.Count)
-            {
-                entity = new Handle(index | (entity.Version + 1) << Handle.IndexBits);
-                entities.Add(entity);
-            }
+            int version = entity.Version + 1;
+            // don't allow version 0
+            if (version == 0) ++version;
+            entity = new Handle(index | version << Handle.IndexBits);
+            entities[index] = entity;
+
+            ++count;
             return entity;
         }
 
         public virtual void DestroyEntity(Handle entity)
         {
-            entities.Remove(entity);
-            freeIndices.Enqueue(entity.Index);
+            int index = entity.Index;
+            freeIndices.Enqueue(index);
+            --count;
         }
 
         public bool ContainsEntity(Handle entity)

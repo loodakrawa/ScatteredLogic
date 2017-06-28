@@ -4,27 +4,20 @@
 // of the zlib license. See the LICENSE file for details.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace ScatteredLogic
 {
     public interface IArray<T>
     {
-        T this[int i] { get; }
-    }
-
-    public interface IHandleSet
-    {
         int Count { get; }
-        Handle this[int i] { get; }
-        bool Contains(Handle entity);
-        EntitySetEnumerator GetEnumerator();
+        T this[int i] { get; }
+        ArrayEnumerator<T> GetEnumerator();
     }
 
     public interface IEntityWorld
     {
-        IHandleSet Entities { get; }
+        IArray<Handle> Entities { get; }
 
         Handle CreateEntity();
         void DestroyEntity(Handle entity);
@@ -45,8 +38,9 @@ namespace ScatteredLogic
     public interface IGroupedEntityWorld : IEntityWorld
     {
         int GetGroupId(IEnumerable<Type> types);
-        IHandleSet GetEntitiesForGroup(int groupId);
-        void Flush();
+        IArray<Handle> GetEntitiesForGroup(int groupId);
+        IArray<Handle> GetChangesForGroup(int groupId);
+        void Commit();
     }
 
 }
