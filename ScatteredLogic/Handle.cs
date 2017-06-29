@@ -9,8 +9,11 @@ namespace ScatteredLogic
 {
     public struct Handle : IEquatable<Handle>
     {
-        internal const int IndexBits = 20;
-        internal const int IndexMask = (int)(0xffffffff >> (32 - IndexBits));
+        public const int MaxIndex = IndexMask;
+
+        private const int IndexBits = 20;
+        private const int VersionBits = sizeof(int) * 8 - IndexBits;
+        private const int IndexMask = unchecked((int)(~0u >> VersionBits));
 
         public int Index => Id & IndexMask;
         public int Version => Id >> IndexBits;
@@ -21,12 +24,18 @@ namespace ScatteredLogic
 
         public bool Equals(Handle other) => Id == other.Id;
         public override bool Equals(object obj) => obj is Handle ? Equals((Handle)obj) : false;
-
         public override int GetHashCode() => Id;
 
+#if DEBUG
         public override string ToString() => string.Format("{0}|{1}", Index, Version);
+#endif
 
-        public static bool operator ==(Handle a, Handle b) => a.Id == b.Id;
-        public static bool operator !=(Handle a, Handle b) => a.Id != b.Id;
+        public Handle IncrementVersion()
+        {
+            int version = Version + 1;
+            // don't allow version 0
+            if (version == 0) ++version;
+            return new Handle(Index | version << IndexBits);
+        }
     }
 }

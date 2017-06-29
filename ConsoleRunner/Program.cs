@@ -57,7 +57,7 @@ namespace ConsoleRunner
         {
             int count = 10;
 
-            IGroupedEntityWorld world = EntityManagerFactory.CreateGroupedEntityWorld(10, BitmaskSize.Bit64);
+            IGroupedEntityWorld world = EntityManagerFactory.CreateGroupedEntityWorld(count, BitmaskSize.Bit64);
 
             for(int c=0; c<10; ++c)
             {
@@ -66,7 +66,7 @@ namespace ConsoleRunner
                     Handle entity = world.CreateEntity();
                     world.AddComponent(entity, 5);
                     world.AddComponent(entity, "");
-                    if (i % 5 == 0) world.DestroyEntity(entity);
+                    //if (i % 5 == 0) world.DestroyEntity(entity);
                 }
 
                 int groupId = world.GetGroupId(RequiredTypes.From<int, string>());

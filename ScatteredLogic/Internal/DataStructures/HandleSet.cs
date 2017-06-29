@@ -31,8 +31,6 @@ namespace ScatteredLogic.Internal.DataStructures
             for (int i = 0; i < indices.Length; ++i) indices[i] = -1;
         }
 
-        public Handle GetWithIndex(int index) => this[indices[index]];
-
         public void Add(Handle entity)
         {
             int id = entity.Index;
@@ -80,18 +78,6 @@ namespace ScatteredLogic.Internal.DataStructures
             }
 
             --count;
-        }
-
-        public Handle Pop()
-        {
-            Handle last = entities[count - 1];
-            Remove(last);
-            return last;
-        }
-
-        public Handle Get(int entityId)
-        {
-            return entities[indices[entityId]];
         }
 
         public ArrayEnumerator<Handle> GetEnumerator() => new ArrayEnumerator<Handle>(entities, count);

@@ -5,6 +5,7 @@
 
 using ScatteredLogic.Internal.Bitmasks;
 using ScatteredLogic.Internal.DataStructures;
+using ScatteredLogic.Internal.Managers;
 using System;
 using System.Collections.Generic;
 
@@ -14,7 +15,7 @@ namespace ScatteredLogic.Internal
     {
         private readonly IEntityWorld ew;
         private readonly int maxEntities;
-        private readonly TypeIndexer typeIndexer;
+        private readonly TypeIndexManager typeIndexer;
 
         private readonly List<B> groupMasks = new List<B>();
 
@@ -28,7 +29,7 @@ namespace ScatteredLogic.Internal
         {
             this.ew = ew;
             this.maxEntities = maxEntities;
-            typeIndexer = new TypeIndexer(maxComponentCount);
+            typeIndexer = new TypeIndexManager(maxComponentCount);
             entityMasks = new B[maxEntities];
             deltaQueue = new DeltaQueue<B>(maxEntities, typeIndexer);
         }
@@ -111,7 +112,7 @@ namespace ScatteredLogic.Internal
             B bitmask = default(B);
             foreach (Type type in types)
             {
-                int componentIndex = typeIndexer.GetTypeId(type);
+                int componentIndex = typeIndexer.GetIndex(type);
                 bitmask = bitmask.Set(componentIndex);
             }
             return bitmask;

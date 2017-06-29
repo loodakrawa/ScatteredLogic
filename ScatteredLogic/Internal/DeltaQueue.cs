@@ -1,4 +1,5 @@
 ﻿using ScatteredLogic.Internal.Bitmasks;
+using ScatteredLogic.Internal.Managers;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -7,32 +8,33 @@ namespace ScatteredLogic.Internal
 {
     internal class DeltaQueue<B> where B : IBitmask<B>
     {
-        private int count;
+        private int proxyEntityCount;
 
-        private List<Handle> entitiesToDestroy = new List<Handle>();
-        private List<RemoveComponentData> componentsToRemove = new List<RemoveComponentData>();
-        private List<AddComponentData> componentsToAdd = new List<AddComponentData>();
-        private Dictionary<Type, IComponentQueue> componentQueues = new Dictionary<Type, IComponentQueue>();
+        private readonly List<Handle> entitiesToDestroy = new List<Handle>();
+        private readonly List<RemoveComponentData> componentsToRemove = new List<RemoveComponentData>();
+        private readonly List<AddComponentData> componentsToAdd = new List<AddComponentData>();
+        private readonly Dictionary<Type, IComponentQueue> componentQueues = new Dictionary<Type, IComponentQueue>();
 
         private readonly int maxEntities;
-        private readonly TypeIndexer typeIndexer;
+        private readonly TypeIndexManager typeIndexer;
         private readonly Handle[] newEntities;
 
         public readonly HashSet<Handle> dirtyEntities = new HashSet<Handle>();
         public readonly B[] entityMasks;
 
-        public DeltaQueue(int maxEntities, TypeIndexer typeIndexer)
+        public DeltaQueue(int maxEntities, TypeIndexManager typeIndexer)
         {
             this.maxEntities = maxEntities;
             this.typeIndexer = typeIndexer;
             newEntities = new Handle[maxEntities];
             entityMasks = new B[maxEntities];
-            count = -1;
+            proxyEntityCount = -1;
         }
 
         public Handle CreateEntity()
         {
-            int id = Interlocked.Increment(ref count);
+            // create a proxy entity and increase the count of created proxies
+            int id = Interlocked.Increment(ref proxyEntityCount);
             return new Handle(id);
         }
 
@@ -47,15 +49,13 @@ namespace ScatteredLogic.Internal
             {
                 Type type = typeof(T);
 
-                IComponentQueue icq;
-                componentQueues.TryGetValue(type, out icq);
-
+                componentQueues.TryGetValue(type, out IComponentQueue icq);
                 ComponentQueue<T> cq;
 
                 if (icq != null) cq = icq as ComponentQueue<T>;
                 else
                 {
-                    cq = new ComponentQueue<T>(maxEntities, ConvertEntity);
+                    cq = new ComponentQueue<T>(maxEntities, typeIndexer.GetIndex(type), ConvertEntity);
                     componentQueues[type] = cq;
                 }
 
@@ -77,10 +77,8 @@ namespace ScatteredLogic.Internal
         {
             dirtyEntities.Clear();
 
-            System.Diagnostics.Debug.WriteLine("Flush Creating Entities: " + (count + 1));
-
             // create new entities and add them to appropriate indices
-            for (int i = 0; i < count + 1; ++i) newEntities[i] = entityWorld.CreateEntity();
+            for (int i = 0; i < proxyEntityCount + 1; ++i) newEntities[i] = entityWorld.CreateEntity();
 
             foreach (RemoveComponentData rcd in componentsToRemove)
             {
@@ -88,7 +86,7 @@ namespace ScatteredLogic.Internal
                 entityWorld.RemoveComponent(realEntity, rcd.Type);
                 dirtyEntities.Add(realEntity);
                 int index = realEntity.Index;
-                entityMasks[index] = entityMasks[index].Clear(typeIndexer.GetTypeId(rcd.Type));
+                entityMasks[index] = entityMasks[index].Clear(typeIndexer.GetIndex(rcd.Type));
             }
 
             foreach (AddComponentData acd in componentsToAdd)
@@ -97,12 +95,10 @@ namespace ScatteredLogic.Internal
                 entityWorld.AddComponent(realEntity, acd.Component, acd.Type);
                 dirtyEntities.Add(realEntity);
                 int index = realEntity.Index;
-                entityMasks[index] = entityMasks[index].Set(typeIndexer.GetTypeId(acd.Type));
+                entityMasks[index] = entityMasks[index].Set(typeIndexer.GetIndex(acd.Type));
             }
 
-            foreach (IComponentQueue cq in componentQueues.Values) cq.Flush(entityWorld, typeIndexer, dirtyEntities, entityMasks);
-
-            System.Diagnostics.Debug.WriteLine("Flush Destroying Entities: " + entitiesToDestroy.Count);
+            foreach (IComponentQueue cq in componentQueues.Values) cq.Flush(entityWorld, dirtyEntities, entityMasks);
 
             foreach (Handle entity in entitiesToDestroy)
             {
@@ -112,12 +108,13 @@ namespace ScatteredLogic.Internal
                 entityMasks[realEntity.Index] = default(B);
             }
 
-            count = -1;
+            proxyEntityCount = -1;
             entitiesToDestroy.Clear();
             componentsToAdd.Clear();
             componentsToRemove.Clear();
         }
 
+        // converts a proxy entity to a real entity
         private Handle ConvertEntity(Handle entity) => entity.Version != 0 ? entity : newEntities[entity.Index];
 
         private struct RemoveComponentData
@@ -148,14 +145,17 @@ namespace ScatteredLogic.Internal
 
         private class ComponentQueue<T> : IComponentQueue
         {
-            private readonly T[] components;
-            private readonly Handle[] entities;
+            public readonly T[] components;
+            public readonly Handle[] entities;
+
+            private readonly int componentTypeIndex;
             private readonly Func<Handle, Handle> entityConverter;
 
             private int count;
 
-            public ComponentQueue(int maxEntities, Func<Handle, Handle> entityConverter)
+            public ComponentQueue(int maxEntities, int componentTypeIndex, Func<Handle, Handle> entityConverter)
             {
+                this.componentTypeIndex = componentTypeIndex;
                 components = new T[maxEntities];
                 entities = new Handle[maxEntities];
                 this.entityConverter = entityConverter;
@@ -168,7 +168,7 @@ namespace ScatteredLogic.Internal
                 ++count;
             }
 
-            public void Flush(IEntityWorld entityWorld, TypeIndexer typeIndexer, HashSet<Handle> dirtyEntities, B[] entityMasks)
+            public void Flush(IEntityWorld entityWorld, HashSet<Handle> dirtyEntities, B[] entityMasks)
             {
                 for (int i = 0; i < count; ++i)
                 {
@@ -177,7 +177,7 @@ namespace ScatteredLogic.Internal
                     entityWorld.AddComponent(realEntity, components[entity.Index]);
                     dirtyEntities.Add(realEntity);
                     int index = realEntity.Index;
-                    entityMasks[index] = entityMasks[index].Set(typeIndexer.GetTypeId(typeof(T)));
+                    entityMasks[index] = entityMasks[index].Set(componentTypeIndex);
                 }
                 count = 0;
             }
@@ -185,7 +185,7 @@ namespace ScatteredLogic.Internal
 
         private interface IComponentQueue
         {
-            void Flush(IEntityWorld entityWorld, TypeIndexer typeIndexer, HashSet<Handle> dirtyEntities, B[] entityMasks);
+            void Flush(IEntityWorld entityWorld, HashSet<Handle> dirtyEntities, B[] entityMasks);
         }
     }
 }

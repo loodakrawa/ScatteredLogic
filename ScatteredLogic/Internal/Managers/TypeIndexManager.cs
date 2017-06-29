@@ -6,19 +6,19 @@
 using System;
 using System.Collections.Generic;
 
-namespace ScatteredLogic.Internal
+namespace ScatteredLogic.Internal.Managers
 {
-    internal sealed class TypeIndexer
+    internal sealed class TypeIndexManager
     {
         private readonly Dictionary<Type, int?> componentIndexes = new Dictionary<Type, int?>();
-        private readonly int maxComponents;
+        private readonly int maxComponentTypes;
 
-        public TypeIndexer(int maxComponents)
+        public TypeIndexManager(int maxComponents)
         {
-            this.maxComponents = maxComponents;
+            this.maxComponentTypes = maxComponents;
         }
 
-        public int GetTypeId(Type type)
+        public int GetIndex(Type type)
         {
             int? index;
             componentIndexes.TryGetValue(type, out index);
@@ -27,7 +27,7 @@ namespace ScatteredLogic.Internal
 
             index = componentIndexes.Count;
 
-            if (index >= maxComponents) throw new Exception("Number of components Exceeded: " + maxComponents);
+            if (index >= maxComponentTypes) throw new Exception("Number of components Exceeded: " + maxComponentTypes);
 
             componentIndexes[type] = index;
 

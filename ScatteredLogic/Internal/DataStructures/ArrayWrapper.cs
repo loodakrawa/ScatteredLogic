@@ -11,15 +11,7 @@ namespace ScatteredLogic.Internal.DataStructures
 
         private readonly T[] data;
 
-        public ArrayWrapper(int size)
-        {
-            data = new T[size];
-        }
-
-        public ArrayWrapper(T[] data)
-        {
-            this.data = data;
-        }
+        public ArrayWrapper(int size) => data = new T[size];
 
         public T this[int i]
         {
