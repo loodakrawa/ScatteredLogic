@@ -38,19 +38,8 @@ namespace ConsoleRunner
             world.AddComponent(e1, 5);
             world.AddComponent(e2, 7);
 
-            IArray<Handle> intSet = world.GetEntitiesForGroup(intGroup);
-            IArray<Handle> strSet = world.GetEntitiesForGroup(intStrGroup);
-
-            world.Commit();
-
-            IArray<Handle> intChangeSet = world.GetChangesForGroup(intGroup);
-            IArray<Handle> strChangeSet = world.GetChangesForGroup(intStrGroup);
-
             world.AddComponent(e2, "");
-            world.Commit();
             world.RemoveComponent<int>(e2);
-
-            world.Commit();
         }
 
         private static void DoLotsOfStuff()
@@ -71,15 +60,11 @@ namespace ConsoleRunner
 
                 int groupId = world.GetGroupId(RequiredTypes.From<int, string>());
 
-                world.Commit();
-
                 IArray<Handle> entities = world.GetEntitiesForGroup(groupId);
                 foreach(Handle entity in entities) Console.WriteLine(entity);
                 Console.WriteLine();
 
                 foreach (Handle entity in entities) world.DestroyEntity(entity);
-
-                world.Commit();
 
                 foreach (Handle entity in entities) Console.WriteLine(entity);
                 Console.WriteLine();

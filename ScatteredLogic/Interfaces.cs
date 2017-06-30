@@ -24,13 +24,8 @@ namespace ScatteredLogic
         bool ContainsEntity(Handle entity);
 
         void AddComponent<T>(Handle entity, T component);
-        void AddComponent(Handle entity, object component, Type type);
-
         void RemoveComponent<T>(Handle entity);
-        void RemoveComponent(Handle entity, Type type);
-
         T GetComponent<T>(Handle entity);
-        object GetComponent(Handle entity, Type type);
 
         IArray<T> GetComponents<T>();
     }
@@ -39,8 +34,6 @@ namespace ScatteredLogic
     {
         int GetGroupId(IEnumerable<Type> types);
         IArray<Handle> GetEntitiesForGroup(int groupId);
-        IArray<Handle> GetChangesForGroup(int groupId);
-        void Commit();
     }
 
 }

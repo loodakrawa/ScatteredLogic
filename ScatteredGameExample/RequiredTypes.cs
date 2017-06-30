@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ConsoleRunner
+namespace ScatteredGameExample
 {
     public static class RequiredTypes
     {

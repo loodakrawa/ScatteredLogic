@@ -4,7 +4,6 @@
 // of the zlib license. See the LICENSE file for details.
 
 using ScatteredLogic.Internal.DataStructures;
-using System;
 
 namespace ScatteredLogic.Internal.Managers
 {
@@ -36,19 +35,6 @@ namespace ScatteredLogic.Internal.Managers
             components[index] = component;
         }
 
-        public void Add(int id, object component, int typeIndex, Type type)
-        {
-            IArrayWrapper components = componentArrays[typeIndex];
-            if (components == null)
-            {
-                Type genericType = typeof(ArrayWrapper<>).MakeGenericType(type);
-                components = Activator.CreateInstance(genericType, maxComponents) as IArrayWrapper;
-                componentArrays[typeIndex] = components;
-            }
-
-            components.SetElementAt(component, id);
-        }
-
         public void Remove(int id, int typeIndex)
         {
             componentArrays[typeIndex]?.RemoveElementAt(id);
@@ -58,11 +44,6 @@ namespace ScatteredLogic.Internal.Managers
         {
             ArrayWrapper<T> components = componentArrays[typeIndex] as ArrayWrapper<T>;
             return components != null ? components[id] : default(T);
-        }
-
-        public object Get(int id, int typeIndex)
-        {
-            return componentArrays[typeIndex]?.GetElementAt(id);
         }
 
         public IArray<T> GetAll<T>(int typeIndex)

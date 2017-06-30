@@ -20,8 +20,6 @@ namespace ScatteredLogic.Internal.DataStructures
         }
 
         public void RemoveElementAt(int index) => data[index] = default(T);
-        public void SetElementAt(object element, int index) => data[index] = (T) element;
-        public object GetElementAt(int index) => data[index];
 
         public ArrayEnumerator<T> GetEnumerator() => new ArrayEnumerator<T>(data, data.Length);
     }
@@ -29,7 +27,5 @@ namespace ScatteredLogic.Internal.DataStructures
     internal interface IArrayWrapper
     {
         void RemoveElementAt(int index);
-        void SetElementAt(object element, int index);
-        object GetElementAt(int index);
     }
 }

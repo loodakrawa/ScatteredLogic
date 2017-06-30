@@ -20,11 +20,11 @@ namespace ScatteredGameExample.Systems
             velocities = EntityWorld.GetComponents<Velocity>();
         }
 
-        public override void Update(float deltaTime)
+        public override void Update(IArray<Handle> entities, float deltaTime)
         {
-            foreach(Entity entity in Entities)
+            foreach(Handle entity in entities)
             {
-                transforms[entity.Id].Position += velocities[entity.Id].Speed * deltaTime;
+                transforms[entity.Index].Position += velocities[entity.Index].Speed * deltaTime;
             }
         }
     }

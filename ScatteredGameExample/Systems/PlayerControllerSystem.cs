@@ -12,7 +12,7 @@ namespace ScatteredGameExample.Systems
         private static readonly float MaxPlayerSpeed = 100;
         private static readonly float BulletSpeed = 200;
 
-        private Entity player;
+        private Handle player;
         private Vector2 mouseLocation;
 
         public override void Added()
@@ -20,8 +20,8 @@ namespace ScatteredGameExample.Systems
             base.Added();
 
             player = EntityFactory.CreateSquare();
-            player.GetComponent<Transform>().Size = new Vector2(20, 20);
-            player.AddComponent(new Velocity());
+            EntityWorld.GetComponent<Transform>(player).Size = new Vector2(20, 20);
+            EntityWorld.AddComponent(player, new Velocity());
 
             EventBus.Register<KeyEvent>(OnKey);
             EventBus.Register<MousePositionEvent>(OnMousePosition);
@@ -32,29 +32,29 @@ namespace ScatteredGameExample.Systems
         {
             if (!e.Pressed) return;
 
-            Entity bullet = EntityFactory.CreateBullet();
+            Handle bullet = EntityFactory.CreateBullet();
 
-            Transform bTransform = bullet.GetComponent<Transform>();
-            Transform pTransform = player.GetComponent<Transform>();
+            Transform bTransform = EntityWorld.GetComponent<Transform>(bullet);
+            Transform pTransform = EntityWorld.GetComponent<Transform>(player);
 
             bTransform.Rotation = pTransform.Rotation;
             bTransform.Position = pTransform.Position;
 
-            Velocity velocity = bullet.GetComponent<Velocity>();
+            Velocity velocity = EntityWorld.GetComponent<Velocity>(bullet);
             velocity.Speed = Vector2.Transform(new Vector2(BulletSpeed, 0), Matrix.CreateRotationZ(pTransform.Rotation));
         }
 
         private void OnMousePosition(MousePositionEvent e)
         {
             mouseLocation = e.Position;
-            Transform transform = player.GetComponent<Transform>();
+            Transform transform = EntityWorld.GetComponent<Transform>(player);
             Vector2 pPos = transform.Position;
             transform.Rotation = (float)Math.Atan2(mouseLocation.Y - pPos.Y, mouseLocation.X - pPos.X);
         }
 
         private void OnKey(KeyEvent e)
         {
-            Velocity velocity = player.GetComponent<Velocity>();
+            Velocity velocity = EntityWorld.GetComponent<Velocity>(player);
             float x = velocity.Speed.X;
             float y = velocity.Speed.Y;
 

@@ -4,7 +4,7 @@ namespace ScatteredGameExample.Events
 {
     public class CollisionEvent
     {
-        public Entity First { get; set; }
-        public Entity Second { get; set; }
+        public Handle First { get; set; }
+        public Handle Second { get; set; }
     }
 }

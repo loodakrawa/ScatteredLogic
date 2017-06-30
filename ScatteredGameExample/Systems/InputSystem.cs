@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using ScatteredGameExample.Events;
+using ScatteredLogic;
 using System;
 
 namespace ScatteredGameExample.Systems
@@ -15,9 +16,9 @@ namespace ScatteredGameExample.Systems
         private readonly GroupObjectPool<MouseButtonEvent> mouseButtonPool = new GroupObjectPool<MouseButtonEvent>();
         private readonly GroupObjectPool<KeyEvent> keyEventPool = new GroupObjectPool<KeyEvent>();
 
-        public override void Update(float deltaTime)
+        public override void Update(IArray<Handle> entities, float deltaTime)
         {
-            base.Update(deltaTime);
+            base.Update(entities, deltaTime);
 
             mouseButtonPool.ReturnAll();
             keyEventPool.ReturnAll();

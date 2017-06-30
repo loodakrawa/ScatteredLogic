@@ -11,6 +11,7 @@ namespace ScatteredLogic
     public class EventBus
     {
         private readonly List<IEventQueue> eventQueues = new List<IEventQueue>();
+        private readonly Dictionary<Type, int?> componentIndexes = new Dictionary<Type, int?>();
 
         private bool asyncMessagesAvailable;
 
@@ -69,7 +70,16 @@ namespace ScatteredLogic
 
         private int GetTypeId(Type type)
         {
-            throw new NotImplementedException();
+            int? index;
+            componentIndexes.TryGetValue(type, out index);
+
+            if (index.HasValue) return index.Value;
+
+            index = componentIndexes.Count;
+
+            componentIndexes[type] = index;
+
+            return index.Value;
         }
     }
 }

@@ -52,29 +52,16 @@ namespace ScatteredLogic.Internal
             componentManager.Add(entity.Index, component, typeIndexer.GetIndex(typeof(T)));
         }
 
-        public void AddComponent(Handle entity, object component, Type type)
+        public void RemoveComponent<T>(Handle entity)
         {
             ThrowIfStale(entity);
-            componentManager.Add(entity.Index, component, typeIndexer.GetIndex(type), type);
-        }
-
-        public void RemoveComponent<T>(Handle entity) => RemoveComponent(entity, typeof(T));
-        public void RemoveComponent(Handle entity, Type type)
-        {
-            ThrowIfStale(entity);
-            componentManager.Remove(entity.Index, typeIndexer.GetIndex(type));
+            componentManager.Remove(entity.Index, typeIndexer.GetIndex(typeof(T)));
         }
 
         public T GetComponent<T>(Handle entity)
         {
             ThrowIfStale(entity);
             return componentManager.Get<T>(entity.Index, typeIndexer.GetIndex(typeof(T)));
-        }
-
-        public object GetComponent(Handle entity, Type type)
-        {
-            ThrowIfStale(entity);
-            return componentManager.Get(entity.Index, typeIndexer.GetIndex(type));
         }
 
         public IArray<T> GetComponents<T>() => componentManager.GetAll<T>(typeIndexer.GetIndex(typeof(T)));

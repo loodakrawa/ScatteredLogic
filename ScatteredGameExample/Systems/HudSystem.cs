@@ -6,7 +6,7 @@ namespace ScatteredGameExample.Systems
 {
     public class HudSystem : BaseSystem
     {
-        private Entity crosshairEntity;
+        private Handle crosshairEntity;
 
         public override void Added()
         {
@@ -18,7 +18,7 @@ namespace ScatteredGameExample.Systems
 
         private void OnMousePosition(MousePositionEvent e)
         {
-            crosshairEntity.GetComponent<Transform>().Position = e.Position;
+            EntityWorld.GetComponent<Transform>(crosshairEntity).Position = e.Position;
         }
     }
 }
