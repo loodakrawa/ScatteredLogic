@@ -26,18 +26,18 @@ namespace ScatteredGameExample.Systems
         {
             base.Added();
 
-            transforms = EntityManager.GetComponents<Transform>();
-            colliders = EntityManager.GetComponents<Collider>();
+            transforms = EntityWorld.GetComponents<Transform>();
+            colliders = EntityWorld.GetComponents<Collider>();
         }
 
-        public override void Update(float deltaTime)
+        public override void Update(IArray<Handle> entities, float deltaTime)
         {
-            foreach(Entity entity in Entities)
+            foreach(Handle entity in entities)
             {
-                Rectangle bounds = transforms[entity.Id].Bounds;
-                Collider collider = colliders[entity.Id];
+                Rectangle bounds = transforms[entity.Index].Bounds;
+                Collider collider = colliders[entity.Index];
 
-                if (collider.Group == ColliderGroup.Bullet && !this.bounds.Contains(bounds) && !this.bounds.Intersects(bounds)) entity.Destroy();
+                if (collider.Group == ColliderGroup.Bullet && !this.bounds.Contains(bounds) && !this.bounds.Intersects(bounds)) EntityWorld.DestroyEntity(entity);
             }
 
             renderUtil.AddForDrawing(bounds);

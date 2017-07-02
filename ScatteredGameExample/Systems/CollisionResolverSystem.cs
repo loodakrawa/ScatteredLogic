@@ -11,7 +11,7 @@ namespace ScatteredGameExample.Systems
 
         private void OnCollision(CollisionEvent e)
         {
-            e.First.Destroy();
+            EntityWorld.DestroyEntity(e.First);
         }
     }
 }

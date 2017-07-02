@@ -1,7 +1,5 @@
 ﻿using ScatteredLogic;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace ConsoleRunner
 {
@@ -9,137 +7,68 @@ namespace ConsoleRunner
     {
         static void Main(string[] args)
         {
-            //RunLoop();
-            TestArraySystemSpeed();
+            //TestBasic();
+            //TestStuff();
+            DoLotsOfStuff();
             Console.WriteLine("---END---");
             Console.ReadLine();
         }
 
-
-        private static void TestArraySystemSpeed()
+        private static void TestBasic()
         {
-            int count = 1000000;
+            IEntityWorld ew = EntityManagerFactory.CreateEntityWorld(5, 5);
 
-            IEntitySystemManager em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64, count);
-            string strComp = "I'm a string";
+            Handle e1 = ew.CreateEntity();
+            Handle e2 = ew.CreateEntity();
 
-            ArrayAccessSystem s1 = new ArrayAccessSystem();
-            CompAccessSystem s2 = new CompAccessSystem();
-
-            em.AddSystem(s1);
-            em.AddSystem(s2);
-            //em.AddSystem(new CompAccessSystem());
-
-            for (int i = 0; i < count; ++i)
-            {
-                Entity e = em.CreateEntity();
-                e.AddComponent(i);
-                e.AddComponent(strComp);
-            }
-
-            em.Update();
-
-            for (int i = 0; i < 10; ++i) s1.Update();
-            for (int i = 0; i < 10; ++i) s2.Update();
-
+            ew.AddComponent(e1, 5);
+            ew.AddComponent(e2, 6);
         }
 
-        abstract class BaseSystem : ISystem
+        private static void TestStuff()
         {
-            public abstract IEnumerable<Type> RequiredComponents { get; }
+            IGroupedEntityWorld world = EntityManagerFactory.CreateGroupedEntityWorld(10000, BitmaskSize.Bit64);
 
-            public IEntitySystemManager EntityManager { get; set; }
-            public IEntitySet Entities { get; set; }
-            public ISystemInfo Info { get; set; }
+            int intGroup = world.GetGroupId(RequiredTypes.From<int>());
+            int intStrGroup = world.GetGroupId(RequiredTypes.From<int, string>());
 
-            public virtual void Added() {}
-            public virtual void EntityAdded(Entity entity) { }
-            public virtual void EntityRemoved(Entity entity) { }
-            public virtual void Removed() { }
+            Handle e1 = world.CreateEntity();
+            Handle e2 = world.CreateEntity();
 
-            public virtual void Update()
-            {
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
+            world.AddComponent(e1, 5);
+            world.AddComponent(e2, 7);
 
-                DoWork();
-
-                sw.Stop();
-
-                Console.WriteLine(GetType().Name + " : " + sw.ElapsedMilliseconds);
-            }
-
-            public abstract void DoWork();
+            world.AddComponent(e2, "");
+            world.RemoveComponent<int>(e2);
         }
 
-        class ArrayAccessSystem : BaseSystem
+        private static void DoLotsOfStuff()
         {
-            public override IEnumerable<Type> RequiredComponents => RequiredTypes.From<string, int>();
+            int count = 10;
 
-            private IArray<string> strings;
-            private IArray<int> ints;
+            IGroupedEntityWorld world = EntityManagerFactory.CreateGroupedEntityWorld(count, BitmaskSize.Bit64);
 
-            public override void Added()
+            for(int c=0; c<10; ++c)
             {
-                strings = EntityManager.GetComponents<string>();
-                ints = EntityManager.GetComponents<int>();
-            }
-            
-            public override void DoWork()
-            {
-                foreach(Entity e in Entities)
+                for (int i = 0; i < count; ++i)
                 {
-                    string s = strings[e.Id];
-                    int i = ints[e.Id];
-                }
-            }
-        }
-
-        class CompAccessSystem : BaseSystem
-        {
-            public override IEnumerable<Type> RequiredComponents => RequiredTypes.From<string, int>();
-
-            public override void DoWork()
-            {
-                foreach (Entity e in Entities)
-                {
-                    string s = e.GetComponent<string>();
-                    int i = e.GetComponent<int>();
-                }
-            }
-        }
-
-
-        static void RunLoop()
-        {
-            IEntitySystemManager em = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit64, 10000);
-            string strComp = "I'm a string";
-
-            List<Entity> entities = new List<Entity>();
-            while (true)
-            {
-                for (int i = 0; i < 10000; ++i)
-                {
-                    Entity e = em.CreateEntity();
-                    entities.Add(e);
-                    e.AddComponent(i);
-                    e.AddComponent(strComp);
+                    Handle entity = world.CreateEntity();
+                    world.AddComponent(entity, 5);
+                    world.AddComponent(entity, "");
+                    //if (i % 5 == 0) world.DestroyEntity(entity);
                 }
 
-                em.Update();
+                int groupId = world.GetGroupId(RequiredTypes.From<int, string>());
 
-                IArray<int> intz = em.GetComponents<int>();
+                IArray<Handle> entities = world.GetEntitiesForGroup(groupId);
+                foreach(Handle entity in entities) Console.WriteLine(entity);
+                Console.WriteLine();
 
-                foreach (Entity en in entities)
-                {
-                    int n = en.GetComponent<int>();
-                    string str = en.GetComponent<string>();
-                    em.DestroyEntity(en);
-                }
+                foreach (Handle entity in entities) world.DestroyEntity(entity);
 
-                em.Update();
+                foreach (Handle entity in entities) Console.WriteLine(entity);
+                Console.WriteLine();
 
-                entities.Clear();
             }
         }
     }

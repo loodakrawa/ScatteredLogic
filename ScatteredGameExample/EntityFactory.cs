@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using ScatteredGameExample.Components;
+using ScatteredGameExample.Systems;
 using ScatteredLogic;
 
 namespace ScatteredGameExample
@@ -11,37 +12,37 @@ namespace ScatteredGameExample
         private const string TextureCrosshair = "crosshair";
         private const string TextureSquare = "square";
 
-        private readonly ContentManager content;
-        private readonly IEntityManager entityManager;
+        private readonly RenderingSystem renderingSystem;
+        private readonly IEntityWorld entityManager;
 
-        public EntityFactory(ContentManager content, IEntityManager entityManager)
+        public EntityFactory(RenderingSystem renderingSystem, IEntityWorld entityManager)
         {
-            this.content = content;
+            this.renderingSystem = renderingSystem;
             this.entityManager = entityManager;
         }
 
-        public Entity CreateCrosshair()
+        public Handle CreateCrosshair()
         {
-            Entity e = entityManager.CreateEntity();
-            e.AddComponent(new Transform { Size = new Vector2(50, 50) });
-            e.AddComponent(content.Load<Texture2D>(TextureCrosshair));
+            Handle e = entityManager.CreateEntity();
+            entityManager.AddComponent(e, new Transform { Size = new Vector2(50, 50) });
+            entityManager.AddComponent(e, renderingSystem.Load(TextureCrosshair));
             return e;
         }
 
-        public Entity CreateSquare()
+        public Handle CreateSquare()
         {
-            Entity e = entityManager.CreateEntity();
-            e.AddComponent(content.Load<Texture2D>(TextureSquare));
-            e.AddComponent(new Transform());
+            Handle e = entityManager.CreateEntity();
+            entityManager.AddComponent(e, renderingSystem.Load(TextureSquare));
+            entityManager.AddComponent(e, new Transform());
             return e;
         }
 
-        public Entity CreateBullet()
+        public Handle CreateBullet()
         {
-            Entity bullet = CreateSquare();
-            bullet.AddComponent(new Transform { Size = new Vector2(5, 5) });
-            bullet.AddComponent(new Collider { Group = ColliderGroup.Bullet });
-            bullet.AddComponent(new Velocity());
+            Handle bullet = CreateSquare();
+            entityManager.AddComponent(bullet, new Transform { Size = new Vector2(5, 5) });
+            entityManager.AddComponent(bullet, new Collider { Group = ColliderGroup.Bullet });
+            entityManager.AddComponent(bullet, new Velocity());
             return bullet;
         }
     }

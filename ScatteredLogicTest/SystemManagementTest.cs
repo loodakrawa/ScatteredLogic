@@ -12,22 +12,22 @@ namespace ScatteredLogicTest
 {
     public class EmptyTestSystem : ISystem
     {
-        public IEntitySystemManager EntityManager { get; set; }
+        public IEntitySystemManager EntityWorld { get; set; }
         public virtual IEnumerable<Type> RequiredComponents => RequiredTypes.None;
-        public IEntitySet Entities { get; set; }
+        public IHandleSet Entities { get; set; }
         public ISystemInfo Info { get; set; }
 
         public void Added() { }
         public void Removed() { }
-        public void EntityAdded(Entity entity) { }
-        public void EntityRemoved(Entity entity) { }
+        public void EntityAdded(Handle entity) { }
+        public void EntityRemoved(Handle entity) { }
     }
 
     public class TestSystem<T> : ISystem
     {
-        public IEntitySystemManager EntityManager { get; set; }
+        public IEntitySystemManager EntityWorld { get; set; }
         public IEnumerable<Type> RequiredComponents => RequiredTypes.From<T>();
-        public IEntitySet Entities { get; set; }
+        public IHandleSet Entities { get; set; }
         public ISystemInfo Info { get; set; }
 
         public int Index { get; set; }
@@ -35,16 +35,16 @@ namespace ScatteredLogicTest
         public event Action OnAdded = () => { };
         public event Action OnRemoved = () => { };
 
-        public event Action<Entity> OnEntityAdded = x => { };
-        public event Action<Entity> OnEntityRemoved = x => { };
+        public event Action<Handle> OnEntityAdded = x => { };
+        public event Action<Handle> OnEntityRemoved = x => { };
 
         public int EntityCount { get; private set; }
 
         public void Added() => OnAdded();
         public void Removed() => OnRemoved();
-        public void EntityAdded(Entity entity) => OnEntityAdded(entity);
-        public void EntityRemoved(Entity entity) => OnEntityRemoved(entity);
-        public void Update(IEntitySet entities) => EntityCount = entities.Count;
+        public void EntityAdded(Handle entity) => OnEntityAdded(entity);
+        public void EntityRemoved(Handle entity) => OnEntityRemoved(entity);
+        public void Update(IHandleSet entities) => EntityCount = entities.Count;
     }
 
     [TestClass]
@@ -131,12 +131,12 @@ namespace ScatteredLogicTest
         [TestMethod, Timeout(100)]
         public void AddEntity_EntityAddedCalled()
         {
-            Entity? addedEntity = null;
+            Handle? addedEntity = null;
             system.OnEntityAdded += x => addedEntity = x;
 
             em.AddSystem(system);
 
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
 
             Assert.IsFalse(addedEntity.HasValue);
@@ -150,13 +150,13 @@ namespace ScatteredLogicTest
         [TestMethod, Timeout(100)]
         public void AddEntityRemoveEntity_EntityRemovedCalled()
         {
-            Entity? removedEntity = null;
+            Handle? removedEntity = null;
 
             system.OnEntityRemoved += x => removedEntity = x;
 
             em.AddSystem(system);
 
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
 
             Assert.IsFalse(removedEntity.HasValue);
@@ -172,12 +172,12 @@ namespace ScatteredLogicTest
         [TestMethod, Timeout(100)]
         public void AddEntityWithDifferentComponent_EntityAddedNotCalled()
         {
-            Entity? addedEntity = null;
+            Handle? addedEntity = null;
             system.OnEntityAdded += x => addedEntity = x;
 
             em.AddSystem(system);
 
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.AddComponent(entity, int.MaxValue);
 
             em.Update();
@@ -190,10 +190,10 @@ namespace ScatteredLogicTest
         {
             em.AddSystem(system);
 
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
 
-            Entity entity2 = em.CreateEntity();
+            Handle entity2 = em.CreateEntity();
             em.AddComponent(entity2, int.MaxValue);
 
             em.Update();
@@ -208,7 +208,7 @@ namespace ScatteredLogicTest
 
             system.OnEntityAdded += x => em.DestroyEntity(x);
 
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
 
             em.Update();
@@ -227,7 +227,7 @@ namespace ScatteredLogicTest
             em.AddSystem(system2);
             system2.OnEntityRemoved += x => removed2Called = true;
 
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
             em.AddComponent(entity, int.MaxValue);
 
@@ -248,7 +248,7 @@ namespace ScatteredLogicTest
             EmptyTestSystem sys = new EmptyTestSystem();
             em.AddSystem(sys);
 
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.Update();
 
             em.DestroyEntity(entity);

@@ -3,26 +3,27 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
+
 namespace ScatteredLogic.Internal.DataStructures
 {
-    internal sealed class EntitySet : IEntitySet
+    internal sealed class HandleSet : IArray<Handle>
     {
         public int Count => count;
-
-        private readonly  Entity[] entities;
+       
+        private readonly Handle[] entities;
         private readonly int[] indices;
 
         private int count;
 
-        public EntitySet(int size)
+        public HandleSet(int size)
         {
-            entities = new Entity[size];
+            entities = new Handle[size];
             indices = new int[size];
 
             for (int i = 0; i < size; ++i) indices[i] = -1;
         }
 
-        public Entity this[int i] { get => entities[i]; }
+        public Handle this[int i] { get => entities[i]; }
 
         public void Clear()
         {
@@ -30,9 +31,9 @@ namespace ScatteredLogic.Internal.DataStructures
             for (int i = 0; i < indices.Length; ++i) indices[i] = -1;
         }
 
-        public void Add(Entity entity)
+        public void Add(Handle entity)
         {
-            int id = entity.Id;
+            int id = entity.Index;
             int existingIndex = indices.Length > id ? indices[id] : -1;
 
             if (existingIndex >= 0)
@@ -42,24 +43,21 @@ namespace ScatteredLogic.Internal.DataStructures
             else
             {
                 entities[count] = entity;
-                indices[entity.Id] = count;
+                indices[entity.Index] = count;
                 ++count;
             }
         }
 
-        public bool Contains(Entity entity)
-        {
-            int id = entity.Id;
-            return indices.Length > id ? indices[id] >= 0 : false;
-        }
-
-        public void Remove(Entity entity)
+        public void Remove(Handle entity)
         {
             // find position of entity to remove
-            int position = indices[entity.Id];
+            int position = indices[entity.Index];
+
+            // return if it's not contained
+            if (position < 0) return;
 
             // remove the index
-            indices[entity.Id] = -1;
+            indices[entity.Index] = -1;
 
             // find position of last element
             int positionOfLastElement = count - 1;
@@ -67,7 +65,7 @@ namespace ScatteredLogic.Internal.DataStructures
             // if this is not the last element, move last element into empty spot
             if(position != positionOfLastElement)
             {
-                Entity lastEntity = entities[positionOfLastElement];
+                Handle lastEntity = entities[positionOfLastElement];
 
                 // move last element into the position of the removed element
                 entities[position] = lastEntity;
@@ -76,24 +74,12 @@ namespace ScatteredLogic.Internal.DataStructures
                 //entities[positionOfLastElement] = new Entity();
 
                 // update position
-                indices[lastEntity.Id] = position;
+                indices[lastEntity.Index] = position;
             }
 
             --count;
         }
 
-        public Entity Pop()
-        {
-            Entity last = entities[count - 1];
-            Remove(last);
-            return last;
-        }
-
-        public Entity Get(int entityId)
-        {
-            return entities[indices[entityId]];
-        }
-
-        public EntitySetEnumerator GetEnumerator() => new EntitySetEnumerator(entities, count);
+        public ArrayEnumerator<Handle> GetEnumerator() => new ArrayEnumerator<Handle>(entities, count);
     }
 }

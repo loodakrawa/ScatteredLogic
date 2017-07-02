@@ -23,20 +23,20 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void Empty_EntityNotManaged()
         {
-            Assert.IsFalse(em.ContainsEntity(new Entity()));
+            Assert.IsFalse(em.ContainsEntity(new Handle()));
         }
 
         [TestMethod]
         public void EntityAdded_EntityManaged()
         {
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             Assert.IsTrue(em.ContainsEntity(entity));
         }
 
         [TestMethod]
         public void EntityAddedAndRemoved_EntityNotManaged()
         {
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.DestroyEntity(entity);
             em.Update();
 
@@ -46,7 +46,7 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void EntityAddedAndRemovedTwice_EntityNotManaged()
         {
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.DestroyEntity(entity);
             em.DestroyEntity(entity);
             em.Update();
@@ -57,8 +57,8 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void TwoEntitiesAdded_BothEntitiesManaged()
         {
-            Entity entity = em.CreateEntity();
-            Entity id2 = em.CreateEntity();
+            Handle entity = em.CreateEntity();
+            Handle id2 = em.CreateEntity();
             Assert.IsTrue(em.ContainsEntity(entity));
             Assert.IsTrue(em.ContainsEntity(id2));
         }
@@ -66,16 +66,16 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void TwoEntitiesAdded_HaveDifferentides()
         {
-            Entity entity = em.CreateEntity();
-            Entity id2 = em.CreateEntity();
+            Handle entity = em.CreateEntity();
+            Handle id2 = em.CreateEntity();
             Assert.AreNotEqual(entity, id2);     
         }
 
         [TestMethod]
         public void TwoEntitiesAddedAndOneRemoved_OneEntityManaged()
         {
-            Entity entity = em.CreateEntity();
-            Entity id2 = em.CreateEntity();
+            Handle entity = em.CreateEntity();
+            Handle id2 = em.CreateEntity();
             em.DestroyEntity(id2);
             Assert.IsTrue(em.ContainsEntity(entity));
         }
@@ -83,8 +83,8 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void TwoEntitiesAddedAndOneRemoved_RemovedEntityNotManaged()
         {
-            Entity entity = em.CreateEntity();
-            Entity id2 = em.CreateEntity();
+            Handle entity = em.CreateEntity();
+            Handle id2 = em.CreateEntity();
             em.DestroyEntity(id2);
             em.Update();
             Assert.IsFalse(em.ContainsEntity(id2));
@@ -93,21 +93,21 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void NoComponent_HasComponent()
         {
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             Assert.IsNull(em.GetComponent<string>(entity));
         }
 
         [TestMethod]
         public void NoComponent_GetComponent()
         {
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             Assert.IsNull(em.GetComponent<string>(entity));
         }
 
         [TestMethod]
         public void AddComponentAndUpdate_HasComponent()
         {
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
             em.Update();
             Assert.IsNotNull(em.GetComponent<string>(entity));
@@ -116,7 +116,7 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void AddTwoComponentsAndUpdate_HasBothComponents()
         {
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
             em.AddComponent(entity, 1);
             em.Update();
@@ -127,7 +127,7 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void AddTwoComponentsAndRemoveOneAndUpdate_HasOneAndDoesNotHaveOther()
         {
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             em.AddComponent(entity, string.Empty);
             em.AddComponent(entity, 1);
             em.RemoveComponent<int>(entity);
@@ -139,7 +139,7 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void AddComponentAndUpdate_GetComponentIsTheOneAdded()
         {
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             string component = string.Empty;
             em.AddComponent(entity, component);
             em.Update();
@@ -149,7 +149,7 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void AddTwoComponentsAndUpdate_BothComponentsAreTheOnesAdded()
         {
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             string comp1 = string.Empty;
             int comp2 = 256;
             em.AddComponent(entity, comp1);
@@ -163,7 +163,7 @@ namespace ScatteredLogicTest
         [ExpectedException(typeof(ArgumentException))]
         public void GetComponentOnANonManagedEntity_ThrowsArgumentException()
         {
-            Entity entity = new Entity();
+            Handle entity = new Handle();
             string value = em.GetComponent<string>(entity);
             Assert.IsNull(value);
         }
@@ -171,7 +171,7 @@ namespace ScatteredLogicTest
         [TestMethod]
         public void AddComponent_Update_RemoveComponentAddComponent_Update_ShouldHaveComponent()
         {
-            Entity entity = em.CreateEntity();
+            Handle entity = em.CreateEntity();
             string comp = string.Empty;
 
             em.AddComponent(entity, comp);

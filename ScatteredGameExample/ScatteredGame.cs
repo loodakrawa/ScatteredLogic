@@ -19,7 +19,7 @@ namespace ScatteredGameExample
         private readonly GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
-        private readonly IEntitySystemManager entityManager;
+        private readonly IGroupedEntityWorld entityWorld;
         private readonly HashSet<BaseSystem> systems = new HashSet<BaseSystem>();
         private readonly HashSet<DrawingSystem> drawingSystems = new HashSet<DrawingSystem>();
         private readonly EventBus eventBus = new EventBus();
@@ -36,9 +36,8 @@ namespace ScatteredGameExample
             IsFixedTimeStep = false;
             graphics.SynchronizeWithVerticalRetrace = false;
 
-            entityManager = EntityManagerFactory.CreateEntitySystemManager(BitmaskSize.Bit32, 256);
-            entityFactory = new EntityFactory(Content, entityManager);
-
+            entityWorld = EntityManagerFactory.CreateGroupedEntityWorld(256, BitmaskSize.Bit32);
+          
             IsMouseVisible = true;
         }
 
@@ -51,7 +50,10 @@ namespace ScatteredGameExample
 
             renderUtil = new RenderUtil(GraphicsDevice);
 
-            AddSystem(new RenderingSystem());
+            RenderingSystem renderingSystem = new RenderingSystem(Content);
+            entityFactory = new EntityFactory(renderingSystem, entityWorld);
+
+            AddSystem(renderingSystem);
             AddSystem(new VelocitySystem());
             AddSystem(new InputSystem());
             AddSystem(new CollisionSystem());
@@ -59,6 +61,17 @@ namespace ScatteredGameExample
             AddSystem(new HudSystem());
             AddSystem(new PlayerControllerSystem());
             AddSystem(new BoundsSystem(Width / 2 - 250, Height / 2 - 250, 500, 500, renderUtil));
+
+            Handle b1 = entityFactory.CreateSquare();
+            entityWorld.GetComponent<Transform>(b1).Position = new Vector2(100, 100);
+            entityWorld.GetComponent<Transform>(b1).Size = new Vector2(10, 10);
+            entityWorld.AddComponent(b1, new Velocity { Speed = new Vector2(10, 10) });
+            entityWorld.AddComponent(b1, new Collider());
+
+            Handle b2 = entityFactory.CreateSquare();
+            entityWorld.GetComponent<Transform>(b2).Position = new Vector2(150, 150);
+            entityWorld.GetComponent<Transform>(b2).Size = new Vector2(10, 10);
+            entityWorld.AddComponent(b2, new Collider());
         }
 
         protected override void LoadContent()
@@ -66,17 +79,6 @@ namespace ScatteredGameExample
             Content.RootDirectory = "Content";
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            Entity b1 = entityFactory.CreateSquare();
-            b1.GetComponent<Transform>().Position = new Vector2(100, 100);
-            b1.GetComponent<Transform>().Size = new Vector2(10, 10);
-            b1.AddComponent(new Velocity { Speed = new Vector2(10, 10) });
-            b1.AddComponent(new Collider());
-
-            Entity b2 = entityFactory.CreateSquare();
-            b2.GetComponent<Transform>().Position = new Vector2(150, 150);
-            b2.GetComponent<Transform>().Size = new Vector2(10, 10);
-            b2.AddComponent(new Collider());
         }
 
         protected override void UnloadContent()
@@ -89,22 +91,26 @@ namespace ScatteredGameExample
             systems.Add(system);
             DrawingSystem ds = system as DrawingSystem;
             if (ds != null) drawingSystems.Add(ds);
+            system.EntityWorld = entityWorld;
             system.EntityFactory = entityFactory;
             system.EventBus = eventBus;
-            entityManager.AddSystem(system);
+            system.GroupId = entityWorld.GetGroupId(system.RequiredComponents);
+            system.Added();
         }
 
         protected override void Update(GameTime gameTime)
         {
             float deltaTime = gameTime.ElapsedGameTime.Ticks * SecondsPerTick;
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
 
             base.Update(gameTime);
 
-            entityManager.Update();
-            foreach (BaseSystem system in systems) system.Update(deltaTime);
+            foreach (BaseSystem system in systems)
+            {
+                IArray<Handle> entities = entityWorld.GetEntitiesForGroup(system.GroupId);
+                system.Update(entities, deltaTime);
+            }
             eventBus.Update();
         }
 

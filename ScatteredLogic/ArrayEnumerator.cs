@@ -8,24 +8,24 @@ using System.Collections.Generic;
 
 namespace ScatteredLogic
 {
-    public struct EntitySetEnumerator : IEnumerator<Entity>
+    public struct ArrayEnumerator<T> : IEnumerator<T>
     {
-        private readonly Entity[] entities;
+        private readonly T[] entities;
         private readonly int count;
 
-        private Entity current;
+        private T current;
         private int index;
 
-        internal EntitySetEnumerator(Entity[] entities, int count)
+        internal ArrayEnumerator(T[] entities, int count)
         {
             this.entities = entities;
             this.count = count;
 
             index = 0;
-            current = default(Entity);
+            current = default(T);
         }
 
-        public Entity Current => current;
+        public T Current => current;
 
         object IEnumerator.Current => current;
 
@@ -42,7 +42,7 @@ namespace ScatteredLogic
         public void Reset()
         {
             index = 0;
-            current = default(Entity);
+            current = default(T);
         }
     }
 }

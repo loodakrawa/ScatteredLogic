@@ -5,14 +5,13 @@
 
 namespace ScatteredLogic.Internal.DataStructures
 {
-    internal sealed class ComponentArray<T> : IComponentArray, IArray<T>
+    internal sealed class ArrayWrapper<T> : IArrayWrapper, IArray<T>
     {
+        public int Count => data.Length;
+
         private readonly T[] data;
 
-        public ComponentArray(int size)
-        {
-            data = new T[size];
-        }
+        public ArrayWrapper(int size) => data = new T[size];
 
         public T this[int i]
         {
@@ -21,14 +20,12 @@ namespace ScatteredLogic.Internal.DataStructures
         }
 
         public void RemoveElementAt(int index) => data[index] = default(T);
-        public void SetElementAt(object element, int index) => data[index] = (T) element;
-        public object GetElementAt(int index) => data[index];
+
+        public ArrayEnumerator<T> GetEnumerator() => new ArrayEnumerator<T>(data, data.Length);
     }
 
-    internal interface IComponentArray
+    internal interface IArrayWrapper
     {
         void RemoveElementAt(int index);
-        void SetElementAt(object element, int index);
-        object GetElementAt(int index);
     }
 }

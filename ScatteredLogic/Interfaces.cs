@@ -10,61 +10,30 @@ namespace ScatteredLogic
 {
     public interface IArray<T>
     {
-        T this[int i] { get; }
-    }
-
-    public interface IEntitySet
-    {
         int Count { get; }
-        Entity this[int i] { get; }
-        bool Contains(Entity entity);
-        EntitySetEnumerator GetEnumerator();
+        T this[int i] { get; }
+        ArrayEnumerator<T> GetEnumerator();
     }
 
-    public interface IEntityManager
+    public interface IEntityWorld
     {
-        IEntitySet Entities { get; }
+        IArray<Handle> Entities { get; }
 
-        Entity CreateEntity();
-        void DestroyEntity(Entity entity);
-        bool ContainsEntity(Entity entity);
+        Handle CreateEntity();
+        void DestroyEntity(Handle entity);
+        bool ContainsEntity(Handle entity);
 
-        void AddComponent<T>(Entity entity, T component);
-        void AddComponent(Entity entity, object component, Type type);
-
-        void RemoveComponent<T>(Entity entity);
-        void RemoveComponent(Entity entity, Type type);
-
-        T GetComponent<T>(Entity entity);
-        object GetComponent(Entity entity, Type type);
+        void AddComponent<T>(Handle entity, T component);
+        void RemoveComponent<T>(Handle entity);
+        T GetComponent<T>(Handle entity);
 
         IArray<T> GetComponents<T>();
     }
 
-    public interface IEntitySystemManager : IEntityManager
+    public interface IGroupedEntityWorld : IEntityWorld
     {
-        void AddSystem(ISystem system);
-        void RemoveSystem(ISystem system);
-
-        void Update();
+        int GetGroupId(IEnumerable<Type> types);
+        IArray<Handle> GetEntitiesForGroup(int groupId);
     }
 
-    public interface ISystem
-    {
-        IEnumerable<Type> RequiredComponents { get; }
-        IEntitySystemManager EntityManager { get; set; }
-        IEntitySet Entities { get; set; }
-        ISystemInfo Info { get; set; }
-
-        void Added();
-        void Removed();
-
-        void EntityAdded(Entity entity);
-        void EntityRemoved(Entity entity);
-    }
-
-    public interface ISystemInfo
-    {
-        int Index { get; }
-    }
 }

@@ -17,26 +17,21 @@ namespace ScatteredLogic
 
     public static class EntityManagerFactory
     {
-        public static IEntityManager CreateEntityManager(BitmaskSize type, int maxEntities)
+        public static IEntityWorld CreateEntityWorld(int maxEntities, int maxComponentTypes)
         {
-            switch (type)
-            {
-                case BitmaskSize.Bit32: return new EntityManager<Bitmask32>(32, maxEntities);
-                case BitmaskSize.Bit64: return new EntityManager<Bitmask64>(64, maxEntities);
-                case BitmaskSize.Bit128: return new EntityManager<Bitmask128>(128, maxEntities);
-                default: return null;
-            }
+            return new EntityWorld(maxEntities, maxComponentTypes);
         }
 
-        public static IEntitySystemManager CreateEntitySystemManager(BitmaskSize type, int maxEntities)
+        public static IGroupedEntityWorld CreateGroupedEntityWorld(int maxEntities, BitmaskSize bitmaskSize)
         {
-            switch (type)
+            switch (bitmaskSize)
             {
-                case BitmaskSize.Bit32: return new EntitySystemManager<Bitmask32>(32, maxEntities);
-                case BitmaskSize.Bit64: return new EntitySystemManager<Bitmask64>(64, maxEntities);
-                case BitmaskSize.Bit128: return new EntitySystemManager<Bitmask128>(128, maxEntities);
+                case BitmaskSize.Bit32: return new GroupedEntityWorld<Bitmask32>(CreateEntityWorld(maxEntities, 32), maxEntities, 32);
+                case BitmaskSize.Bit64: return new GroupedEntityWorld<Bitmask64>(CreateEntityWorld(maxEntities, 64), maxEntities, 64);
+                case BitmaskSize.Bit128: return new GroupedEntityWorld<Bitmask128>(CreateEntityWorld(maxEntities, 128), maxEntities, 128);
                 default: return null;
             }
+
         }
     }
 }
