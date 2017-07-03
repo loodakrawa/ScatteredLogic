@@ -3,13 +3,17 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
-
 namespace ScatteredLogic.Internal.DataStructures
 {
     internal sealed class HandleSet : IArray<Handle>
     {
         public int Count => count;
-       
+
+        /*
+                    |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  | 
+          |Entities | e2  | e7  | e4  |     |     |     |     |     |
+          |Indices  |     |     |  0  |     |  2  |     |     |  1  |
+        */
         private readonly Handle[] entities;
         private readonly int[] indices;
 

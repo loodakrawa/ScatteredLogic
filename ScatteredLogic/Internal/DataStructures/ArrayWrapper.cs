@@ -12,6 +12,7 @@ namespace ScatteredLogic.Internal.DataStructures
         private readonly T[] data;
 
         public ArrayWrapper(int size) => data = new T[size];
+        public ArrayWrapper(T[] data) => this.data = data;
 
         public T this[int i]
         {
@@ -19,13 +20,26 @@ namespace ScatteredLogic.Internal.DataStructures
             set => data[i] = value;
         }
 
+        public ArrayEnumerator<T> GetEnumerator() => new ArrayEnumerator<T>(data, data.Length);
+
         public void RemoveElementAt(int index) => data[index] = default(T);
 
-        public ArrayEnumerator<T> GetEnumerator() => new ArrayEnumerator<T>(data, data.Length);
+        public void SwapAndRemove(int firstIndex, int secondIndex)
+        {
+            data[firstIndex] = data[secondIndex];
+            data[secondIndex] = default(T);
+        }
+
+        public void AddFrom(int index, IArrayWrapper other, int otherIndex)
+        {
+            data[index] = (other as ArrayWrapper<T>)[otherIndex];
+        }
     }
 
     internal interface IArrayWrapper
     {
         void RemoveElementAt(int index);
+        void SwapAndRemove(int firstIndex, int secondIndex);
+        void AddFrom(int index, IArrayWrapper other, int otherIndex);
     }
 }

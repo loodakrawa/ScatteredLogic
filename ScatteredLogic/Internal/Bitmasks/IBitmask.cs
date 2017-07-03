@@ -7,7 +7,7 @@ using System;
 
 namespace ScatteredLogic.Internal.Bitmasks
 {
-    internal interface IBitmask<T> : IEquatable<T>
+    internal interface IBitmask<T> : IEquatable<T> where T : struct
     {
         bool Get(int index);
         T Set(int index);

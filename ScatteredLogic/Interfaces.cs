@@ -20,20 +20,15 @@ namespace ScatteredLogic
         IArray<Handle> Entities { get; }
 
         Handle CreateEntity();
-        void DestroyEntity(Handle entity);
-        bool ContainsEntity(Handle entity);
+        void DestroyEntity(Handle handle);
+        bool ContainsEntity(Handle handle);
 
-        void AddComponent<T>(Handle entity, T component);
-        void RemoveComponent<T>(Handle entity);
-        T GetComponent<T>(Handle entity);
+        void AddComponent<T>(Handle handle, T component);
+        void RemoveComponent<T>(Handle handle);
+        T GetComponent<T>(Handle handle);
+        void UpdateComponent<T>(Handle handle, T component);
 
-        IArray<T> GetComponents<T>();
+        Handle CreateComponentSet(IEnumerable<Type> types);
+        IArray<T> GetSetComponents<T>(Handle handle);
     }
-
-    public interface IGroupedEntityWorld : IEntityWorld
-    {
-        int GetGroupId(IEnumerable<Type> types);
-        IArray<Handle> GetEntitiesForGroup(int groupId);
-    }
-
 }

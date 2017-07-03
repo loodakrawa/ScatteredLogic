@@ -10,6 +10,13 @@ namespace ScatteredLogic.Internal.Managers
     internal sealed class ComponentManager
     {
         private readonly int maxComponents;
+
+        /*
+                     |  0  |  1  |  2  |  3  |
+          | Position |  X  |  X  |     |  X  |
+          | Velocity |     |  X  |     |     |
+          | Texture  |  X  |     |     |     |
+        */
         private readonly IArrayWrapper[] componentArrays;
 
         public ComponentManager(int maxComponentTypes, int maxComponents)
@@ -23,38 +30,32 @@ namespace ScatteredLogic.Internal.Managers
             for (int i = 0; i < componentArrays.Length; ++i) componentArrays[i]?.RemoveElementAt(index);
         }
 
-        public void Add<T>(int index, T component, int typeIndex)
+        public void Add<T>(int index, T component, int typeId)
         {
-            ArrayWrapper<T> components = componentArrays[typeIndex] as ArrayWrapper<T>;
-            if(components == null)
+            ArrayWrapper<T> components = componentArrays[typeId] as ArrayWrapper<T>;
+            if (components == null)
             {
                 components = new ArrayWrapper<T>(maxComponents);
-                componentArrays[typeIndex] = components;
+                componentArrays[typeId] = components;
             }
 
             components[index] = component;
         }
 
-        public void Remove(int id, int typeIndex)
+        public void Remove(int index, int typeId)
         {
-            componentArrays[typeIndex]?.RemoveElementAt(id);
+            componentArrays[typeId]?.RemoveElementAt(index);
         }
 
-        public T Get<T>(int id, int typeIndex)
+        public T Get<T>(int index, int typeId)
         {
-            ArrayWrapper<T> components = componentArrays[typeIndex] as ArrayWrapper<T>;
-            return components != null ? components[id] : default(T);
+            ArrayWrapper<T> components = componentArrays[typeId] as ArrayWrapper<T>;
+            return components != null ? components[index] : default(T);
         }
 
-        public IArray<T> GetAll<T>(int typeIndex)
+        public IArrayWrapper Get(int typeId)
         {
-            ArrayWrapper<T> comps = componentArrays[typeIndex] as ArrayWrapper<T>;
-            if (comps == null)
-            {
-                comps = new ArrayWrapper<T>(maxComponents);
-                componentArrays[typeIndex] = comps;
-            }
-            return comps;
+            return componentArrays[typeId];
         }
     }
 }
