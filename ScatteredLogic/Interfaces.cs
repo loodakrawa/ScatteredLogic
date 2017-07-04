@@ -26,9 +26,9 @@ namespace ScatteredLogic
         void AddComponent<T>(Handle handle, T component);
         void RemoveComponent<T>(Handle handle);
         T GetComponent<T>(Handle handle);
-        void UpdateComponent<T>(Handle handle, T component);
 
-        Handle CreateComponentSet(IEnumerable<Type> types);
-        IArray<T> GetSetComponents<T>(Handle handle);
+        Handle CreateAspect(IEnumerable<Type> types);
+        IArray<T> GetAspectComponents<T>(Handle handle);
+        IArray<Handle> GetAspectEntities(Handle handle);
     }
 }

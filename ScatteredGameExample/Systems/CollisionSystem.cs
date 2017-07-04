@@ -17,7 +17,7 @@ namespace ScatteredGameExample.Systems
 
         private readonly GroupObjectPool<CollisionEvent> eventPool = new GroupObjectPool<CollisionEvent>();
 
-        public override void Update(IArray<Handle> entities, float deltaTime)
+        public override void Update(float deltaTime)
         {
             eventPool.ReturnAll();
 

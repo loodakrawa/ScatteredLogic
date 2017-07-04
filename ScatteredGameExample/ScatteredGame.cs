@@ -6,6 +6,7 @@ using ScatteredGameExample.Systems;
 using ScatteredLogic;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ScatteredGameExample
 {
@@ -19,7 +20,7 @@ namespace ScatteredGameExample
         private readonly GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
-        private readonly IGroupedEntityWorld entityWorld;
+        private readonly IEntityWorld entityWorld;
         private readonly HashSet<BaseSystem> systems = new HashSet<BaseSystem>();
         private readonly HashSet<DrawingSystem> drawingSystems = new HashSet<DrawingSystem>();
         private readonly EventBus eventBus = new EventBus();
@@ -36,8 +37,8 @@ namespace ScatteredGameExample
             IsFixedTimeStep = false;
             graphics.SynchronizeWithVerticalRetrace = false;
 
-            entityWorld = EntityManagerFactory.CreateGroupedEntityWorld(256, BitmaskSize.Bit32);
-          
+            entityWorld = EntityManagerFactory.CreateEntityWorld(256, 32, BitmaskSize.Bit32);
+
             IsMouseVisible = true;
         }
 
@@ -62,16 +63,16 @@ namespace ScatteredGameExample
             AddSystem(new PlayerControllerSystem());
             AddSystem(new BoundsSystem(Width / 2 - 250, Height / 2 - 250, 500, 500, renderUtil));
 
-            Handle b1 = entityFactory.CreateSquare();
-            entityWorld.GetComponent<Transform>(b1).Position = new Vector2(100, 100);
-            entityWorld.GetComponent<Transform>(b1).Size = new Vector2(10, 10);
-            entityWorld.AddComponent(b1, new Velocity { Speed = new Vector2(10, 10) });
-            entityWorld.AddComponent(b1, new Collider());
+            //Handle b1 = entityFactory.CreateSquare();
+            //entityWorld.GetComponent<Transform>(b1).Position = new Vector2(100, 100);
+            //entityWorld.GetComponent<Transform>(b1).Size = new Vector2(10, 10);
+            //entityWorld.AddComponent(b1, new Velocity { Speed = new Vector2(10, 10) });
+            //entityWorld.AddComponent(b1, new Collider());
 
-            Handle b2 = entityFactory.CreateSquare();
-            entityWorld.GetComponent<Transform>(b2).Position = new Vector2(150, 150);
-            entityWorld.GetComponent<Transform>(b2).Size = new Vector2(10, 10);
-            entityWorld.AddComponent(b2, new Collider());
+            //Handle b2 = entityFactory.CreateSquare();
+            //entityWorld.GetComponent<Transform>(b2).Position = new Vector2(150, 150);
+            //entityWorld.GetComponent<Transform>(b2).Size = new Vector2(10, 10);
+            //entityWorld.AddComponent(b2, new Collider());
         }
 
         protected override void LoadContent()
@@ -94,7 +95,12 @@ namespace ScatteredGameExample
             system.EntityWorld = entityWorld;
             system.EntityFactory = entityFactory;
             system.EventBus = eventBus;
-            system.GroupId = entityWorld.GetGroupId(system.RequiredComponents);
+            IEnumerable<Type> requiredTypes = system.RequiredComponents;
+            if (requiredTypes != null && requiredTypes.Count() > 0)
+            {
+                system.Aspect = entityWorld.CreateAspect(system.RequiredComponents);
+                system.Entities = entityWorld.GetAspectEntities(system.Aspect);
+            }
             system.Added();
         }
 
@@ -106,11 +112,8 @@ namespace ScatteredGameExample
 
             base.Update(gameTime);
 
-            foreach (BaseSystem system in systems)
-            {
-                IArray<Handle> entities = entityWorld.GetEntitiesForGroup(system.GroupId);
-                system.Update(entities, deltaTime);
-            }
+            foreach (BaseSystem system in systems) system.Update(deltaTime);
+            
             eventBus.Update();
         }
 

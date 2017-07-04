@@ -16,10 +16,8 @@ namespace ScatteredGameExample.Systems
         private readonly GroupObjectPool<MouseButtonEvent> mouseButtonPool = new GroupObjectPool<MouseButtonEvent>();
         private readonly GroupObjectPool<KeyEvent> keyEventPool = new GroupObjectPool<KeyEvent>();
 
-        public override void Update(IArray<Handle> entities, float deltaTime)
+        public override void Update(float deltaTime)
         {
-            base.Update(entities, deltaTime);
-
             mouseButtonPool.ReturnAll();
             keyEventPool.ReturnAll();
 

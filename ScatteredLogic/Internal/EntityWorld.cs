@@ -17,31 +17,31 @@ namespace ScatteredLogic.Internal
         public IArray<Handle> Entities => entities;
 
         private readonly int maxEntities;
+        private readonly int maxComponentTypes;
 
-        private readonly HandleSet entities;
+        private readonly PackedHandleArray entities;
         private readonly B[] entityMasks;
-        private readonly TypeIdManager typeIndexer;
-        private readonly ComponentManager componentManager;
+        private readonly TypeIndexer typeIndexer;
+        private readonly SparseComponentArray componentManager;
         private readonly HandleManager entityManager;
 
-        private readonly HandleManager componentSetManager;
-        private readonly ComponentsSet[] componentSets;
-        private readonly B[] componentSetMasks;
-        private int componentSetCount;
+        private readonly Aspect<B>[] aspects;
+        private readonly Handle[] aspectHandles;
+        private int aspectCount;
 
-        public EntityWorld(int maxEntities, int maxComponentTypes, int maxComponentSets)
+        public EntityWorld(int maxEntities, int maxComponentTypes, int maxAspects)
         {
             this.maxEntities = maxEntities;
+            this.maxComponentTypes = maxComponentTypes;
 
-            entities = new HandleSet(maxEntities);
+            entities = new PackedHandleArray(maxEntities);
             entityMasks = new B[maxEntities];
-            typeIndexer = new TypeIdManager(maxComponentTypes);
+            typeIndexer = new TypeIndexer(maxComponentTypes);
             entityManager = new HandleManager(maxEntities);
-            componentManager = new ComponentManager(maxComponentTypes, maxEntities);
+            componentManager = new SparseComponentArray(maxComponentTypes, maxEntities);
 
-            componentSetManager = new HandleManager(maxComponentSets);
-            componentSets = new ComponentsSet[maxComponentSets];
-            componentSetMasks = new B[maxComponentSets];
+            aspects = new Aspect<B>[maxAspects];
+            aspectHandles = new Handle[maxAspects];
         }
 
         public Handle CreateEntity()
@@ -55,10 +55,19 @@ namespace ScatteredLogic.Internal
         public void DestroyEntity(Handle entity)
         {
             ThrowIfStale(entity);
+            int index = entity.Index;
+
+            B entityMask = entityMasks[index];
+            for (int i = 0; i < aspectCount; ++i)
+            {
+                Aspect<B> aspect = aspects[i];
+                if (entityMask.Contains(aspect.Bitmask)) aspect.Remove(entity);
+            }
+
             entities.Remove(entity);
-            componentManager.RemoveAll(entity.Index);
+            componentManager.RemoveAll(index);
             entityManager.Destroy(entity);
-            foreach (ComponentsSet set in componentSets) if (set.ContainsEntity(entity)) set.Remove(entity);
+            entityMasks[index] = default(B);
         }
 
         public bool ContainsEntity(Handle entity)
@@ -70,7 +79,7 @@ namespace ScatteredLogic.Internal
         {
             ThrowIfStale(entity);
             int entityIndex = entity.Index;
-            int typeIndex = typeIndexer.GetId(typeof(T));
+            int typeIndex = typeIndexer.GetIndex(typeof(T));
             componentManager.Add(entity.Index, component, typeIndex);
             entityMasks[entityIndex] = entityMasks[entityIndex].Set(typeIndex);
             UpdateComponentSets(entity);
@@ -80,7 +89,7 @@ namespace ScatteredLogic.Internal
         {
             ThrowIfStale(entity);
             int entityIndex = entity.Index;
-            int typeIndex = typeIndexer.GetId(typeof(T));
+            int typeIndex = typeIndexer.GetIndex(typeof(T));
             componentManager.Remove(entity.Index, typeIndex);
             entityMasks[entityIndex] = entityMasks[entityIndex].Clear(typeIndex);
             UpdateComponentSets(entity);
@@ -89,56 +98,44 @@ namespace ScatteredLogic.Internal
         public T GetComponent<T>(Handle entity)
         {
             ThrowIfStale(entity);
-            return componentManager.Get<T>(entity.Index, typeIndexer.GetId(typeof(T)));
+            return componentManager.Get<T>(entity.Index, typeIndexer.GetIndex(typeof(T)));
         }
 
-        public void UpdateComponent<T>(Handle entity, T component)
+        public Handle CreateAspect(IEnumerable<Type> types)
         {
-            ThrowIfStale(entity);
-            int entityIndex = entity.Index;
-            int typeIndex = typeIndexer.GetId(typeof(T));
-            componentManager.Add(entity.Index, component, typeIndex);
-            B mask = entityMasks[entity.Index];
-            for (int i = 0; i < componentSetCount; ++i)
-            {
-                B setMask = componentSetMasks[i];
-                if (mask.Contains(setMask)) componentSets[i].UpdateComponent(entity, component, typeIndexer.GetId(typeof(T)));
-            }
-        }
-
-        public Handle CreateComponentSet(IEnumerable<Type> types)
-        {
-            ComponentsSet set = new ComponentsSet(componentManager, maxEntities, types.Count());
-            B mask = default(B);
+            Aspect<B> aspect = new Aspect<B>(componentManager, maxEntities, maxComponentTypes);
             foreach (Type type in types)
             {
-                int typeId = typeIndexer.GetId(type);
-                set.RegisterType(type, typeId);
-                mask = mask.Set(typeId);
+                int typeId = typeIndexer.GetIndex(type);
+                aspect.RegisterType(type, typeId);
             }
-            Handle handle = componentSetManager.Create();
-            int index = handle.Index;
-            componentSets[index] = set;
-            componentSetMasks[index] = mask;
-            ++componentSetCount;
+
+            Handle handle = new Handle(aspectCount);
+            aspects[aspectCount] = aspect;
+            aspectHandles[aspectCount] = handle;
+            ++aspectCount;
             return handle;
         }
 
-        public IArray<T> GetSetComponents<T>(Handle handle)
+        public IArray<T> GetAspectComponents<T>(Handle handle)
         {
-            ComponentsSet set = componentSets[handle.Index];
-            return set.Get<T>(typeIndexer.GetId(typeof(T)));
+            Aspect<B> set = aspects[handle.Index];
+            return set.GetArray<T>(typeIndexer.GetIndex(typeof(T)));
+        }
+
+        public IArray<Handle> GetAspectEntities(Handle handle)
+        {
+            return aspects[handle.Index];
         }
 
         private void UpdateComponentSets(Handle entity)
         {
             B mask = entityMasks[entity.Index];
-            for (int i = 0; i < componentSetCount; ++i)
+            for (int i = 0; i < aspectCount; ++i)
             {
-                B setMask = componentSetMasks[i];
-                ComponentsSet set = componentSets[i];
-                if (mask.Contains(setMask) && !set.ContainsEntity(entity)) set.Add(entity);
-                else if (!mask.Contains(setMask) && set.ContainsEntity(entity)) set.Remove(entity);
+                Aspect<B> set = aspects[i];
+                if (mask.Contains(set.Bitmask)) set.Add(entity);
+                else if (!mask.Contains(set.Bitmask) && set.Contains(entity)) set.Remove(entity);
             }
         }
 

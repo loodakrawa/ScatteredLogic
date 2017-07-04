@@ -7,8 +7,9 @@ namespace ScatteredGameExample.Systems
     public abstract class BaseSystem
     {
         public virtual IEnumerable<Type> RequiredComponents => RequiredTypes.None;
-        public int GroupId { get; set; }
-        public IGroupedEntityWorld EntityWorld { get; set; }
+        public Handle Aspect { get; set; }
+        public IArray<Handle> Entities { get; set; }
+        public IEntityWorld EntityWorld { get; set; }
 
         public EntityFactory EntityFactory { get; set; }
         public EventBus EventBus { get; set; }
@@ -18,6 +19,6 @@ namespace ScatteredGameExample.Systems
         public virtual void EntityAdded(Handle entity) { }
         public virtual void EntityRemoved(Handle entity) { }
 
-        public virtual void Update(IArray<Handle> entities, float deltaTime) { }
+        public virtual void Update(float deltaTime) { }
     }
 }

@@ -5,7 +5,7 @@
 
 namespace ScatteredLogic.Internal.DataStructures
 {
-    internal sealed class HandleSet : IArray<Handle>
+    internal sealed class PackedHandleArray : IArray<Handle>
     {
         public int Count => count;
 
@@ -19,7 +19,7 @@ namespace ScatteredLogic.Internal.DataStructures
 
         private int count;
 
-        public HandleSet(int size)
+        public PackedHandleArray(int size)
         {
             entities = new Handle[size];
             indices = new int[size];
@@ -29,39 +29,38 @@ namespace ScatteredLogic.Internal.DataStructures
 
         public Handle this[int i] { get => entities[i]; }
 
-        public void Clear()
+        public bool Contains(Handle handle)
         {
-            count = 0;
-            for (int i = 0; i < indices.Length; ++i) indices[i] = -1;
+            return indices[handle.Index] != -1;
         }
 
-        public void Add(Handle entity)
+        public void Add(Handle handle)
         {
-            int id = entity.Index;
+            int id = handle.Index;
             int existingIndex = indices.Length > id ? indices[id] : -1;
 
             if (existingIndex >= 0)
             {
-                entities[existingIndex] = entity;
+                entities[existingIndex] = handle;
             }
             else
             {
-                entities[count] = entity;
-                indices[entity.Index] = count;
+                entities[count] = handle;
+                indices[handle.Index] = count;
                 ++count;
             }
         }
 
-        public void Remove(Handle entity)
+        public void Remove(Handle handle)
         {
-            // find position of entity to remove
-            int position = indices[entity.Index];
+            // find position of handle to remove
+            int position = indices[handle.Index];
 
             // return if it's not contained
             if (position < 0) return;
 
             // remove the index
-            indices[entity.Index] = -1;
+            indices[handle.Index] = -1;
 
             // find position of last element
             int positionOfLastElement = count - 1;

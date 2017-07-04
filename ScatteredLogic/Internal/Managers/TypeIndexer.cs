@@ -8,17 +8,17 @@ using System.Collections.Generic;
 
 namespace ScatteredLogic.Internal.Managers
 {
-    internal sealed class TypeIdManager
+    internal sealed class TypeIndexer
     {
         private readonly Dictionary<Type, int?> typeIndices = new Dictionary<Type, int?>();
         private readonly int maxTypes;
 
-        public TypeIdManager(int maxTypes)
+        public TypeIndexer(int maxTypes)
         {
             this.maxTypes = maxTypes;
         }
 
-        public int GetId(Type type)
+        public int GetIndex(Type type)
         {
             typeIndices.TryGetValue(type, out int? typeId);
 

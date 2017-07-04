@@ -7,12 +7,15 @@ namespace ConsoleRunner
     {
         static void Main(string[] args)
         {
+            //TestPacked();
             //TestBasic();
             TestStuff();
            // DoLotsOfStuff();
             Console.WriteLine("---END---");
             Console.ReadLine();
         }
+
+    
 
         private static void TestBasic()
         {
@@ -27,15 +30,15 @@ namespace ConsoleRunner
 
         private static void TestStuff()
         {
-            IEntityWorld world = EntityManagerFactory.CreateEntityWorld(10000, 32, BitmaskSize.Bit64);
+            IEntityWorld world = EntityManagerFactory.CreateEntityWorld(2, 2, BitmaskSize.Bit64);
 
-            Handle intGroup = world.CreateComponentSet(RequiredTypes.From<int>());
-            Handle intStrGroup = world.CreateComponentSet(RequiredTypes.From<int, string>());
+            Handle intGroup = world.CreateAspect(RequiredTypes.From<int>());
+            Handle intStrGroup = world.CreateAspect(RequiredTypes.From<int, string>());
 
-            IArray<int> firstInts = world.GetSetComponents<int>(intGroup);
+            IArray<int> firstInts = world.GetAspectComponents<int>(intGroup);
 
-            IArray<string> secondStrings = world.GetSetComponents<string>(intStrGroup);
-            IArray<int> secondInts = world.GetSetComponents<int>(intStrGroup);
+            IArray<string> secondStrings = world.GetAspectComponents<string>(intStrGroup);
+            IArray<int> secondInts = world.GetAspectComponents<int>(intStrGroup);
 
             Handle e1 = world.CreateEntity();
             Handle e2 = world.CreateEntity();
@@ -44,7 +47,7 @@ namespace ConsoleRunner
             world.AddComponent(e2, 7);
 
             world.AddComponent(e2, "");
-            world.UpdateComponent(e2, "cmuw");
+            world.AddComponent(e2, "cmuw");
             world.RemoveComponent<int>(e2);
         }
 

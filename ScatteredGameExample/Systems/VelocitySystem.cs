@@ -16,15 +16,15 @@ namespace ScatteredGameExample.Systems
         {
             base.Added();
 
-            transforms = EntityWorld.GetComponents<Transform>();
-            velocities = EntityWorld.GetComponents<Velocity>();
+            transforms = EntityWorld.GetAspectComponents<Transform>(Aspect);
+            velocities = EntityWorld.GetAspectComponents<Velocity>(Aspect);
         }
 
-        public override void Update(IArray<Handle> entities, float deltaTime)
+        public override void Update(float deltaTime)
         {
-            foreach(Handle entity in entities)
+            for(int i=0; i<Entities.Count; ++i)
             {
-                transforms[entity.Index].Position += velocities[entity.Index].Speed * deltaTime;
+                transforms[i].Position += velocities[i].Speed * deltaTime;
             }
         }
     }

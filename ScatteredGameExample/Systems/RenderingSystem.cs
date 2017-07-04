@@ -41,18 +41,16 @@ namespace ScatteredGameExample.Systems
         {
             base.Added();
 
-            textureHandles = EntityWorld.GetComponents<TextureHandle>();
-            transforms = EntityWorld.GetComponents<Transform>();
+            textureHandles = EntityWorld.GetAspectComponents<TextureHandle>(Aspect);
+            transforms = EntityWorld.GetAspectComponents<Transform>(Aspect);
         }
 
         public void Draw(float deltaTime, SpriteBatch spriteBatch)
         {
-            IArray<Handle> entities = EntityWorld.GetEntitiesForGroup(GroupId);
-
-            foreach (Handle entity in entities)
+            for (int i=0; i<Entities.Count; ++i)
             {
-                TextureHandle th = textureHandles[entity.Index];
-                Transform tr = transforms[entity.Index];
+                TextureHandle th = textureHandles[i];
+                Transform tr = transforms[i];
 
                 Texture2D tx = textures[th.Id];
                 Vector2 scale = tr.Size / tx.Bounds.Size.ToVector2();

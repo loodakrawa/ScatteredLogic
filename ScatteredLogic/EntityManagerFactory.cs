@@ -17,13 +17,13 @@ namespace ScatteredLogic
 
     public static class EntityManagerFactory
     {
-        public static IEntityWorld CreateEntityWorld(int maxEntities, int maxComponentSets, BitmaskSize bitmaskSize)
+        public static IEntityWorld CreateEntityWorld(int maxEntities, int maxAspects, BitmaskSize bitmaskSize)
         { 
             switch (bitmaskSize)
             {
-                case BitmaskSize.Bit32: return new EntityWorld<Bitmask32>(maxEntities, 32, maxComponentSets);
-                case BitmaskSize.Bit64: return new EntityWorld<Bitmask32>(maxEntities, 64, maxComponentSets);
-                case BitmaskSize.Bit128: return new EntityWorld<Bitmask32>(maxEntities, 128, maxComponentSets);
+                case BitmaskSize.Bit32: return new EntityWorld<Bitmask32>(maxEntities, 32, maxAspects);
+                case BitmaskSize.Bit64: return new EntityWorld<Bitmask32>(maxEntities, 64, maxAspects);
+                case BitmaskSize.Bit128: return new EntityWorld<Bitmask32>(maxEntities, 128, maxAspects);
                 default: return null;
             }
 
