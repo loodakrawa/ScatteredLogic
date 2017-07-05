@@ -5,10 +5,9 @@
 
 using ScatteredLogic.Internal.Bitmasks;
 using ScatteredLogic.Internal.DataStructures;
-using ScatteredLogic.Internal.Managers;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 
 namespace ScatteredLogic.Internal
 {
@@ -22,7 +21,7 @@ namespace ScatteredLogic.Internal
         private readonly PackedHandleArray entities;
         private readonly B[] entityMasks;
         private readonly TypeIndexer typeIndexer;
-        private readonly SparseComponentArray componentManager;
+        private readonly SparseComponentArray sparseComponents;
         private readonly HandleManager entityManager;
 
         private readonly Aspect<B>[] aspects;
@@ -38,7 +37,7 @@ namespace ScatteredLogic.Internal
             entityMasks = new B[maxEntities];
             typeIndexer = new TypeIndexer(maxComponentTypes);
             entityManager = new HandleManager(maxEntities);
-            componentManager = new SparseComponentArray(maxComponentTypes, maxEntities);
+            sparseComponents = new SparseComponentArray(maxComponentTypes, maxEntities);
 
             aspects = new Aspect<B>[maxAspects];
             aspectHandles = new Handle[maxAspects];
@@ -54,7 +53,8 @@ namespace ScatteredLogic.Internal
 
         public void DestroyEntity(Handle entity)
         {
-            ThrowIfStale(entity);
+            Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
+
             int index = entity.Index;
 
             B entityMask = entityMasks[index];
@@ -65,7 +65,7 @@ namespace ScatteredLogic.Internal
             }
 
             entities.Remove(entity);
-            componentManager.RemoveAll(index);
+            sparseComponents.RemoveAll(index);
             entityManager.Destroy(entity);
             entityMasks[index] = default(B);
         }
@@ -77,33 +77,37 @@ namespace ScatteredLogic.Internal
 
         public void AddComponent<T>(Handle entity, T component)
         {
-            ThrowIfStale(entity);
+            Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
+
             int entityIndex = entity.Index;
             int typeIndex = typeIndexer.GetIndex(typeof(T));
-            componentManager.Add(entity.Index, component, typeIndex);
+            sparseComponents.Add(entity.Index, component, typeIndex);
             entityMasks[entityIndex] = entityMasks[entityIndex].Set(typeIndex);
             UpdateComponentSets(entity);
         }
 
         public void RemoveComponent<T>(Handle entity)
         {
-            ThrowIfStale(entity);
+            Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
+
             int entityIndex = entity.Index;
             int typeIndex = typeIndexer.GetIndex(typeof(T));
-            componentManager.Remove(entity.Index, typeIndex);
+            sparseComponents.Remove(entity.Index, typeIndex);
             entityMasks[entityIndex] = entityMasks[entityIndex].Clear(typeIndex);
             UpdateComponentSets(entity);
         }
 
         public T GetComponent<T>(Handle entity)
         {
-            ThrowIfStale(entity);
-            return componentManager.Get<T>(entity.Index, typeIndexer.GetIndex(typeof(T)));
+            Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
+
+            IArray<T> array = sparseComponents.GetArray<T>(typeIndexer.GetIndex(typeof(T)));
+            return array[entity.Index];
         }
 
         public Handle CreateAspect(IEnumerable<Type> types)
         {
-            Aspect<B> aspect = new Aspect<B>(componentManager, maxEntities, maxComponentTypes);
+            Aspect<B> aspect = new Aspect<B>(sparseComponents, maxEntities, maxComponentTypes);
             foreach (Type type in types)
             {
                 int typeId = typeIndexer.GetIndex(type);
@@ -137,13 +141,6 @@ namespace ScatteredLogic.Internal
                 if (mask.Contains(set.Bitmask)) set.Add(entity);
                 else if (!mask.Contains(set.Bitmask) && set.Contains(entity)) set.Remove(entity);
             }
-        }
-
-        private void ThrowIfStale(Handle entity)
-        {
-#if DEBUG
-            if (!entityManager.Contains(entity)) throw new ArgumentException("Entity not managed : " + entity);
-#endif
         }
     }
 }

@@ -45,15 +45,7 @@ namespace ScatteredLogic.Internal.DataStructures
             data[typeIndex]?.RemoveElementAt(index);
         }
 
-        public T Get<T>(int index, int typeIndex)
-        {
-            ArrayWrapper<T> array = data[typeIndex] as ArrayWrapper<T>;
-            return array != null ? array[index] : default(T);
-        }
-
-        public IArrayWrapper GetArrayWrapper(int typeIndex)
-        {
-            return data[typeIndex];
-        }
+        public IArray<T> GetArray<T>(int typeIndex) => data[typeIndex] as ArrayWrapper<T>;
+        public IArrayWrapper GetArrayWrapper(int typeIndex) => data[typeIndex];
     }
 }

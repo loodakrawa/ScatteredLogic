@@ -6,8 +6,9 @@
 using ScatteredLogic.Internal.Bitmasks;
 using ScatteredLogic.Internal.DataStructures;
 using System;
+using System.Diagnostics;
 
-namespace ScatteredLogic.Internal.Managers
+namespace ScatteredLogic.Internal
 {
     internal sealed class Aspect<B> : IArray<Handle> where B : struct, IBitmask<B>
     {
@@ -17,13 +18,16 @@ namespace ScatteredLogic.Internal.Managers
         public Handle this[int i] { get => entities[i]; }
         public ArrayEnumerator<Handle> GetEnumerator() => entities.GetEnumerator();
 
-        private readonly SparseComponentArray componentManager;
+        private readonly SparseComponentArray sparseComponents;
         private readonly PackedHandleArray entities;
         private readonly PackedComponentArray components;
 
-        public Aspect(SparseComponentArray componentManager, int maxEntities, int maxComponentTypes)
+        public Aspect(SparseComponentArray sparseComponents, int maxEntities, int maxComponentTypes)
         {
-            this.componentManager = componentManager;
+            Debug.Assert(maxEntities > 0);
+            Debug.Assert(maxComponentTypes > 0);
+
+            this.sparseComponents = sparseComponents;
 
             entities = new PackedHandleArray(maxEntities);
             components = new PackedComponentArray(maxComponentTypes, maxEntities);
@@ -43,6 +47,7 @@ namespace ScatteredLogic.Internal.Managers
         public void Remove(Handle entity)
         {
             components.Remove(entity.Index);
+            entities.Remove(entity);
         }
 
         public bool Contains(Handle entity)
@@ -57,17 +62,18 @@ namespace ScatteredLogic.Internal.Managers
 
         public void Add(Handle entity)
         {
+            if(!entities.Contains(entity)) entities.Add(entity);
+
             int packedIndex = components.Add(entity.Index);
 
-            for (int i = 0; i < components.componentTypeCount; ++i)
+            for (int i = 0; i < components.ComponentTypeCount; ++i)
             {
-                int typeIndex = components.componentPackedIndices[i];
+                int typeIndex = components.GetComponentTypeIndex(i);
                 IArrayWrapper packedArray = components.GetArrayWrapper(typeIndex);
-                IArrayWrapper sparseArray = componentManager.GetArrayWrapper(typeIndex);
+                IArrayWrapper sparseArray = sparseComponents.GetArrayWrapper(typeIndex);
                 packedArray.AddFrom(packedIndex, sparseArray, entity.Index);
             }
+
         }
-
-
     }
 }

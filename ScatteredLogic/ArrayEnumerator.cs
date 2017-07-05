@@ -5,6 +5,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace ScatteredLogic
 {
@@ -18,6 +19,9 @@ namespace ScatteredLogic
 
         internal ArrayEnumerator(T[] entities, int count)
         {
+            Debug.Assert(entities != null);
+            Debug.Assert(count >= 0);
+
             this.entities = entities;
             this.count = count;
 

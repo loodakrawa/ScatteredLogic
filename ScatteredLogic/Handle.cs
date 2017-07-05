@@ -26,9 +26,7 @@ namespace ScatteredLogic
         public override bool Equals(object obj) => obj is Handle ? Equals((Handle)obj) : false;
         public override int GetHashCode() => Id;
 
-#if DEBUG
         public override string ToString() => string.Format("{0}|{1}", Index, Version);
-#endif
 
         public Handle IncrementVersion()
         {

@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.6
+VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScatteredLogic", "ScatteredLogic\ScatteredLogic.csproj", "{861722CC-A914-40E2-8828-743D610FF5AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScatteredLogic", "ScatteredLogic\ScatteredLogic.csproj", "{861722CC-A914-40E2-8828-743D610FF5AB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScatteredLogicTest", "ScatteredLogicTest\ScatteredLogicTest.csproj", "{9F41622F-4B93-400A-A39C-C610D30CC37C}"
 EndProject
@@ -12,6 +12,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleRunner", "ConsoleRunner\ConsoleRunner.csproj", "{2E801464-9C0C-4A65-929B-E92028B8C46C}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86

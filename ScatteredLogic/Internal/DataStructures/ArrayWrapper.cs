@@ -3,6 +3,8 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
+using System.Diagnostics;
+
 namespace ScatteredLogic.Internal.DataStructures
 {
     internal sealed class ArrayWrapper<T> : IArrayWrapper, IArray<T>
@@ -11,28 +13,53 @@ namespace ScatteredLogic.Internal.DataStructures
 
         private readonly T[] data;
 
-        public ArrayWrapper(int size) => data = new T[size];
-        public ArrayWrapper(T[] data) => this.data = data;
-
-        public T this[int i]
+        public ArrayWrapper(int size)
         {
-            get => data[i];
-            set => data[i] = value;
+            Debug.Assert(size > 0);
+            data = new T[size];
+        }
+        public ArrayWrapper(T[] data)
+        {
+            Debug.Assert(data != null);
+            Debug.Assert(data.Length > 0);
+            this.data = data;
+        }
+
+        public T this[int index]
+        {
+            get
+            {
+                Debug.Assert(index >= 0 && index < data.Length);
+                return data[index];
+            }
+            set
+            {
+                Debug.Assert(index >= 0 && index < data.Length);
+                data[index] = value;
+            }
         }
 
         public ArrayEnumerator<T> GetEnumerator() => new ArrayEnumerator<T>(data, data.Length);
 
-        public void RemoveElementAt(int index) => data[index] = default(T);
+        public void RemoveElementAt(int index)
+        {
+            Debug.Assert(index >= 0 && index < data.Length);
+            data[index] = default(T);
+        }
 
         public void SwapAndRemove(int firstIndex, int secondIndex)
         {
+            Debug.Assert(firstIndex >= 0 && firstIndex < data.Length);
+            Debug.Assert(secondIndex >= 0 && secondIndex < data.Length);
             data[firstIndex] = data[secondIndex];
             data[secondIndex] = default(T);
         }
 
-        public void AddFrom(int index, IArrayWrapper other, int otherIndex)
+        public void AddFrom(int thisIndex, IArrayWrapper other, int otherIndex)
         {
-            data[index] = (other as ArrayWrapper<T>)[otherIndex];
+            Debug.Assert(thisIndex >= 0 && thisIndex < data.Length);
+            Debug.Assert(other is ArrayWrapper<T>);
+            data[thisIndex] = (other as ArrayWrapper<T>)[otherIndex];
         }
     }
 

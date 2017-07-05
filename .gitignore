@@ -11,3 +11,5 @@ build/
 packages/
 .vs/
 project.lock.json
+*.psess
+*.vsp

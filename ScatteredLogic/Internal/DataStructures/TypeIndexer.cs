@@ -5,8 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
-namespace ScatteredLogic.Internal.Managers
+namespace ScatteredLogic.Internal.DataStructures
 {
     internal sealed class TypeIndexer
     {
@@ -15,6 +16,8 @@ namespace ScatteredLogic.Internal.Managers
 
         public TypeIndexer(int maxTypes)
         {
+            Debug.Assert(maxTypes > 0);
+
             this.maxTypes = maxTypes;
         }
 
@@ -26,7 +29,7 @@ namespace ScatteredLogic.Internal.Managers
 
             typeId = typeIndices.Count;
 
-            if (typeId >= maxTypes) throw new Exception("Number of types Exceeded: " + maxTypes);
+            Debug.Assert(typeId < maxTypes, "Number of types Exceeded: " + maxTypes);
 
             typeIndices[type] = typeId;
 

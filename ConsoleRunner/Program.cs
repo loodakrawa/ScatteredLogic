@@ -7,15 +7,12 @@ namespace ConsoleRunner
     {
         static void Main(string[] args)
         {
-            //TestPacked();
             //TestBasic();
-            TestStuff();
-           // DoLotsOfStuff();
+            //TestStuff();
+            DoLotsOfStuff();
             Console.WriteLine("---END---");
             Console.ReadLine();
         }
-
-    
 
         private static void TestBasic()
         {
@@ -53,32 +50,32 @@ namespace ConsoleRunner
 
         private static void DoLotsOfStuff()
         {
-            int count = 10;
+            int count = 1000000;
 
             IEntityWorld world = EntityManagerFactory.CreateEntityWorld(count, 32, BitmaskSize.Bit64);
+            Handle aspectId = world.CreateAspect(RequiredTypes.From<int, string>());
+            IArray<string> strings = world.GetAspectComponents<string>(aspectId);
+            IArray<Handle> entities = world.GetAspectEntities(aspectId);
 
-            //for(int c=0; c<10; ++c)
-            //{
-            //    for (int i = 0; i < count; ++i)
-            //    {
-            //        Handle entity = world.CreateEntity();
-            //        world.AddComponent(entity, 5);
-            //        world.AddComponent(entity, "");
-            //        //if (i % 5 == 0) world.DestroyEntity(entity);
-            //    }
+            for (int c = 0; c < 10; ++c)
+            {
+                for (int i = 0; i < count; ++i)
+                {
+                    Handle entity = world.CreateEntity();
+                    world.AddComponent(entity, 5);
+                    world.AddComponent(entity, "");
+                    if (i % 5 == 0) world.DestroyEntity(entity);
+                }
 
-            //    int groupId = world.GetGroupId(RequiredTypes.From<int, string>());
+                //foreach (Handle entity in entities) Console.WriteLine(entity);
+                //Console.WriteLine();
 
-            //    IArray<Handle> entities = world.GetEntitiesForGroup(groupId);
-            //    foreach(Handle entity in entities) Console.WriteLine(entity);
-            //    Console.WriteLine();
+                foreach (Handle entity in entities) world.DestroyEntity(entity);
 
-            //    foreach (Handle entity in entities) world.DestroyEntity(entity);
+                //foreach (Handle entity in entities) Console.WriteLine(entity);
+                //Console.WriteLine();
 
-            //    foreach (Handle entity in entities) Console.WriteLine(entity);
-            //    Console.WriteLine();
-
-            //}
+            }
         }
     }
 }
