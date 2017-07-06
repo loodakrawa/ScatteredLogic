@@ -45,7 +45,7 @@ namespace ScatteredGameExample.Systems
             transforms = EntityWorld.GetAspectComponents<Transform>(Aspect);
         }
 
-        public void Draw(float deltaTime, SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch)
         {
             for (int i=0; i<Entities.Count; ++i)
             {

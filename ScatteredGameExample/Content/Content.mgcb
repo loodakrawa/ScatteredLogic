@@ -37,3 +37,10 @@
 /processorParam:TextureFormat=Color
 /build:square.png
 
+#begin Status.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Status.spritefont
+

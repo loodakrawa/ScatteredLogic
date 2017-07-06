@@ -26,7 +26,7 @@ namespace ScatteredLogic.Internal.DataStructures
             for (int i = 0; i < maxHandles; ++i)
             {
                 freeIndices.Enqueue(i);
-                handles[i] = new Handle(i);
+                handles[i] = new Handle(i).IncrementVersion();
             }
         }
 
@@ -35,10 +35,7 @@ namespace ScatteredLogic.Internal.DataStructures
             Debug.Assert(freeIndices.Count > 0);
 
             int index = freeIndices.Dequeue();
-            Handle handle = handles[index].IncrementVersion();
-            handles[index] = handle;
-
-            return handle;
+            return handles[index];
         }
 
         public void Destroy(Handle handle)
@@ -46,6 +43,7 @@ namespace ScatteredLogic.Internal.DataStructures
             Debug.Assert(Contains(handle));
 
             int index = handle.Index;
+            handles[index] = handle.IncrementVersion();
             freeIndices.Enqueue(index);
         }
 

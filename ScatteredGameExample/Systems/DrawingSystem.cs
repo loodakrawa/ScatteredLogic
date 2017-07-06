@@ -4,6 +4,6 @@ namespace ScatteredGameExample.Systems
 {
     interface DrawingSystem
     {
-        void Draw(float deltaTime, SpriteBatch spriteBatch);
+        void Draw(SpriteBatch spriteBatch);
     }
 }

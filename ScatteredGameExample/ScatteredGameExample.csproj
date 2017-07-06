@@ -57,6 +57,7 @@
     <Compile Include="RequiredTypes.cs" />
     <Compile Include="ScatteredGame.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="Stats.cs" />
     <Compile Include="Systems\BaseSystem.cs" />
     <Compile Include="Systems\BoundsSystem.cs" />
     <Compile Include="Systems\CollisionResolverSystem.cs" />

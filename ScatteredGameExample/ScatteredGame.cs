@@ -33,6 +33,9 @@ namespace ScatteredGameExample
         private readonly List<AspectUpdateTask> aspectUpdateTasks = new List<AspectUpdateTask>();
         private readonly List<ITaskCallback> taskCallbacks = new List<ITaskCallback>();
 
+        private readonly Stats stats = new Stats();
+        private SpriteFont font;
+
         public ScatteredGame()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -69,29 +72,15 @@ namespace ScatteredGameExample
             AddSystem(new HudSystem());
             AddSystem(new PlayerControllerSystem());
             AddSystem(new BoundsSystem(Width / 2 - 250, Height / 2 - 250, 500, 500, renderUtil));
-
-            //Handle b1 = entityFactory.CreateSquare();
-            //entityWorld.GetComponent<Transform>(b1).Position = new Vector2(100, 100);
-            //entityWorld.GetComponent<Transform>(b1).Size = new Vector2(10, 10);
-            //entityWorld.AddComponent(b1, new Velocity { Speed = new Vector2(10, 10) });
-            //entityWorld.AddComponent(b1, new Collider());
-
-            //Handle b2 = entityFactory.CreateSquare();
-            //entityWorld.GetComponent<Transform>(b2).Position = new Vector2(150, 150);
-            //entityWorld.GetComponent<Transform>(b2).Size = new Vector2(10, 10);
-            //entityWorld.AddComponent(b2, new Collider());
         }
 
         protected override void LoadContent()
         {
             Content.RootDirectory = "Content";
 
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-        }
+            font = Content.Load<SpriteFont>("Status");
 
-        protected override void UnloadContent()
-        {
-            // TODO: Unload any non ContentManager content here
+            spriteBatch = new SpriteBatch(GraphicsDevice);
         }
 
         private void AddSystem(BaseSystem system)
@@ -117,6 +106,8 @@ namespace ScatteredGameExample
         protected override void Update(GameTime gameTime)
         {
             float deltaTime = gameTime.ElapsedGameTime.Ticks * SecondsPerTick;
+
+            stats.OnUpdate(deltaTime);
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
 
@@ -145,15 +136,16 @@ namespace ScatteredGameExample
 
         protected override void Draw(GameTime gameTime)
         {
-            float deltaTime = gameTime.ElapsedGameTime.Ticks * SecondsPerTick;
+            stats.OnDraw();
 
             GraphicsDevice.Clear(Color.Black);
 
-            base.Draw(gameTime);
-
             spriteBatch.Begin(SpriteSortMode.BackToFront);
+
             renderUtil.Draw(spriteBatch);
-            foreach (DrawingSystem system in drawingSystems) system.Draw(deltaTime, spriteBatch);
+            foreach (DrawingSystem system in drawingSystems) system.Draw(spriteBatch);
+            spriteBatch.DrawString(font, stats.DrawRate.ToString(), new Vector2(Width - 100, 0), Color.Yellow);
+
             spriteBatch.End();
         }
 
@@ -162,7 +154,12 @@ namespace ScatteredGameExample
             public float DeltaTime { get; set; }
             private readonly BaseSystem system;
             public SystemUpdateTask(BaseSystem system) => this.system = system;
-            public void Run() => system.Update(DeltaTime);
+            public void Run()
+            {
+                system.Update(DeltaTime);
+                DateTime limit = DateTime.Now.AddMilliseconds(5);
+                //while (limit > DateTime.Now) { }
+            }
         }
 
         private class AspectUpdateTask : ITask

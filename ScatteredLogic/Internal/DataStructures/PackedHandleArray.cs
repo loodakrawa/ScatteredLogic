@@ -58,6 +58,7 @@ namespace ScatteredLogic.Internal.DataStructures
             Debug.Assert(sparseIndex >= 0 && sparseIndex < indices.Length);
 
             int packedIndex = indices[sparseIndex];
+            Debug.Assert(packedIndex >= 0 && packedIndex < entities.Length);
 
             int lastPackedIndex = count - 1;
             if (packedIndex != lastPackedIndex)
