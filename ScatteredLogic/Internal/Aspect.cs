@@ -12,6 +12,8 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class Aspect<B> : IArray<Handle> where B : struct, IBitmask<B>
     {
+        public string Name { get; set; }
+
         public B Bitmask { get; private set; }
 
         public int Count => entities.Count;

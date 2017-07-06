@@ -13,30 +13,34 @@ namespace ScatteredLogic
         private readonly List<IEventQueue> eventQueues = new List<IEventQueue>();
         private readonly Dictionary<Type, int?> componentIndexes = new Dictionary<Type, int?>();
 
+        private readonly object locker = new object();
         private bool asyncMessagesAvailable;
 
         public EventBus() { }
 
-        public void Register<T>(Action<T> listener) => GetOrCreateEventQueue<T>().Register(listener);
-        public void Deregister<T>(Action<T> listener)
+        public void Register<T>(Action<T> listener)
         {
-            int typeIndex = GetTypeId(typeof(T));
-            if (typeIndex >= eventQueues.Count) return;
-            (eventQueues[typeIndex] as EventQueue<T>).DeRegister(listener);
+            lock (locker) GetOrCreateEventQueue<T>().Register(listener);
         }
 
         public void Dispatch<T>(T evnt)
         {
-            asyncMessagesAvailable = true;
-            GetOrCreateEventQueue<T>().DispatchAsync(evnt);
+            lock (locker)
+            {
+                asyncMessagesAvailable = true;
+                GetOrCreateEventQueue<T>().Dispatch(evnt);
+            }
         }
 
         public void Update()
         {
-            while (asyncMessagesAvailable)
+            lock(locker)
             {
-                asyncMessagesAvailable = false;
-                for (int i = 0; i < eventQueues.Count; ++i) eventQueues[i].DispatchEnquedEvents();
+                while (asyncMessagesAvailable)
+                {
+                    asyncMessagesAvailable = false;
+                    for (int i = 0; i < eventQueues.Count; ++i) eventQueues[i].DispatchEnquedEvents();
+                }
             }
         }
 
@@ -53,10 +57,9 @@ namespace ScatteredLogic
             private Action<T> listeners;
 
             public void Register(Action<T> listener) => listeners += listener;
-            public void DeRegister(Action<T> listener) => listeners -= listener;
-            public void DispatchSync(T evt) => listeners?.Invoke(evt);
-            public void DispatchAsync(T evt) => eventQueue.Enqueue(evt);
+            public void Dispatch(T evt) => eventQueue.Enqueue(evt);
 
+            private void DispatchSync(T evt) => listeners?.Invoke(evt);
             public void DispatchEnquedEvents()
             {
                 while (eventQueue.Count > 0) DispatchSync(eventQueue.Dequeue());

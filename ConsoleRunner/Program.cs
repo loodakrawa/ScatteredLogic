@@ -1,5 +1,6 @@
 ﻿using ScatteredLogic;
 using System;
+using System.Threading;
 
 namespace ConsoleRunner
 {
@@ -7,11 +8,65 @@ namespace ConsoleRunner
     {
         static void Main(string[] args)
         {
+            ITask a = new TaskA();
+            ITask b = new TaskB();
+
+            TestDelegate td = new TestDelegate();
+
+            td.Reset(a);
+            td.WaitCallback(null);
+            td.Reset(b);
+            td.WaitCallback(null);
+
+
             //TestBasic();
             //TestStuff();
-            DoLotsOfStuff();
+            //DoLotsOfStuff();
             Console.WriteLine("---END---");
             Console.ReadLine();
+        }
+
+        private class TestDelegate
+        {
+            public readonly WaitCallback WaitCallback;
+
+            private ITask task;
+
+            public TestDelegate()
+            {
+                WaitCallback = Execute;
+            }
+
+            public void Reset(ITask task)
+            {
+                this.task = task;
+            }
+
+            private void Execute(object state)
+            {
+                task.Run();
+            }
+        }
+
+        private class TaskA : ITask
+        {
+            public void Run()
+            {
+                Console.WriteLine("A");
+            }
+        }
+
+        private class TaskB : ITask
+        {
+            public void Run()
+            {
+                Console.WriteLine("B");
+            }
+        }
+
+        public interface ITask
+        {
+            void Run();
         }
 
         private static void TestBasic()
@@ -29,8 +84,8 @@ namespace ConsoleRunner
         {
             IEntityWorld world = EntityManagerFactory.CreateEntityWorld(2, 2, BitmaskSize.Bit64);
 
-            Handle intGroup = world.CreateAspect(RequiredTypes.From<int>());
-            Handle intStrGroup = world.CreateAspect(RequiredTypes.From<int, string>());
+            Handle intGroup = world.CreateAspect(RequiredTypes.From<int>(), "");
+            Handle intStrGroup = world.CreateAspect(RequiredTypes.From<int, string>(), "");
 
             IArray<int> firstInts = world.GetAspectComponents<int>(intGroup);
 
@@ -53,7 +108,7 @@ namespace ConsoleRunner
             int count = 1000000;
 
             IEntityWorld world = EntityManagerFactory.CreateEntityWorld(count, 32, BitmaskSize.Bit64);
-            Handle aspectId = world.CreateAspect(RequiredTypes.From<int, string>());
+            Handle aspectId = world.CreateAspect(RequiredTypes.From<int, string>(), "");
             IArray<string> strings = world.GetAspectComponents<string>(aspectId);
             IArray<Handle> entities = world.GetAspectEntities(aspectId);
 

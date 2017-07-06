@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using ScatteredGameExample.Components;
+using ScatteredGameExample.Parallel;
 using ScatteredGameExample.Systems;
 using ScatteredLogic;
 using System;
@@ -28,6 +29,10 @@ namespace ScatteredGameExample
         private EntityFactory entityFactory;
         private RenderUtil renderUtil;
 
+        private readonly List<SystemUpdateTask> systemUpdateTasks = new List<SystemUpdateTask>();
+        private readonly List<AspectUpdateTask> aspectUpdateTasks = new List<AspectUpdateTask>();
+        private readonly List<ITaskCallback> taskCallbacks = new List<ITaskCallback>();
+
         public ScatteredGame()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -45,6 +50,8 @@ namespace ScatteredGameExample
         protected override void Initialize()
         {
             base.Initialize();
+
+            Tasks.TaskQueue = new ThreadPoolTaskQueue(8);
 
             var dm = graphics.GraphicsDevice.DisplayMode;
             Window.Position = new Point((dm.Width - Width) / 2, (dm.Height - Height) / 2);
@@ -98,10 +105,13 @@ namespace ScatteredGameExample
             IEnumerable<Type> requiredTypes = system.RequiredComponents;
             if (requiredTypes != null && requiredTypes.Count() > 0)
             {
-                system.Aspect = entityWorld.CreateAspect(system.RequiredComponents);
+                system.Aspect = entityWorld.CreateAspect(system.RequiredComponents, system.GetType().Name);
                 system.Entities = entityWorld.GetAspectEntities(system.Aspect);
+                aspectUpdateTasks.Add(new AspectUpdateTask(system.Aspect, entityWorld));
             }
             system.Added();
+
+            systemUpdateTasks.Add(new SystemUpdateTask(system));
         }
 
         protected override void Update(GameTime gameTime)
@@ -112,9 +122,25 @@ namespace ScatteredGameExample
 
             base.Update(gameTime);
 
-            foreach (BaseSystem system in systems) system.Update(deltaTime);
-            
+            foreach(SystemUpdateTask sut in systemUpdateTasks)
+            {
+                sut.DeltaTime = deltaTime;
+                ITaskCallback callback = Tasks.Enqueue(sut);
+                taskCallbacks.Add(callback);
+            }
+            foreach (ITaskCallback callback in taskCallbacks) callback.Wait();
+            taskCallbacks.Clear();
+
             eventBus.Update();
+            entityWorld.Step();
+
+            foreach (AspectUpdateTask aut in aspectUpdateTasks)
+            {
+                ITaskCallback callback = Tasks.Enqueue(aut);
+                taskCallbacks.Add(callback);
+            }
+            foreach (ITaskCallback callback in taskCallbacks) callback.Wait();
+            taskCallbacks.Clear();
         }
 
         protected override void Draw(GameTime gameTime)
@@ -130,5 +156,28 @@ namespace ScatteredGameExample
             foreach (DrawingSystem system in drawingSystems) system.Draw(deltaTime, spriteBatch);
             spriteBatch.End();
         }
+
+        private class SystemUpdateTask : ITask
+        {
+            public float DeltaTime { get; set; }
+            private readonly BaseSystem system;
+            public SystemUpdateTask(BaseSystem system) => this.system = system;
+            public void Run() => system.Update(DeltaTime);
+        }
+
+        private class AspectUpdateTask : ITask
+        {
+            private readonly Handle aspect;
+            private readonly IEntityWorld entityWorld;
+
+            public AspectUpdateTask(Handle aspect, IEntityWorld entityWorld)
+            {
+                this.aspect = aspect;
+                this.entityWorld = entityWorld;
+            }
+
+            public void Run() => entityWorld.UpdateAspect(aspect);
+        }
+
     }
 }

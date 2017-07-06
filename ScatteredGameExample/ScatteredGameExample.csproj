@@ -46,8 +46,13 @@
     <Compile Include="EventBus.cs" />
     <Compile Include="Events\CollisionEvent.cs" />
     <Compile Include="Events\InputEvents.cs" />
+    <Compile Include="Parallel\CustomThreadPool.cs" />
+    <Compile Include="Parallel\Interfaces.cs" />
     <Compile Include="MouseButton.cs" />
     <Compile Include="GroupObjectPool.cs" />
+    <Compile Include="Parallel\TaskCallback.cs" />
+    <Compile Include="Parallel\Tasks.cs" />
+    <Compile Include="Parallel\ThreadPoolTaskQueue.cs" />
     <Compile Include="RenderUtil.cs" />
     <Compile Include="RequiredTypes.cs" />
     <Compile Include="ScatteredGame.cs" />

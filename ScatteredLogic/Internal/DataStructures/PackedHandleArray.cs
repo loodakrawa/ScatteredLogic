@@ -3,6 +3,7 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
+using System;
 using System.Diagnostics;
 
 namespace ScatteredLogic.Internal.DataStructures
@@ -30,7 +31,7 @@ namespace ScatteredLogic.Internal.DataStructures
             entities = new Handle[size];
             indices = new int[size];
 
-            for (int i = 0; i < size; ++i) indices[i] = -1;
+            for (int i = 0; i < indices.Length; ++i) indices[i] = -1;
         }
 
         public bool Contains(Handle handle)
@@ -70,6 +71,12 @@ namespace ScatteredLogic.Internal.DataStructures
 
             indices[sparseIndex] = -1;
             --count;
+        }
+
+        internal void Clear()
+        {
+            count = 0;
+            for (int i = 0; i < indices.Length; ++i) indices[i] = -1;
         }
     }
 }

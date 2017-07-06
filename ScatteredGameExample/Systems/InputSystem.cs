@@ -32,7 +32,7 @@ namespace ScatteredGameExample.Systems
 
             Point pos = newMouse.Position;
             mpe.Position = new Vector2(pos.X, pos.Y);
-            for (int i=0; i<10000; ++i) EventBus.Dispatch(mpe);
+            EventBus.Dispatch(mpe);
 
             CheckAndFire(oldMouse.LeftButton, newMouse.LeftButton, MouseButton.Left);
             CheckAndFire(oldMouse.RightButton, newMouse.RightButton, MouseButton.Right);

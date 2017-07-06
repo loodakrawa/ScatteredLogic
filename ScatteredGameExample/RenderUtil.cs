@@ -11,7 +11,7 @@ namespace ScatteredGameExample
 
         private readonly Texture2D debugTex;
 
-        private readonly List<Tuple<Vector2, Vector2>> lines = new List<Tuple<Vector2, Vector2>>();
+        private readonly List<KeyValuePair<Vector2, Vector2>> lines = new List<KeyValuePair<Vector2, Vector2>>();
 
         public RenderUtil(GraphicsDevice graphicsDevice)
         {
@@ -24,13 +24,13 @@ namespace ScatteredGameExample
 
         public void Draw(SpriteBatch batch)
         {
-            foreach (var pair in lines) DrawLine(batch, pair.Item1, pair.Item2);
+            foreach (var pair in lines) DrawLine(batch, pair.Key, pair.Value);
             lines.Clear();
         }
 
         public void AddForDrawing(Vector2 v1, Vector2 v2)
         {
-            lines.Add(Tuple.Create(v1, v2));
+            lines.Add(new KeyValuePair<Vector2, Vector2>(v1, v2));
         }
 
         public void AddForDrawing(Rectangle r)
