@@ -18,44 +18,37 @@ namespace ScatteredLogic.Internal
         private readonly int maxEntities;
         private readonly int maxComponentTypes;
 
-        private readonly PackedHandleArray entities;
-        private PackedHandleArray dirtyEntitiesWrite;
-        private PackedHandleArray dirtyEntitiesRead;
+        private readonly PackedArray<Handle> entities;
+        private PackedArray<Handle> dirtyEntities;
         private readonly B[] entityMasks;
         private readonly TypeIndexer typeIndexer;
         private readonly SparseComponentArray sparseComponents;
         private readonly HandleManager entityManager;
 
-        private readonly Aspect<B>[] aspects;
-        private readonly Handle[] aspectHandles;
-        private int aspectCount;
+        private readonly List<Aspect<B>> aspects = new List<Aspect<B>>();
 
         private readonly object locker = new object();
 
-        public EntityWorld(int maxEntities, int maxComponentTypes, int maxAspects)
+        public EntityWorld(int maxEntities, int maxComponentTypes)
         {
             this.maxEntities = maxEntities;
             this.maxComponentTypes = maxComponentTypes;
 
-            entities = new PackedHandleArray(maxEntities);
-            dirtyEntitiesWrite = new PackedHandleArray(maxEntities);
-            dirtyEntitiesRead = new PackedHandleArray(maxEntities);
+            entities = new PackedArray<Handle>(maxEntities);
+            dirtyEntities = new PackedArray<Handle>(maxEntities);
             entityMasks = new B[maxEntities];
 
             typeIndexer = new TypeIndexer(maxComponentTypes);
             entityManager = new HandleManager(maxEntities);
             sparseComponents = new SparseComponentArray(maxComponentTypes, maxEntities);
-
-            aspects = new Aspect<B>[maxAspects];
-            aspectHandles = new Handle[maxAspects];
         }
 
         public Handle CreateEntity()
         {
-            lock(locker)
+            lock (locker)
             {
                 Handle entity = entityManager.Create();
-                entities.Add(entity);
+                entities.Add(entity, entity.Index);
                 entityMasks[entity.Index] = default(B);
                 return entity;
             }
@@ -66,14 +59,14 @@ namespace ScatteredLogic.Internal
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
             int index = entity.Index;
 
-            lock(locker)
+            lock (locker)
             {
-                entities.Remove(entity);
+                entities.Remove(index);
                 sparseComponents.RemoveAll(index);
                 entityManager.Destroy(entity);
                 entityMasks[index] = default(B);
 
-                if (!dirtyEntitiesWrite.Contains(entity)) dirtyEntitiesWrite.Add(entity);
+                if (!dirtyEntities.Contains(index)) dirtyEntities.Add(entity, index);
             }
         }
 
@@ -87,13 +80,13 @@ namespace ScatteredLogic.Internal
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
             int entityIndex = entity.Index;
 
-            lock(locker)
+            lock (locker)
             {
                 int typeIndex = typeIndexer.GetIndex(typeof(T));
                 sparseComponents.Add(entity.Index, component, typeIndex);
                 entityMasks[entityIndex] = entityMasks[entityIndex].Set(typeIndex);
 
-                if (!dirtyEntitiesWrite.Contains(entity)) dirtyEntitiesWrite.Add(entity);
+                dirtyEntities.Add(entity, entityIndex);
             }
         }
 
@@ -102,13 +95,13 @@ namespace ScatteredLogic.Internal
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
             int entityIndex = entity.Index;
 
-            lock(locker)
+            lock (locker)
             {
                 int typeIndex = typeIndexer.GetIndex(typeof(T));
                 sparseComponents.Remove(entity.Index, typeIndex);
                 entityMasks[entityIndex] = entityMasks[entityIndex].Clear(typeIndex);
 
-                if (!dirtyEntitiesWrite.Contains(entity)) dirtyEntitiesWrite.Add(entity);
+                dirtyEntities.Add(entity, entityIndex);
             }
         }
 
@@ -120,55 +113,28 @@ namespace ScatteredLogic.Internal
             return array[entity.Index];
         }
 
-        public Handle CreateAspect(IEnumerable<Type> types, string name)
+        public IAspect CreateAspect(Type[] types)
         {
-            Aspect<B> aspect = new Aspect<B>(sparseComponents, maxEntities, maxComponentTypes);
-            aspect.Name = name;
-            foreach (Type type in types)
-            {
-                int typeId = typeIndexer.GetIndex(type);
-                aspect.RegisterType(type, typeId);
-            }
-
-            Handle handle = new Handle(aspectCount);
-            aspects[aspectCount] = aspect;
-            aspectHandles[aspectCount] = handle;
-            ++aspectCount;
-            return handle;
-        }
-
-        public IArray<T> GetAspectComponents<T>(Handle handle)
-        {
-            Aspect<B> set = aspects[handle.Index];
-            return set.GetArray<T>(typeIndexer.GetIndex(typeof(T)));
-        }
-
-        public IArray<Handle> GetAspectEntities(Handle handle)
-        {
-            return aspects[handle.Index];
+            Aspect<B> aspect = new Aspect<B>(sparseComponents, typeIndexer, maxEntities, maxComponentTypes, types);
+            aspects.Add(aspect);
+            return aspect;
         }
 
         public void Step()
         {
-            PackedHandleArray tmp = dirtyEntitiesRead;
-            dirtyEntitiesRead = dirtyEntitiesWrite;
-            dirtyEntitiesWrite = tmp;
-            dirtyEntitiesWrite.Clear();
-        }
-
-        public void UpdateAspect(Handle handle)
-        {
-            int index = handle.Index;
-            Aspect<B> aspect = aspects[index];
-            B aspectMask = aspect.Bitmask;
-
-            for (int j = 0; j < dirtyEntitiesRead.Count; ++j)
+            foreach (Aspect<B> aspect in aspects)
             {
-                Handle entity = dirtyEntitiesRead[j];
-                B mask = entityMasks[entity.Index];
-                if (mask.Contains(aspect.Bitmask)) aspect.Add(entity);
-                else if (!mask.Contains(aspect.Bitmask) && aspect.Contains(entity)) aspect.Remove(entity);
+                B aspectMask = aspect.Bitmask;
+
+                for (int j = 0; j < dirtyEntities.Count; ++j)
+                {
+                    Handle entity = dirtyEntities[j];
+                    B mask = entityMasks[entity.Index];
+                    if (mask.Contains(aspect.Bitmask)) aspect.Add(entity);
+                    else if (!mask.Contains(aspect.Bitmask)) aspect.Remove(entity);
+                }
             }
+            dirtyEntities.Clear();
         }
     }
 }

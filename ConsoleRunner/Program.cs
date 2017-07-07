@@ -1,4 +1,5 @@
 ﻿using ScatteredLogic;
+using ScatteredLogic.Internal.DataStructures;
 using System;
 using System.Threading;
 
@@ -8,16 +9,15 @@ namespace ConsoleRunner
     {
         static void Main(string[] args)
         {
-            ITask a = new TaskA();
-            ITask b = new TaskB();
+            PackedArray pa = new PackedArray(8);
+            int pi = int.MinValue;
+            pi = pa.Add(2);
+            pi = pa.Add(7);
+            pi = pa.Add(4);
 
-            TestDelegate td = new TestDelegate();
-
-            td.Reset(a);
-            td.WaitCallback(null);
-            td.Reset(b);
-            td.WaitCallback(null);
-
+            int lastPackedIndex;
+            int newPackedIndex;
+            pa.Remove(4, out lastPackedIndex, out newPackedIndex);
 
             //TestBasic();
             //TestStuff();
@@ -26,48 +26,6 @@ namespace ConsoleRunner
             Console.ReadLine();
         }
 
-        private class TestDelegate
-        {
-            public readonly WaitCallback WaitCallback;
-
-            private ITask task;
-
-            public TestDelegate()
-            {
-                WaitCallback = Execute;
-            }
-
-            public void Reset(ITask task)
-            {
-                this.task = task;
-            }
-
-            private void Execute(object state)
-            {
-                task.Run();
-            }
-        }
-
-        private class TaskA : ITask
-        {
-            public void Run()
-            {
-                Console.WriteLine("A");
-            }
-        }
-
-        private class TaskB : ITask
-        {
-            public void Run()
-            {
-                Console.WriteLine("B");
-            }
-        }
-
-        public interface ITask
-        {
-            void Run();
-        }
 
         private static void TestBasic()
         {

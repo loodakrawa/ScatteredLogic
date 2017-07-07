@@ -10,72 +10,96 @@ using System.Diagnostics;
 
 namespace ScatteredLogic.Internal
 {
-    internal sealed class Aspect<B> : IArray<Handle> where B : struct, IBitmask<B>
+    internal sealed class Aspect<B> : IAspect where B : struct, IBitmask<B>
     {
-        public string Name { get; set; }
-
         public B Bitmask { get; private set; }
 
-        public int Count => entities.Count;
-        public Handle this[int i] { get => entities[i]; }
-        public ArrayEnumerator<Handle> GetEnumerator() => entities.GetEnumerator();
+        public IArray<Handle> Entities => entities;
+
+        private readonly int maxEntities;
 
         private readonly SparseComponentArray sparseComponents;
-        private readonly PackedHandleArray entities;
-        private readonly PackedComponentArray components;
+        private readonly TypeIndexer typeIndexer;
 
-        public Aspect(SparseComponentArray sparseComponents, int maxEntities, int maxComponentTypes)
+        private readonly IntMap entityMap;
+        private readonly IntMap typeMap;
+
+        private readonly IArrayWrapper[] components;
+        private readonly ArrayWrapper<Handle> entities;
+
+        public Aspect(SparseComponentArray sparseComponents, TypeIndexer typeIndexer, int maxEntities, int maxComponentTypes, Type[] types)
         {
             Debug.Assert(maxEntities > 0);
             Debug.Assert(maxComponentTypes > 0);
 
+            this.maxEntities = maxEntities;
+            this.typeIndexer = typeIndexer;
             this.sparseComponents = sparseComponents;
 
-            entities = new PackedHandleArray(maxEntities);
-            components = new PackedComponentArray(maxComponentTypes, maxEntities);
+            entityMap = new IntMap(maxEntities);
+            typeMap = new IntMap(maxComponentTypes);
+
+            entities = new ArrayWrapper<Handle>(maxEntities);
+            components = new IArrayWrapper[types.Length];
+
+            foreach (Type type in types)
+            {
+                int typeIndex = typeIndexer.GetIndex(type);
+                int packedIndex = typeMap.Add(typeIndex);
+
+                Type genericType = typeof(ArrayWrapper<>).MakeGenericType(type);
+                IArrayWrapper array = (IArrayWrapper)Activator.CreateInstance(genericType, maxEntities);
+                components[packedIndex] = array;
+
+                Bitmask = Bitmask.Set(typeIndex);
+            }
         }
 
-        public void RegisterType(Type type, int typeIndex)
+        public IArray<T> GetComponents<T>()
         {
-            components.RegisterType(type, typeIndex);
-            Bitmask = Bitmask.Set(typeIndex);
-        }
-
-        public void AddComponent<T>(Handle entity, T component, int typeIndex)
-        {
-            components.AddComponent(entity.Index, component, typeIndex);
-        }
-
-        public void Remove(Handle entity)
-        {
-            components.Remove(entity.Index);
-            entities.Remove(entity);
-        }
-
-        public bool Contains(Handle entity)
-        {
-            return entities.Contains(entity);
-        }
-
-        public IArray<T> GetArray<T>(int typeIndex)
-        {
-            return components.GetArray<T>(typeIndex);
+            int typeIndex = typeIndexer.GetIndex(typeof(T));
+            int packedTypeIndex = typeMap.GetPacked(typeIndex);
+            return (IArray<T>)components[packedTypeIndex];
         }
 
         public void Add(Handle entity)
         {
-            if(!entities.Contains(entity)) entities.Add(entity);
+            int sparseIndex = entity.Index;
+            int packedIndex = entityMap.Add(sparseIndex);
 
-            int packedIndex = components.Add(entity.Index);
+            entities[packedIndex] = entity;
 
-            for (int i = 0; i < components.ComponentTypeCount; ++i)
+            if (packedIndex == entities.Count) ++entities.Count;
+
+            for (int i = 0; i < components.Length; ++i)
             {
-                int typeIndex = components.GetComponentTypeIndex(i);
-                IArrayWrapper packedArray = components.GetArrayWrapper(typeIndex);
+                int typeIndex = typeMap.GetSparse(i);
+                IArrayWrapper array = components[i];
                 IArrayWrapper sparseArray = sparseComponents.GetArrayWrapper(typeIndex);
-                packedArray.AddFrom(packedIndex, sparseArray, entity.Index);
+                array.AddFrom(packedIndex, sparseArray, entity.Index);
+                array.Count = entities.Count;
             }
+        }
 
+        public void Remove(Handle entity)
+        {
+            int index = entity.Index;
+
+            if (!entityMap.Contains(index)) return;
+
+            entityMap.Remove(index, out int lastPackedIndex, out int packedIndex);
+
+            if (packedIndex != lastPackedIndex) entities.Swap(packedIndex, lastPackedIndex);
+            entities.RemoveElementAt(lastPackedIndex);
+            --entities.Count;
+
+            for (int i = 0; i < components.Length; ++i)
+            {
+                IArrayWrapper array = components[i];
+                if (packedIndex != lastPackedIndex) array.Swap(packedIndex, lastPackedIndex);
+                array.RemoveElementAt(lastPackedIndex);
+                array.Count = entities.Count;
+            }
         }
     }
 }

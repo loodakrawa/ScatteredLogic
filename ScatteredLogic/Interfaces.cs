@@ -4,7 +4,6 @@
 // of the zlib license. See the LICENSE file for details.
 
 using System;
-using System.Collections.Generic;
 
 namespace ScatteredLogic
 {
@@ -12,7 +11,12 @@ namespace ScatteredLogic
     {
         int Count { get; }
         T this[int i] { get; }
-        ArrayEnumerator<T> GetEnumerator();
+    }
+
+    public interface IAspect
+    {
+        IArray<Handle> Entities { get; }
+        IArray<T> GetComponents<T>();
     }
 
     public interface IEntityWorld
@@ -27,10 +31,7 @@ namespace ScatteredLogic
         void RemoveComponent<T>(Handle handle);
         T GetComponent<T>(Handle handle);
 
-        Handle CreateAspect(IEnumerable<Type> types, string name);
-        IArray<T> GetAspectComponents<T>(Handle handle);
-        IArray<Handle> GetAspectEntities(Handle handle);
-        void UpdateAspect(Handle handle);
+        IAspect CreateAspect(Type[] types);
 
         void Step();
     }

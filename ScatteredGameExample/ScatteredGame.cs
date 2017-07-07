@@ -30,7 +30,6 @@ namespace ScatteredGameExample
         private RenderUtil renderUtil;
 
         private readonly List<SystemUpdateTask> systemUpdateTasks = new List<SystemUpdateTask>();
-        private readonly List<AspectUpdateTask> aspectUpdateTasks = new List<AspectUpdateTask>();
         private readonly List<ITaskCallback> taskCallbacks = new List<ITaskCallback>();
 
         private readonly Stats stats = new Stats();
@@ -45,7 +44,7 @@ namespace ScatteredGameExample
             IsFixedTimeStep = false;
             graphics.SynchronizeWithVerticalRetrace = false;
 
-            entityWorld = EntityManagerFactory.CreateEntityWorld(256, 32, BitmaskSize.Bit32);
+            entityWorld = EntityManagerFactory.CreateEntityWorld(256, BitmaskSize.Bit32);
 
             IsMouseVisible = true;
         }
@@ -94,9 +93,7 @@ namespace ScatteredGameExample
             IEnumerable<Type> requiredTypes = system.RequiredComponents;
             if (requiredTypes != null && requiredTypes.Count() > 0)
             {
-                system.Aspect = entityWorld.CreateAspect(system.RequiredComponents, system.GetType().Name);
-                system.Entities = entityWorld.GetAspectEntities(system.Aspect);
-                aspectUpdateTasks.Add(new AspectUpdateTask(system.Aspect, entityWorld));
+                system.Aspect = entityWorld.CreateAspect(system.RequiredComponents);
             }
             system.Added();
 
@@ -124,14 +121,6 @@ namespace ScatteredGameExample
 
             eventBus.Update();
             entityWorld.Step();
-
-            foreach (AspectUpdateTask aut in aspectUpdateTasks)
-            {
-                ITaskCallback callback = Tasks.Enqueue(aut);
-                taskCallbacks.Add(callback);
-            }
-            foreach (ITaskCallback callback in taskCallbacks) callback.Wait();
-            taskCallbacks.Clear();
         }
 
         protected override void Draw(GameTime gameTime)
@@ -161,20 +150,5 @@ namespace ScatteredGameExample
                 //while (limit > DateTime.Now) { }
             }
         }
-
-        private class AspectUpdateTask : ITask
-        {
-            private readonly Handle aspect;
-            private readonly IEntityWorld entityWorld;
-
-            public AspectUpdateTask(Handle aspect, IEntityWorld entityWorld)
-            {
-                this.aspect = aspect;
-                this.entityWorld = entityWorld;
-            }
-
-            public void Run() => entityWorld.UpdateAspect(aspect);
-        }
-
     }
 }

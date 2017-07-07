@@ -10,7 +10,7 @@ namespace ScatteredGameExample.Systems
 {
     public class RenderingSystem : BaseSystem, DrawingSystem
     {
-        public override IEnumerable<Type> RequiredComponents => RequiredTypes.From<TextureHandle, Transform>();
+        public override Type[] RequiredComponents => RequiredTypes.From<TextureHandle, Transform>();
 
         private readonly ContentManager contentManager;
         private readonly List<Texture2D> textures = new List<Texture2D>();
@@ -41,13 +41,13 @@ namespace ScatteredGameExample.Systems
         {
             base.Added();
 
-            textureHandles = EntityWorld.GetAspectComponents<TextureHandle>(Aspect);
-            transforms = EntityWorld.GetAspectComponents<Transform>(Aspect);
+            textureHandles = Aspect.GetComponents<TextureHandle>();
+            transforms = Aspect.GetComponents<Transform>();
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            for (int i=0; i<Entities.Count; ++i)
+            for (int i = 0; i < Aspect.Entities.Count; ++i)
             {
                 TextureHandle th = textureHandles[i];
                 Transform tr = transforms[i];
