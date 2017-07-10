@@ -20,36 +20,42 @@ namespace ScatteredGameExample.Systems
             base.Added();
 
             player = EntityFactory.CreateSquare();
-            EntityWorld.GetComponent<Transform>(player).Size = new Vector2(20, 20);
+            EntityWorld.AddComponent(player, new Transform { Size = new Vector2(20, 20) });
             EntityWorld.AddComponent(player, new Velocity());
 
             EventBus.Register<KeyEvent>(OnKey);
             EventBus.Register<MousePositionEvent>(OnMousePosition);
             EventBus.Register<MouseButtonEvent>(OnMouseButton);
+
+            InputSystem.RegisterKey(Keys.Up);
+            InputSystem.RegisterKey(Keys.Down);
+            InputSystem.RegisterKey(Keys.Left);
+            InputSystem.RegisterKey(Keys.Right);
         }
 
         private void OnMouseButton(MouseButtonEvent e)
         {
             if (!e.Pressed) return;
 
-            Handle bullet = EntityFactory.CreateBullet();
+            Transform pTransform = EntityWorld.GetComponent<Transform>(player);
+            Velocity velocity = new Velocity();
+            velocity.Speed = Vector2.Transform(new Vector2(BulletSpeed, 0), Matrix.CreateRotationZ(pTransform.Rotation));
+
+            Handle bullet = EntityFactory.CreateBullet(pTransform.Rotation, pTransform.Position, velocity);
 
             Transform bTransform = EntityWorld.GetComponent<Transform>(bullet);
-            Transform pTransform = EntityWorld.GetComponent<Transform>(player);
 
-            bTransform.Rotation = pTransform.Rotation;
-            bTransform.Position = pTransform.Position;
-
-            Velocity velocity = EntityWorld.GetComponent<Velocity>(bullet);
-            velocity.Speed = Vector2.Transform(new Vector2(BulletSpeed, 0), Matrix.CreateRotationZ(pTransform.Rotation));
         }
 
         private void OnMousePosition(MousePositionEvent e)
         {
             mouseLocation = e.Position;
             Transform transform = EntityWorld.GetComponent<Transform>(player);
-            Vector2 pPos = transform.Position;
-            transform.Rotation = (float)Math.Atan2(mouseLocation.Y - pPos.Y, mouseLocation.X - pPos.X);
+            if (transform != null)
+            {
+                Vector2 pPos = transform.Position;
+                transform.Rotation = (float)Math.Atan2(mouseLocation.Y - pPos.Y, mouseLocation.X - pPos.X);
+            }
         }
 
         private void OnKey(KeyEvent e)

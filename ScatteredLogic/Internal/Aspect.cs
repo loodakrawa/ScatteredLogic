@@ -47,8 +47,8 @@ namespace ScatteredLogic.Internal
                 int typeIndex = typeIndexer.GetIndex(type);
                 int packedIndex = typeMap.Add(typeIndex);
 
-                Type genericType = typeof(ArrayWrapper<>).MakeGenericType(type);
-                IArrayWrapper array = (IArrayWrapper)Activator.CreateInstance(genericType, maxEntities);
+                Type genericArrayWrapper = typeof(ArrayWrapper<>).MakeGenericType(type);
+                IArrayWrapper array = (IArrayWrapper)Activator.CreateInstance(genericArrayWrapper, maxEntities);
                 components[packedIndex] = array;
 
                 Bitmask = Bitmask.Set(typeIndex);

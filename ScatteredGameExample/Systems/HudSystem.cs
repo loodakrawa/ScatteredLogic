@@ -18,7 +18,8 @@ namespace ScatteredGameExample.Systems
 
         private void OnMousePosition(MousePositionEvent e)
         {
-            EntityWorld.GetComponent<Transform>(crosshairEntity).Position = e.Position;
+            Transform t = EntityWorld.GetComponent<Transform>(crosshairEntity);
+            if (t != null) t.Position = e.Position;
         }
     }
 }

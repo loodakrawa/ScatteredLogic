@@ -19,7 +19,6 @@ namespace ScatteredLogic.Internal
         private readonly int maxComponentTypes;
 
         private readonly PackedArray<Handle> entities;
-        private PackedArray<Handle> dirtyEntities;
         private readonly B[] entityMasks;
         private readonly TypeIndexer typeIndexer;
         private readonly SparseComponentArray sparseComponents;
@@ -27,25 +26,31 @@ namespace ScatteredLogic.Internal
 
         private readonly List<Aspect<B>> aspects = new List<Aspect<B>>();
 
-        private readonly object locker = new object();
+        private readonly PackedArray<Handle> dirtyEntities;
+        private readonly ChangeQueue changeQueue;
 
-        public EntityWorld(int maxEntities, int maxComponentTypes)
+        private readonly PackedArray<Handle> entitiesToDestroy;
+
+        public EntityWorld(int maxEntities, int maxComponentTypes, int maxEvents)
         {
             this.maxEntities = maxEntities;
             this.maxComponentTypes = maxComponentTypes;
 
             entities = new PackedArray<Handle>(maxEntities);
-            dirtyEntities = new PackedArray<Handle>(maxEntities);
             entityMasks = new B[maxEntities];
 
             typeIndexer = new TypeIndexer(maxComponentTypes);
             entityManager = new HandleManager(maxEntities);
             sparseComponents = new SparseComponentArray(maxComponentTypes, maxEntities);
+
+            changeQueue = new ChangeQueue(maxComponentTypes, maxEvents);
+            dirtyEntities = new PackedArray<Handle>(maxEntities);
+            entitiesToDestroy = new PackedArray<Handle>(maxEntities);
         }
 
         public Handle CreateEntity()
         {
-            lock (locker)
+            lock (entityManager)
             {
                 Handle entity = entityManager.Create();
                 entities.Add(entity, entity.Index);
@@ -57,17 +62,8 @@ namespace ScatteredLogic.Internal
         public void DestroyEntity(Handle entity)
         {
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
-            int index = entity.Index;
 
-            lock (locker)
-            {
-                entities.Remove(index);
-                sparseComponents.RemoveAll(index);
-                entityManager.Destroy(entity);
-                entityMasks[index] = default(B);
-
-                if (!dirtyEntities.Contains(index)) dirtyEntities.Add(entity, index);
-            }
+            lock (entitiesToDestroy) entitiesToDestroy.Add(entity, entity.Index);
         }
 
         public bool ContainsEntity(Handle entity)
@@ -78,31 +74,34 @@ namespace ScatteredLogic.Internal
         public void AddComponent<T>(Handle entity, T component)
         {
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
+
+            changeQueue.AddComponent<T>(entity, component, typeIndexer.GetIndex(typeof(T)));
+        }
+
+        public void AddComponent<T>(Handle entity, T component, int typeIndex)
+        {
             int entityIndex = entity.Index;
 
-            lock (locker)
-            {
-                int typeIndex = typeIndexer.GetIndex(typeof(T));
-                sparseComponents.Add(entity.Index, component, typeIndex);
-                entityMasks[entityIndex] = entityMasks[entityIndex].Set(typeIndex);
+            sparseComponents.Add(entity.Index, component, typeIndex);
+            entityMasks[entityIndex] = entityMasks[entityIndex].Set(typeIndex);
 
-                dirtyEntities.Add(entity, entityIndex);
-            }
+            dirtyEntities.Add(entity, entityIndex);
         }
 
         public void RemoveComponent<T>(Handle entity)
         {
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
+            changeQueue.RemoveComponent<T>(entity, typeIndexer.GetIndex(typeof(T)));
+        }
+
+        public void RemoveComponent<T>(Handle entity, int typeIndex)
+        {
             int entityIndex = entity.Index;
 
-            lock (locker)
-            {
-                int typeIndex = typeIndexer.GetIndex(typeof(T));
-                sparseComponents.Remove(entity.Index, typeIndex);
-                entityMasks[entityIndex] = entityMasks[entityIndex].Clear(typeIndex);
+            sparseComponents.Remove(entity.Index, typeIndex);
+            entityMasks[entityIndex] = entityMasks[entityIndex].Clear(typeIndex);
 
-                dirtyEntities.Add(entity, entityIndex);
-            }
+            dirtyEntities.Add(entity, entityIndex);
         }
 
         public T GetComponent<T>(Handle entity)
@@ -110,7 +109,7 @@ namespace ScatteredLogic.Internal
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
 
             IArray<T> array = sparseComponents.GetArray<T>(typeIndexer.GetIndex(typeof(T)));
-            return array[entity.Index];
+            return array != null ? array[entity.Index] : default(T);
         }
 
         public IAspect CreateAspect(Type[] types)
@@ -120,8 +119,10 @@ namespace ScatteredLogic.Internal
             return aspect;
         }
 
-        public void Step()
+        public void Commit()
         {
+            changeQueue.Flush(this);
+
             foreach (Aspect<B> aspect in aspects)
             {
                 B aspectMask = aspect.Bitmask;
@@ -133,8 +134,23 @@ namespace ScatteredLogic.Internal
                     if (mask.Contains(aspect.Bitmask)) aspect.Add(entity);
                     else if (!mask.Contains(aspect.Bitmask)) aspect.Remove(entity);
                 }
+
+                for (int j = 0; j < entitiesToDestroy.Count; ++j)
+                {
+                    Handle entity = entitiesToDestroy[j];
+                    B mask = entityMasks[entity.Index];
+                    if (mask.Contains(aspect.Bitmask)) aspect.Remove(entity);
+                }
             }
             dirtyEntities.Clear();
+
+            for (int j = 0; j < entitiesToDestroy.Count; ++j)
+            {
+                Handle entity = entitiesToDestroy[j];
+                entityManager.Destroy(entity);
+                entityMasks[entity.Index] = default(B);
+            }
+            entitiesToDestroy.Clear();
         }
     }
 }

@@ -1,38 +1,32 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
+﻿using Microsoft.Xna.Framework.Input;
 using ScatteredGameExample.Events;
 using ScatteredLogic;
 using System;
+using System.Collections.Generic;
 
 namespace ScatteredGameExample.Systems
 {
-    public class InputSystem : BaseSystem
+    public class InputSystem
     {
-        public static readonly Keys[] AllKeys = (Keys[])Enum.GetValues(typeof(Keys));
+        private readonly EventBus eventBus;
+
+        public readonly HashSet<Keys> registeredKeys = new HashSet<Keys>();
         private KeyboardState oldKeys = Keyboard.GetState();
         private MouseState oldMouse = Mouse.GetState();
 
-        private readonly MousePositionEvent mpe = new MousePositionEvent();
-        private readonly GroupObjectPool<MouseButtonEvent> mouseButtonPool = new GroupObjectPool<MouseButtonEvent>();
-        private readonly GroupObjectPool<KeyEvent> keyEventPool = new GroupObjectPool<KeyEvent>();
-
-        public override void Update(float deltaTime)
+        public InputSystem(EventBus eventBus)
         {
-            mouseButtonPool.ReturnAll();
-            keyEventPool.ReturnAll();
+            this.eventBus = eventBus;
+        }
 
+        public void Update()
+        {
             KeyboardState newKeys = Keyboard.GetState();
             MouseState newMouse = Mouse.GetState();
 
-            for (int i = 0; i < AllKeys.Length; ++i)
-            {
-                Keys key = AllKeys[i];
-                CheckAndFire(oldKeys.IsKeyDown(key), newKeys.IsKeyDown(key), key);
-            }
+            foreach (Keys key in registeredKeys) CheckAndFire(oldKeys.IsKeyDown(key), newKeys.IsKeyDown(key), key);
 
-            Point pos = newMouse.Position;
-            mpe.Position = new Vector2(pos.X, pos.Y);
-            EventBus.Dispatch(mpe);
+            eventBus.Dispatch(new MousePositionEvent(newMouse.Position.ToVector2()));
 
             CheckAndFire(oldMouse.LeftButton, newMouse.LeftButton, MouseButton.Left);
             CheckAndFire(oldMouse.RightButton, newMouse.RightButton, MouseButton.Right);
@@ -41,19 +35,14 @@ namespace ScatteredGameExample.Systems
             oldMouse = newMouse;
         }
 
+        public void RegisterKey(Keys key) => registeredKeys.Add(key);
+
         private void CheckAndFire(bool wasDown, bool isDown, Keys key)
         {
             if (!wasDown && isDown) FireKey(key, true);
             else if (wasDown && !isDown) FireKey(key, false);
         }
 
-        private void FireKey(Keys key, bool pressed)
-        {
-            KeyEvent keyEvent = keyEventPool.Get();
-            keyEvent.Key = key;
-            keyEvent.Pressed = pressed;
-            EventBus.Dispatch(keyEvent);
-        }
 
         private void CheckAndFire(bool wasDown, bool isDown, MouseButton button)
         {
@@ -66,12 +55,7 @@ namespace ScatteredGameExample.Systems
             CheckAndFire(previous == ButtonState.Pressed, current == ButtonState.Pressed, button);
         }
 
-        private void FireMouseButton(MouseButton button, bool pressed)
-        {
-            MouseButtonEvent mbEvent = mouseButtonPool.Get();
-            mbEvent.Button = button;
-            mbEvent.Pressed = pressed;
-            EventBus.Dispatch(mbEvent);
-        }
+        private void FireMouseButton(MouseButton button, bool pressed) => eventBus.Dispatch(new MouseButtonEvent(button, pressed));
+        private void FireKey(Keys key, bool pressed) => eventBus.Dispatch(new KeyEvent(key, pressed));
     }
 }

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace ScatteredGameExample.Systems
 {
-    public class RenderingSystem : BaseSystem, DrawingSystem
+    public class RenderingSystem : BaseSystem
     {
         public override Type[] RequiredComponents => RequiredTypes.From<TextureHandle, Transform>();
 

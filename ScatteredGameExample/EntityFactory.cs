@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using ScatteredGameExample.Components;
@@ -37,12 +38,12 @@ namespace ScatteredGameExample
             return e;
         }
 
-        public Handle CreateBullet()
+        public Handle CreateBullet(float rotation, Vector2 position, Velocity velocity)
         {
             Handle bullet = CreateSquare();
-            entityManager.AddComponent(bullet, new Transform { Size = new Vector2(5, 5) });
+            entityManager.AddComponent(bullet, new Transform { Size = new Vector2(5, 5), Position = position, Rotation = rotation });
             entityManager.AddComponent(bullet, new Collider { Group = ColliderGroup.Bullet });
-            entityManager.AddComponent(bullet, new Velocity());
+            entityManager.AddComponent(bullet, velocity);
             return bullet;
         }
     }

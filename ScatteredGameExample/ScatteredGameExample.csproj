@@ -62,7 +62,6 @@
     <Compile Include="Systems\BoundsSystem.cs" />
     <Compile Include="Systems\CollisionResolverSystem.cs" />
     <Compile Include="Systems\CollisionSystem.cs" />
-    <Compile Include="Systems\DrawingSystem.cs" />
     <Compile Include="Systems\HudSystem.cs" />
     <Compile Include="Systems\InputSystem.cs" />
     <Compile Include="Systems\PlayerControllerSystem.cs" />
@@ -75,6 +74,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Runtime" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Icon.ico" />
@@ -89,13 +89,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ScatteredLogic\ScatteredLogic.csproj">
-      <Project>{861722cc-a914-40e2-8828-743d610ff5ab}</Project>
-      <Name>ScatteredLogic</Name>
-    </ProjectReference>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <ProjectReference Include="..\ScatteredLogicNet\ScatteredLogicNet.csproj">
+      <Project>{13d9db9a-802a-4a62-9555-7a68bbcfd275}</Project>
+      <Name>ScatteredLogicNet</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />

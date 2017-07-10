@@ -31,8 +31,8 @@ namespace ScatteredLogic
         void RemoveComponent<T>(Handle handle);
         T GetComponent<T>(Handle handle);
 
-        IAspect CreateAspect(Type[] types);
+        void Commit();
 
-        void Step();
+        IAspect CreateAspect(Type[] types);
     }
 }

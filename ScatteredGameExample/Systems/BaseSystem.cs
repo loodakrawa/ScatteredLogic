@@ -11,6 +11,7 @@ namespace ScatteredGameExample.Systems
 
         public EntityFactory EntityFactory { get; set; }
         public EventBus EventBus { get; set; }
+        public InputSystem InputSystem { get; set; }
 
         public virtual void Added() { }
 
