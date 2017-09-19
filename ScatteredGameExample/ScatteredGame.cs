@@ -55,7 +55,7 @@ namespace ScatteredGameExample
         {
             base.Initialize();
 
-            //Tasks.TaskQueue = new ThreadPoolTaskQueue(8);
+            Tasks.TaskQueue = new ThreadPoolTaskQueue(8);
 
             var dm = graphics.GraphicsDevice.DisplayMode;
             Window.Position = new Point((dm.Width - Width) / 2, (dm.Height - Height) / 2);
@@ -150,7 +150,7 @@ namespace ScatteredGameExample
             {
                 system.Update(DeltaTime);
                 DateTime limit = DateTime.Now.AddMilliseconds(1);
-                //while (limit > DateTime.Now) { }
+                while (limit > DateTime.Now) { }
             }
         }
     }

@@ -10,10 +10,10 @@ namespace ScatteredGameExample.Systems
     {
         public override Type[] RequiredComponents => RequiredTypes.From<Transform, Collider>();
 
-        private List<Handle> entities = new List<Handle>();
+        private List<Entity> entities = new List<Entity>();
 
-        public override void EntityAdded(Handle entity) => entities.Add(entity);
-        public override void EntityRemoved(Handle entity) => entities.Remove(entity);
+        public override void EntityAdded(Entity entity) => entities.Add(entity);
+        public override void EntityRemoved(Entity entity) => entities.Remove(entity);
 
         private readonly GroupObjectPool<CollisionEvent> eventPool = new GroupObjectPool<CollisionEvent>();
 
@@ -23,11 +23,11 @@ namespace ScatteredGameExample.Systems
 
             for (int i = 0; i < entities.Count; ++i)
             {
-                Handle e1 = entities[i];
+                Entity e1 = entities[i];
                 Transform e1t = EntityWorld.GetComponent<Transform>(e1);
                 for (int j = i + 1; j < entities.Count; ++j)
                 {
-                    Handle e2 = entities[j];
+                    Entity e2 = entities[j];
                     Transform e2t = EntityWorld.GetComponent<Transform>(e2);
                     if (e1t.Bounds.Intersects(e2t.Bounds))
                     {

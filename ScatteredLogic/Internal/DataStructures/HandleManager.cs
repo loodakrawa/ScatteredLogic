@@ -9,28 +9,28 @@ namespace ScatteredLogic.Internal.DataStructures
 {
     internal sealed class HandleManager
     {
-        private readonly Handle[] handles;
+        private readonly Entity[] handles;
         private readonly ArrayQueue<int> freeIndices;
 
         private readonly int maxHandles;
 
         public HandleManager(int maxHandles)
         {
-            Debug.Assert(maxHandles > 0 && maxHandles <= Handle.MaxIndex);
+            Debug.Assert(maxHandles > 0 && maxHandles <= Entity.MaxIndex);
 
             this.maxHandles = maxHandles;
 
-            handles = new Handle[maxHandles];
+            handles = new Entity[maxHandles];
             freeIndices = new ArrayQueue<int>(maxHandles);
 
             for (int i = 0; i < maxHandles; ++i)
             {
                 freeIndices.Enqueue(i);
-                handles[i] = new Handle(i).IncrementVersion();
+                handles[i] = IncrementVersion(new Entity(i));
             }
         }
 
-        public Handle Create()
+        public Entity Create()
         {
             Debug.Assert(freeIndices.Count > 0);
 
@@ -38,19 +38,27 @@ namespace ScatteredLogic.Internal.DataStructures
             return handles[index];
         }
 
-        public void Destroy(Handle handle)
+        public void Destroy(Entity entity)
         {
-            Debug.Assert(Contains(handle));
+            Debug.Assert(Contains(entity));
 
-            int index = handle.Index;
-            handles[index] = handle.IncrementVersion();
+            int index = entity.Index;
+            handles[index] = IncrementVersion(entity);
             freeIndices.Enqueue(index);
         }
 
-        public bool Contains(Handle handle)
+        public bool Contains(Entity entity)
         {
-            int index = handle.Index;
-            return index >= 0 && index < maxHandles && handles[index].Version == handle.Version;
+            int index = entity.Index;
+            return index >= 0 && index < maxHandles && handles[index].Version == entity.Version;
+        }
+
+        private static Entity IncrementVersion(Entity entity)
+        {
+            int version = entity.Version + 1;
+            // don't allow version 0
+            if (version == 0) ++version;
+            return new Entity(entity.Index | version << Entity.IndexBits);
         }
     }
 }

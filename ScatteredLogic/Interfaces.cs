@@ -15,21 +15,21 @@ namespace ScatteredLogic
 
     public interface IAspect
     {
-        IArray<Handle> Entities { get; }
+        IArray<Entity> Entities { get; }
         IArray<T> GetComponents<T>();
     }
 
     public interface IEntityWorld
     {
-        IArray<Handle> Entities { get; }
+        IArray<Entity> Entities { get; }
 
-        Handle CreateEntity();
-        void DestroyEntity(Handle handle);
-        bool ContainsEntity(Handle handle);
+        Entity CreateEntity();
+        void DestroyEntity(Entity entity);
+        bool ContainsEntity(Entity entity);
 
-        void AddComponent<T>(Handle handle, T component);
-        void RemoveComponent<T>(Handle handle);
-        T GetComponent<T>(Handle handle);
+        void AddComponent<T>(Entity entity, T component);
+        void RemoveComponent<T>(Entity entity);
+        T GetComponent<T>(Entity entity);
 
         void Commit();
 

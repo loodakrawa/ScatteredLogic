@@ -13,12 +13,12 @@ namespace ScatteredLogic.Internal
 {
     internal sealed class EntityWorld<B> : IEntityWorld where B : struct, IBitmask<B>
     {
-        public IArray<Handle> Entities => entities;
+        public IArray<Entity> Entities => entities;
 
         private readonly int maxEntities;
         private readonly int maxComponentTypes;
 
-        private readonly PackedArray<Handle> entities;
+        private readonly PackedArray<Entity> entities;
         private readonly B[] entityMasks;
         private readonly TypeIndexer typeIndexer;
         private readonly SparseComponentArray sparseComponents;
@@ -26,17 +26,17 @@ namespace ScatteredLogic.Internal
 
         private readonly List<Aspect<B>> aspects = new List<Aspect<B>>();
 
-        private readonly PackedArray<Handle> dirtyEntities;
+        private readonly PackedArray<Entity> dirtyEntities;
         private readonly ChangeQueue changeQueue;
 
-        private readonly PackedArray<Handle> entitiesToDestroy;
+        private readonly PackedArray<Entity> entitiesToDestroy;
 
         public EntityWorld(int maxEntities, int maxComponentTypes, int maxEvents)
         {
             this.maxEntities = maxEntities;
             this.maxComponentTypes = maxComponentTypes;
 
-            entities = new PackedArray<Handle>(maxEntities);
+            entities = new PackedArray<Entity>(maxEntities);
             entityMasks = new B[maxEntities];
 
             typeIndexer = new TypeIndexer(maxComponentTypes);
@@ -44,41 +44,41 @@ namespace ScatteredLogic.Internal
             sparseComponents = new SparseComponentArray(maxComponentTypes, maxEntities);
 
             changeQueue = new ChangeQueue(maxComponentTypes, maxEvents);
-            dirtyEntities = new PackedArray<Handle>(maxEntities);
-            entitiesToDestroy = new PackedArray<Handle>(maxEntities);
+            dirtyEntities = new PackedArray<Entity>(maxEntities);
+            entitiesToDestroy = new PackedArray<Entity>(maxEntities);
         }
 
-        public Handle CreateEntity()
+        public Entity CreateEntity()
         {
             lock (entityManager)
             {
-                Handle entity = entityManager.Create();
+                Entity entity = entityManager.Create();
                 entities.Add(entity, entity.Index);
                 entityMasks[entity.Index] = default(B);
                 return entity;
             }
         }
 
-        public void DestroyEntity(Handle entity)
+        public void DestroyEntity(Entity entity)
         {
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
 
             lock (entitiesToDestroy) entitiesToDestroy.Add(entity, entity.Index);
         }
 
-        public bool ContainsEntity(Handle entity)
+        public bool ContainsEntity(Entity entity)
         {
             return entityManager.Contains(entity);
         }
 
-        public void AddComponent<T>(Handle entity, T component)
+        public void AddComponent<T>(Entity entity, T component)
         {
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
 
             changeQueue.AddComponent<T>(entity, component, typeIndexer.GetIndex(typeof(T)));
         }
 
-        public void AddComponent<T>(Handle entity, T component, int typeIndex)
+        public void AddComponent<T>(Entity entity, T component, int typeIndex)
         {
             int entityIndex = entity.Index;
 
@@ -88,13 +88,13 @@ namespace ScatteredLogic.Internal
             dirtyEntities.Add(entity, entityIndex);
         }
 
-        public void RemoveComponent<T>(Handle entity)
+        public void RemoveComponent<T>(Entity entity)
         {
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
             changeQueue.RemoveComponent<T>(entity, typeIndexer.GetIndex(typeof(T)));
         }
 
-        public void RemoveComponent<T>(Handle entity, int typeIndex)
+        public void RemoveComponent<T>(Entity entity, int typeIndex)
         {
             int entityIndex = entity.Index;
 
@@ -104,7 +104,7 @@ namespace ScatteredLogic.Internal
             dirtyEntities.Add(entity, entityIndex);
         }
 
-        public T GetComponent<T>(Handle entity)
+        public T GetComponent<T>(Entity entity)
         {
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
 
@@ -129,7 +129,7 @@ namespace ScatteredLogic.Internal
 
                 for (int j = 0; j < dirtyEntities.Count; ++j)
                 {
-                    Handle entity = dirtyEntities[j];
+                    Entity entity = dirtyEntities[j];
                     B mask = entityMasks[entity.Index];
                     if (mask.Contains(aspect.Bitmask)) aspect.Add(entity);
                     else if (!mask.Contains(aspect.Bitmask)) aspect.Remove(entity);
@@ -137,7 +137,7 @@ namespace ScatteredLogic.Internal
 
                 for (int j = 0; j < entitiesToDestroy.Count; ++j)
                 {
-                    Handle entity = entitiesToDestroy[j];
+                    Entity entity = entitiesToDestroy[j];
                     B mask = entityMasks[entity.Index];
                     if (mask.Contains(aspect.Bitmask)) aspect.Remove(entity);
                 }
@@ -146,7 +146,7 @@ namespace ScatteredLogic.Internal
 
             for (int j = 0; j < entitiesToDestroy.Count; ++j)
             {
-                Handle entity = entitiesToDestroy[j];
+                Entity entity = entitiesToDestroy[j];
                 entityManager.Destroy(entity);
                 entityMasks[entity.Index] = default(B);
             }

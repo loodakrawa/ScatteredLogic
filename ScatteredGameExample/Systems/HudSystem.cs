@@ -6,7 +6,7 @@ namespace ScatteredGameExample.Systems
 {
     public class HudSystem : BaseSystem
     {
-        private Handle crosshairEntity;
+        private Entity crosshairEntity;
 
         public override void Added()
         {

@@ -15,8 +15,8 @@ namespace ScatteredGameExample.Systems
 
         public virtual void Added() { }
 
-        public virtual void EntityAdded(Handle entity) { }
-        public virtual void EntityRemoved(Handle entity) { }
+        public virtual void EntityAdded(Entity entity) { }
+        public virtual void EntityRemoved(Entity entity) { }
 
         public virtual void Update(float deltaTime) { }
     }

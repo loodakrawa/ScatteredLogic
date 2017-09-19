@@ -92,9 +92,9 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ScatteredLogicNet\ScatteredLogicNet.csproj">
-      <Project>{13d9db9a-802a-4a62-9555-7a68bbcfd275}</Project>
-      <Name>ScatteredLogicNet</Name>
+    <ProjectReference Include="..\ScatteredLogic\ScatteredLogic.csproj">
+      <Project>{861722cc-a914-40e2-8828-743d610ff5ab}</Project>
+      <Name>ScatteredLogic</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

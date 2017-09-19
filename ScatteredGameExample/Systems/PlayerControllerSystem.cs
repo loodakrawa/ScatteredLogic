@@ -12,7 +12,7 @@ namespace ScatteredGameExample.Systems
         private static readonly float MaxPlayerSpeed = 100;
         private static readonly float BulletSpeed = 200;
 
-        private Handle player;
+        private Entity player;
         private Vector2 mouseLocation;
 
         public override void Added()
@@ -41,7 +41,7 @@ namespace ScatteredGameExample.Systems
             Velocity velocity = new Velocity();
             velocity.Speed = Vector2.Transform(new Vector2(BulletSpeed, 0), Matrix.CreateRotationZ(pTransform.Rotation));
 
-            Handle bullet = EntityFactory.CreateBullet(pTransform.Rotation, pTransform.Position, velocity);
+            Entity bullet = EntityFactory.CreateBullet(pTransform.Rotation, pTransform.Position, velocity);
 
             Transform bTransform = EntityWorld.GetComponent<Transform>(bullet);
 

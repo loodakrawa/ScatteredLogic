@@ -2,9 +2,9 @@
 {
     internal struct DeleteEntityEvent
     {
-        public readonly Handle Entity;
+        public readonly Entity Entity;
 
-        public DeleteEntityEvent(Handle entity)
+        public DeleteEntityEvent(Entity entity)
         {
             Entity = entity;
         }
@@ -12,9 +12,9 @@
 
     internal struct RemoveComponentEvent<T>
     {
-        public readonly Handle Entity;
+        public readonly Entity Entity;
 
-        public RemoveComponentEvent(Handle entity)
+        public RemoveComponentEvent(Entity entity)
         {
             Entity = entity;
         }
@@ -22,10 +22,10 @@
 
     internal struct AddComponentEvent<T>
     {
-        public readonly Handle Entity;
+        public readonly Entity Entity;
         public readonly T Component;
 
-        public AddComponentEvent(Handle entity, T component)
+        public AddComponentEvent(Entity entity, T component)
         {
             Entity = entity;
             Component = component;

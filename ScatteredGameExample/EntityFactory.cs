@@ -1,7 +1,4 @@
-﻿using System;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
 using ScatteredGameExample.Components;
 using ScatteredGameExample.Systems;
 using ScatteredLogic;
@@ -22,25 +19,25 @@ namespace ScatteredGameExample
             this.entityManager = entityManager;
         }
 
-        public Handle CreateCrosshair()
+        public Entity CreateCrosshair()
         {
-            Handle e = entityManager.CreateEntity();
+            Entity e = entityManager.CreateEntity();
             entityManager.AddComponent(e, new Transform { Size = new Vector2(50, 50) });
             entityManager.AddComponent(e, renderingSystem.Load(TextureCrosshair));
             return e;
         }
 
-        public Handle CreateSquare()
+        public Entity CreateSquare()
         {
-            Handle e = entityManager.CreateEntity();
+            Entity e = entityManager.CreateEntity();
             entityManager.AddComponent(e, renderingSystem.Load(TextureSquare));
             entityManager.AddComponent(e, new Transform());
             return e;
         }
 
-        public Handle CreateBullet(float rotation, Vector2 position, Velocity velocity)
+        public Entity CreateBullet(float rotation, Vector2 position, Velocity velocity)
         {
-            Handle bullet = CreateSquare();
+            Entity bullet = CreateSquare();
             entityManager.AddComponent(bullet, new Transform { Size = new Vector2(5, 5), Position = position, Rotation = rotation });
             entityManager.AddComponent(bullet, new Collider { Group = ColliderGroup.Bullet });
             entityManager.AddComponent(bullet, velocity);

@@ -19,12 +19,12 @@ namespace ScatteredLogic.Internal
             buffers = new IEventBuffer[maxComponentTypes];
         }
 
-        public void AddComponent<T>(Handle entity, T component, int typeId)
+        public void AddComponent<T>(Entity entity, T component, int typeId)
         {
             lock (locks[typeId]) GetBuffer<T>(typeId).Add(new AddComponentEvent<T>(entity, component));
         }
 
-        public void RemoveComponent<T>(Handle entity, int typeId)
+        public void RemoveComponent<T>(Entity entity, int typeId)
         {
             lock (locks[typeId]) GetBuffer<T>(typeId).Remove(new RemoveComponentEvent<T>(entity));
         }

@@ -14,7 +14,7 @@ namespace ScatteredLogic.Internal
     {
         public B Bitmask { get; private set; }
 
-        public IArray<Handle> Entities => entities;
+        public IArray<Entity> Entities => entities;
 
         private readonly int maxEntities;
 
@@ -25,7 +25,7 @@ namespace ScatteredLogic.Internal
         private readonly IntMap typeMap;
 
         private readonly IArrayWrapper[] components;
-        private readonly ArrayWrapper<Handle> entities;
+        private readonly ArrayWrapper<Entity> entities;
 
         public Aspect(SparseComponentArray sparseComponents, TypeIndexer typeIndexer, int maxEntities, int maxComponentTypes, Type[] types)
         {
@@ -39,7 +39,7 @@ namespace ScatteredLogic.Internal
             entityMap = new IntMap(maxEntities);
             typeMap = new IntMap(maxComponentTypes);
 
-            entities = new ArrayWrapper<Handle>(maxEntities);
+            entities = new ArrayWrapper<Entity>(maxEntities);
             components = new IArrayWrapper[types.Length];
 
             foreach (Type type in types)
@@ -62,7 +62,7 @@ namespace ScatteredLogic.Internal
             return (IArray<T>)components[packedTypeIndex];
         }
 
-        public void Add(Handle entity)
+        public void Add(Entity entity)
         {
             int sparseIndex = entity.Index;
             int packedIndex = entityMap.Add(sparseIndex);
@@ -81,7 +81,7 @@ namespace ScatteredLogic.Internal
             }
         }
 
-        public void Remove(Handle entity)
+        public void Remove(Entity entity)
         {
             int index = entity.Index;
 
