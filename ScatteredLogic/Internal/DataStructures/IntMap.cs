@@ -9,7 +9,6 @@ namespace ScatteredLogic.Internal.DataStructures
 {
     public sealed class IntMap
     {
-        public int Count => count;
 
         /*
                    |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  | 
@@ -31,9 +30,12 @@ namespace ScatteredLogic.Internal.DataStructures
             Clear();
         }
 
+        public int Count => count;
+
         public bool Contains(int sparseIndex)
         {
             Debug.Assert(sparseIndex >= 0);
+
             return sparseIndex < sparse.Length && sparse[sparseIndex] != -1;
         }
 
@@ -57,11 +59,13 @@ namespace ScatteredLogic.Internal.DataStructures
         {
             Debug.Assert(sparseIndex >= 0 && sparseIndex < sparse.Length);
 
+            // Get existing packed index.
             int packedIndex = sparse[sparseIndex];
+
+            // Insert it if not already present.
             if (packedIndex == -1)
             {
-                packedIndex = count;
-                ++count;
+                packedIndex = count++;
 
                 sparse[sparseIndex] = packedIndex;
                 packed[packedIndex] = sparseIndex;
@@ -83,18 +87,19 @@ namespace ScatteredLogic.Internal.DataStructures
             packedIndex = sparse[sparseIndex];
             Debug.Assert(packedIndex >= 0 && packedIndex < packed.Length);
 
-            lastPackedIndex = count - 1;
+            // Get last element in packed array.
+            lastPackedIndex = --count;
+
+            // If the element to remove is not the last one, swap them.
             if (packedIndex != lastPackedIndex)
             {
                 int lastSparseIndex = packed[lastPackedIndex];
 
-                // swap last with the one to remove
                 packed[packedIndex] = lastSparseIndex;
                 sparse[lastSparseIndex] = packedIndex;
             }
 
             sparse[sparseIndex] = -1;
-            --count;
         }
     }
 }

@@ -16,8 +16,8 @@ namespace ScatteredGameExample.Systems
         private readonly List<Texture2D> textures = new List<Texture2D>();
         private readonly List<string> paths = new List<string>();
 
-        private IArray<TextureHandle> textureHandles;
-        private IArray<Transform> transforms;
+        private TextureHandle[] textureHandles;
+        private Transform[] transforms;
 
         public RenderingSystem(ContentManager contentManager)
         {
@@ -47,7 +47,7 @@ namespace ScatteredGameExample.Systems
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            for (int i = 0; i < Aspect.Entities.Count; ++i)
+            for (int i = 0; i < Aspect.EntityCount; ++i)
             {
                 TextureHandle th = textureHandles[i];
                 Transform tr = transforms[i];

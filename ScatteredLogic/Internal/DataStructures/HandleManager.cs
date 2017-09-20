@@ -10,18 +10,18 @@ namespace ScatteredLogic.Internal.DataStructures
     internal sealed class HandleManager
     {
         private readonly Entity[] handles;
-        private readonly ArrayQueue<int> freeIndices;
+        private readonly RingBuffer<int> freeIndices;
 
         private readonly int maxHandles;
 
         public HandleManager(int maxHandles)
         {
-            Debug.Assert(maxHandles > 0 && maxHandles <= Entity.MaxIndex);
+            Debug.Assert(maxHandles > 0 && maxHandles <= Entity.IndexMask);
 
             this.maxHandles = maxHandles;
 
             handles = new Entity[maxHandles];
-            freeIndices = new ArrayQueue<int>(maxHandles);
+            freeIndices = new RingBuffer<int>(maxHandles);
 
             for (int i = 0; i < maxHandles; ++i)
             {

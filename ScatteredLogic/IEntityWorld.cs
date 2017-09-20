@@ -3,25 +3,15 @@
 // This software may be modified and distributed under the terms
 // of the zlib license. See the LICENSE file for details.
 
+
 using System;
 
 namespace ScatteredLogic
 {
-    public interface IArray<T>
-    {
-        int Count { get; }
-        T this[int i] { get; }
-    }
-
-    public interface IAspect
-    {
-        IArray<Entity> Entities { get; }
-        IArray<T> GetComponents<T>();
-    }
-
     public interface IEntityWorld
     {
-        IArray<Entity> Entities { get; }
+        int EntityCount { get; }
+        Entity[] Entities { get; }
 
         Entity CreateEntity();
         void DestroyEntity(Entity entity);

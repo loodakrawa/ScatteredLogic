@@ -1,5 +1,4 @@
 ﻿using ScatteredGameExample.Components;
-using ScatteredLogic;
 using System;
 
 namespace ScatteredGameExample.Systems
@@ -8,8 +7,8 @@ namespace ScatteredGameExample.Systems
     {
         public override Type[] RequiredComponents => RequiredTypes.From<Velocity, Transform>();
 
-        private IArray<Transform> transforms;
-        private IArray<Velocity> velocities;
+        private Transform[] transforms;
+        private Velocity[] velocities;
 
         public override void Added()
         {
@@ -21,7 +20,7 @@ namespace ScatteredGameExample.Systems
 
         public override void Update(float deltaTime)
         {
-            for (int i = 0; i < Aspect.Entities.Count; ++i)
+            for (int i = 0; i < Aspect.EntityCount; ++i)
             {
                 transforms[i].Position += velocities[i].Speed * deltaTime;
             }

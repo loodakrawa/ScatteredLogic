@@ -9,13 +9,11 @@ namespace ScatteredLogic
 {
     public struct Entity : IEquatable<Entity>
     {
-        public const int MaxIndex = IndexMask;
-
         internal const int IndexBits = 20;
         internal const int IndexMask = 0xFFFFF;
 
-        public int Index => Id & IndexMask;
-        public int Version => Id >> IndexBits;
+        internal int Index => Id & IndexMask;
+        internal int Version => Id >> IndexBits;
 
         private readonly int Id;
 
@@ -26,7 +24,7 @@ namespace ScatteredLogic
         public override int GetHashCode() => Id;
 
 #if DEBUG
-        public override string ToString() => string.Format("{0}|{1}", Index, Version);
+        public override string ToString() => string.Format("Index={0}, Version={1}", Index, Version);
 #endif
     }
 }

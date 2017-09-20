@@ -7,11 +7,8 @@ using System.Diagnostics;
 
 namespace ScatteredLogic.Internal.DataStructures
 {
-    internal sealed class PackedArray<T> : IArray<T>
+    internal sealed class PackedArray<T>
     {
-        public int Count => data.Count;
-        public T this[int i] { get => data[i]; }
-
         private readonly IntMap map;
         private readonly ArrayWrapper<T> data;
 
@@ -22,6 +19,9 @@ namespace ScatteredLogic.Internal.DataStructures
             map = new IntMap(size);
             data = new ArrayWrapper<T>(size);
         }
+
+        public T[] Data => data.Data;
+        public int Count => data.Count;
 
         public bool Contains(int index) => map.Contains(index);
 

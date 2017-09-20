@@ -8,10 +8,8 @@ using System.Diagnostics;
 
 namespace ScatteredLogic.Internal.DataStructures
 {
-    internal sealed class ArrayWrapper<T> : IArrayWrapper, IArray<T>
+    internal sealed class ArrayWrapper<T> : IArrayWrapper
     {
-        public int Count { get; set; }
-
         private readonly T[] data;
 
         public ArrayWrapper(int size)
@@ -20,13 +18,9 @@ namespace ScatteredLogic.Internal.DataStructures
 
             data = new T[size];
         }
-        public ArrayWrapper(T[] data)
-        {
-            Debug.Assert(data != null);
-            Debug.Assert(data.Length > 0);
 
-            this.data = data;
-        }
+        public int Count { get; set; }
+        public T[] Data => data;
 
         public T this[int index]
         {

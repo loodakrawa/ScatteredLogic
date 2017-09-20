@@ -7,28 +7,29 @@ using System.Diagnostics;
 
 namespace ScatteredLogic.Internal.DataStructures
 {
-    internal sealed class ArrayQueue<T>
+    internal sealed class RingBuffer<T>
     {
-        public int Count { get; private set; }
+        private readonly T[] data;
 
-        private T[] data;
         private int front;
         private int rear;
+        private int count;
 
-        public ArrayQueue(int size)
+        public RingBuffer(int size)
         {
             Debug.Assert(size > 0);
 
             data = new T[size];
         }
 
+        public int Count => count;
+
         public void Enqueue(T element)
         {
             Debug.Assert(Count < data.Length);
 
-            data[rear] = element;
-            ++Count;
-            ++rear;
+            data[rear++] = element;
+            ++count;
             if (rear == data.Length) rear = 0;
         }
 
@@ -37,10 +38,9 @@ namespace ScatteredLogic.Internal.DataStructures
             Debug.Assert(Count > 0);
 
             T element = data[front];
-            data[front] = default(T);
+            data[front++] = default(T);
 
-            --Count;
-            ++front;
+            --count;
             if (front == data.Length) front = 0;
 
             return element;

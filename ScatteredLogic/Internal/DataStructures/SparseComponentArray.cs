@@ -58,7 +58,7 @@ namespace ScatteredLogic.Internal.DataStructures
             data[typeIndex]?.RemoveElementAt(index);
         }
 
-        public IArray<T> GetArray<T>(int typeIndex)
+        public ArrayWrapper<T> GetArray<T>(int typeIndex)
         {
             Debug.Assert(typeIndex >= 0 && typeIndex < data.Length);
 

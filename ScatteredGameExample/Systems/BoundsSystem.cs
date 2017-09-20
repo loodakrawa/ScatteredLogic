@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using ScatteredGameExample.Components;
-using ScatteredLogic;
 using System;
 
 namespace ScatteredGameExample.Systems
@@ -12,8 +11,8 @@ namespace ScatteredGameExample.Systems
         private readonly Rectangle bounds;
         private readonly RenderUtil renderUtil;
 
-        private IArray<Transform> transforms;
-        private IArray<Collider> colliders;
+        private Transform[] transforms;
+        private Collider[] colliders;
 
         public BoundsSystem(int x, int y, int width, int height, RenderUtil renderUtil)
         {
@@ -31,7 +30,7 @@ namespace ScatteredGameExample.Systems
 
         public override void Update(float deltaTime)
         {
-            for (int i = 0; i < Aspect.Entities.Count; ++i)
+            for (int i = 0; i < Aspect.EntityCount; ++i)
             {
                 Rectangle bounds = transforms[i].Bounds;
                 Collider collider = colliders[i];

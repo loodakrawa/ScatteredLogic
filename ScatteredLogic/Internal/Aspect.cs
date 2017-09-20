@@ -14,7 +14,8 @@ namespace ScatteredLogic.Internal
     {
         public B Bitmask { get; private set; }
 
-        public IArray<Entity> Entities => entities;
+        public int EntityCount => entities.Count;
+        public Entity[] Entities => entities.Data;
 
         private readonly int maxEntities;
 
@@ -55,11 +56,11 @@ namespace ScatteredLogic.Internal
             }
         }
 
-        public IArray<T> GetComponents<T>()
+        public T[] GetComponents<T>()
         {
             int typeIndex = typeIndexer.GetIndex(typeof(T));
             int packedTypeIndex = typeMap.GetPacked(typeIndex);
-            return (IArray<T>)components[packedTypeIndex];
+            return ((ArrayWrapper<T>)components[packedTypeIndex]).Data;
         }
 
         public void Add(Entity entity)
