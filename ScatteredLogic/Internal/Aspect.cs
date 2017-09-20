@@ -22,11 +22,10 @@ namespace ScatteredLogic.Internal
         private readonly SparseComponentArray sparseComponents;
         private readonly TypeIndexer typeIndexer;
 
-        private readonly IntMap entityMap;
         private readonly IntMap typeMap;
 
         private readonly IArrayWrapper[] components;
-        private readonly ArrayWrapper<Entity> entities;
+        private readonly PackedArray<Entity> entities;
 
         public Aspect(SparseComponentArray sparseComponents, TypeIndexer typeIndexer, int maxEntities, int maxComponentTypes, Type[] types)
         {
@@ -37,10 +36,9 @@ namespace ScatteredLogic.Internal
             this.typeIndexer = typeIndexer;
             this.sparseComponents = sparseComponents;
 
-            entityMap = new IntMap(maxEntities);
             typeMap = new IntMap(maxComponentTypes);
 
-            entities = new ArrayWrapper<Entity>(maxEntities);
+            entities = new PackedArray<Entity>(maxEntities);
             components = new IArrayWrapper[types.Length];
 
             foreach (Type type in types)
@@ -66,11 +64,7 @@ namespace ScatteredLogic.Internal
         public void Add(Entity entity)
         {
             int sparseIndex = entity.Index;
-            int packedIndex = entityMap.Add(sparseIndex);
-
-            entities[packedIndex] = entity;
-
-            if (packedIndex == entities.Count) ++entities.Count;
+            int packedIndex = entities.Add(entity, sparseIndex);
 
             for (int i = 0; i < components.Length; ++i)
             {
@@ -86,13 +80,9 @@ namespace ScatteredLogic.Internal
         {
             int index = entity.Index;
 
-            if (!entityMap.Contains(index)) return;
+            if (!entities.Contains(index)) return;
 
-            entityMap.Remove(index, out int lastPackedIndex, out int packedIndex);
-
-            if (packedIndex != lastPackedIndex) entities.Swap(packedIndex, lastPackedIndex);
-            entities.RemoveElementAt(lastPackedIndex);
-            --entities.Count;
+            entities.Remove(index, out int lastPackedIndex, out int packedIndex);
 
             for (int i = 0; i < components.Length; ++i)
             {

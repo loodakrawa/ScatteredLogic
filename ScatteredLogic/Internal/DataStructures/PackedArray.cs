@@ -25,16 +25,17 @@ namespace ScatteredLogic.Internal.DataStructures
 
         public bool Contains(int index) => map.Contains(index);
 
-        public void Add(T element, int index)
+        public int Add(T element, int index)
         {
             int packedIndex = map.Add(index);
             data[packedIndex] = element;
             data.Count = map.Count;
+            return packedIndex;
         }
 
-        public void Remove(int index)
+        public void Remove(int index, out int lastPackedIndex, out int packedIndex)
         {
-            map.Remove(index, out int lastPackedIndex, out int packedIndex);
+            map.Remove(index, out lastPackedIndex, out packedIndex);
 
             if (packedIndex != lastPackedIndex) data.Swap(packedIndex, lastPackedIndex);
             data.RemoveElementAt(lastPackedIndex);

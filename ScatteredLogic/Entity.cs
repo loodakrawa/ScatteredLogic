@@ -12,8 +12,8 @@ namespace ScatteredLogic
         internal const int IndexBits = 20;
         internal const int IndexMask = 0xFFFFF;
 
-        internal int Index => Id & IndexMask;
-        internal int Version => Id >> IndexBits;
+        public int Index => Id & IndexMask;
+        public int Version => Id >> IndexBits;
 
         private readonly int Id;
 
