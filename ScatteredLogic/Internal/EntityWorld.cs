@@ -79,7 +79,14 @@ namespace ScatteredLogic.Internal
             changeQueue.AddComponent(entity, component, typeIndexer.GetIndex(typeof(T)));
         }
 
-        public void AddComponent<T>(Entity entity, T component, int typeIndex)
+        public void RemoveComponent<T>(Entity entity)
+        {
+            Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
+
+            changeQueue.RemoveComponent<T>(entity, typeIndexer.GetIndex(typeof(T)));
+        }
+
+        internal void AddComponent<T>(Entity entity, T component, int typeIndex)
         {
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
 
@@ -91,18 +98,11 @@ namespace ScatteredLogic.Internal
             dirtyEntities.Add(entity, entityIndex);
         }
 
-        public void RemoveComponent<T>(Entity entity)
-        {
-            Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
-
-            changeQueue.RemoveComponent<T>(entity, typeIndexer.GetIndex(typeof(T)));
-        }
-
-        public void RemoveComponent<T>(Entity entity, int typeIndex)
+        internal void RemoveComponent<T>(Entity entity, int typeIndex)
         {
             int entityIndex = entity.Index;
 
-            sparseComponents.Remove(entity.Index, typeIndex);
+            sparseComponents.Remove(entityIndex, typeIndex);
             entityMasks[entityIndex] = entityMasks[entityIndex].Clear(typeIndex);
 
             dirtyEntities.Add(entity, entityIndex);
@@ -132,6 +132,8 @@ namespace ScatteredLogic.Internal
 
             foreach (Aspect<B> aspect in aspects)
             {
+                aspect.ClearAddedAndRemoved();
+
                 B aspectMask = aspect.Bitmask;
 
                 for (int j = 0; j < dirtyEntities.Count; ++j)

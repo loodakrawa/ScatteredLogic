@@ -12,19 +12,26 @@ namespace ScatteredLogic
         internal const int IndexBits = 20;
         internal const int IndexMask = 0xFFFFF;
 
-        public int Index => Id & IndexMask;
-        public int Version => Id >> IndexBits;
-
         private readonly int Id;
 
-        internal Entity(int id) => Id = id;
+        public int Index => Id & IndexMask;
+        public int Version => Id >> IndexBits;
 
         public bool Equals(Entity other) => Id == other.Id;
         public override bool Equals(object obj) => obj is Entity ? Equals((Entity)obj) : false;
         public override int GetHashCode() => Id;
 
 #if DEBUG
-        public override string ToString() => string.Format("Index={0}, Version={1}", Index, Version);
+        internal Entity(int id)
+        {
+            Id = id;
+            Name = null;
+        }
+        public string Name { get; set; }
+        public override string ToString() => string.Format("{0} ({1}:{2})", Name, Index, Version);
+#else
+        internal Entity(int id) => Id = id;
 #endif
+
     }
 }

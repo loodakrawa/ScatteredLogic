@@ -17,6 +17,12 @@ namespace ScatteredLogic.Internal
         public int EntityCount => entities.Count;
         public Entity[] Entities => entities.Data;
 
+        public int AddedEntityCount => addedEntitiesCount;
+        public Entity[] AddedEntities => addedEntities;
+
+        public int RemovedEntityCount => removedEntitiesCount;
+        public Entity[] RemovedEntities => removedEntities;
+
         private readonly int maxEntities;
 
         private readonly SparseComponentArray sparseComponents;
@@ -26,6 +32,12 @@ namespace ScatteredLogic.Internal
 
         private readonly IArrayWrapper[] components;
         private readonly PackedArray<Entity> entities;
+
+        private readonly Entity[] addedEntities;
+        private int addedEntitiesCount;
+
+        private readonly Entity[] removedEntities;
+        private int removedEntitiesCount;
 
         public Aspect(SparseComponentArray sparseComponents, TypeIndexer typeIndexer, int maxEntities, int maxComponentTypes, Type[] types)
         {
@@ -40,6 +52,9 @@ namespace ScatteredLogic.Internal
 
             entities = new PackedArray<Entity>(maxEntities);
             components = new IArrayWrapper[types.Length];
+
+            addedEntities = new Entity[maxEntities];
+            removedEntities = new Entity[maxEntities];
 
             foreach (Type type in types)
             {
@@ -74,6 +89,8 @@ namespace ScatteredLogic.Internal
                 array.AddFrom(packedIndex, sparseArray, entity.Index);
                 array.Count = entities.Count;
             }
+
+            addedEntities[addedEntitiesCount++] = entity;
         }
 
         public void Remove(Entity entity)
@@ -91,6 +108,14 @@ namespace ScatteredLogic.Internal
                 array.RemoveElementAt(lastPackedIndex);
                 array.Count = entities.Count;
             }
+
+            removedEntities[removedEntitiesCount++] = entity;
+        }
+
+        public void ClearAddedAndRemoved()
+        {
+            addedEntitiesCount = 0;
+            removedEntitiesCount = 0;
         }
     }
 }
