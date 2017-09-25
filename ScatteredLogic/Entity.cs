@@ -21,6 +21,9 @@ namespace ScatteredLogic
         public override bool Equals(object obj) => obj is Entity ? Equals((Entity)obj) : false;
         public override int GetHashCode() => Id;
 
+        public static bool operator ==(Entity a, Entity b) => a.Id == b.Id;
+        public static bool operator !=(Entity a, Entity b) => a.Id != b.Id;
+
 #if DEBUG
         internal Entity(int id)
         {

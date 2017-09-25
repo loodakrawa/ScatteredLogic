@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using ScatteredGameExample.Components;
 using ScatteredGameExample.Parallel;
 using ScatteredGameExample.Systems;
 using ScatteredLogic;
