@@ -72,6 +72,7 @@ namespace ScatteredLogic.Internal
         public T[] GetComponents<T>()
         {
             int typeIndex = typeIndexer.GetIndex(typeof(T));
+            Debug.Assert(typeMap.Contains(typeIndex), "Type not registered");
             int packedTypeIndex = typeMap.GetPacked(typeIndex);
             return ((ArrayWrapper<T>)components[packedTypeIndex]).Data;
         }

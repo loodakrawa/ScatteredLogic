@@ -32,7 +32,7 @@ namespace ScatteredLogic.Internal
 
         private readonly PackedArray<Entity> entitiesToDestroy;
 
-        public EntityWorld(int maxEntities, int maxComponentTypes, int maxEvents)
+        public EntityWorld(int maxEntities, int maxEvents, int maxComponentTypes)
         {
             this.maxEntities = maxEntities;
             this.maxComponentTypes = maxComponentTypes;
