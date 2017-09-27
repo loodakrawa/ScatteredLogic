@@ -11,28 +11,26 @@ namespace ScatteredLogic.Internal
     {
         private readonly int maxEvents;
 
-        private readonly object[] locks;
         private readonly IEventBuffer[] buffers;
 
         public ChangeQueue(int maxComponentTypes, int maxEvents)
         {
             this.maxEvents = maxEvents;
 
-            locks = new object[maxComponentTypes];
-            for (int i = 0; i < maxComponentTypes; ++i) locks[i] = new object();
-
             buffers = new IEventBuffer[maxComponentTypes];
         }
 
         public void AddComponent<T>(Entity entity, T component, int typeId)
         {
-            lock (locks[typeId]) GetBuffer<T>(typeId).Add(new AddComponentEvent<T>(entity, component));
+            GetBuffer<T>(typeId).Add(new AddComponentEvent<T>(entity, component));
         }
 
         public void RemoveComponent<T>(Entity entity, int typeId)
         {
-            lock (locks[typeId]) GetBuffer<T>(typeId).Remove(new RemoveComponentEvent<T>(entity));
+            GetBuffer<T>(typeId).Remove(new RemoveComponentEvent<T>(entity));
         }
+
+        public bool GetComponent<T>(Entity entity, int typeId, out T component) => GetBuffer<T>(typeId).Get(entity, out component);
 
         private EventBuffer<T> GetBuffer<T>(int typeId)
         {

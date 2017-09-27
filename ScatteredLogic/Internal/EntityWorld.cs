@@ -8,6 +8,7 @@ using ScatteredLogic.Internal.DataStructures;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace ScatteredLogic.Internal
 {
@@ -28,7 +29,7 @@ namespace ScatteredLogic.Internal
         private readonly List<Aspect<B>> aspects = new List<Aspect<B>>();
 
         private readonly PackedArray<Entity> dirtyEntities;
-        private readonly ChangeQueue changeQueue;
+        private readonly ThreadLocal<ChangeQueue> changeQueue;
 
         private readonly PackedArray<Entity> entitiesToDestroy;
 
@@ -44,7 +45,7 @@ namespace ScatteredLogic.Internal
             entityManager = new HandleManager(maxEntities);
             sparseComponents = new SparseComponentArray(maxComponentTypes, maxEntities);
 
-            changeQueue = new ChangeQueue(maxComponentTypes, maxEvents);
+            changeQueue = new ThreadLocal<ChangeQueue>(() => new ChangeQueue(maxComponentTypes, maxEvents), true);
             dirtyEntities = new PackedArray<Entity>(maxEntities);
             entitiesToDestroy = new PackedArray<Entity>(maxEntities);
         }
@@ -76,14 +77,14 @@ namespace ScatteredLogic.Internal
         {
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
 
-            changeQueue.AddComponent(entity, component, typeIndexer.GetIndex(typeof(T)));
+            changeQueue.Value.AddComponent(entity, component, typeIndexer.GetIndex(typeof(T)));
         }
 
         public void RemoveComponent<T>(Entity entity)
         {
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
 
-            changeQueue.RemoveComponent<T>(entity, typeIndexer.GetIndex(typeof(T)));
+            changeQueue.Value.RemoveComponent<T>(entity, typeIndexer.GetIndex(typeof(T)));
         }
 
         internal void AddComponent<T>(Entity entity, T component, int typeIndex)
@@ -112,7 +113,11 @@ namespace ScatteredLogic.Internal
         {
             Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
 
-            ArrayWrapper<T> array = sparseComponents.GetArray<T>(typeIndexer.GetIndex(typeof(T)));
+            int typeId = typeIndexer.GetIndex(typeof(T));
+
+            if (changeQueue.Value.GetComponent(entity, typeId, out T component)) return component;
+
+            ArrayWrapper<T> array = sparseComponents.GetArray<T>(typeId);
             return array != null ? array.Data[entity.Index] : default(T);
         }
 
@@ -125,7 +130,7 @@ namespace ScatteredLogic.Internal
 
         public void Commit()
         {
-            changeQueue.Flush(this);
+            changeQueue.Value.Flush(this);
 
             Entity[] dirtyEntityData = dirtyEntities.Data;
             Entity[] entitiesToDestroyData = entitiesToDestroy.Data;

@@ -36,6 +36,21 @@ namespace ScatteredLogic.Internal
             removals[removalsCount++] = e;
         }
 
+        public bool Get(Entity e, out T component)
+        {
+            for (int i = 0; i < additionsCount; ++i)
+            {
+                ref AddComponentEvent<T> ace = ref additions[i];
+                if (ace.Entity == e)
+                {
+                    component = ace.Component;
+                    return true;
+                }
+            }
+            component = default(T);
+            return false;
+        }
+
         private void Reset()
         {
             Array.Clear(additions, 0, additionsCount);
