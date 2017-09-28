@@ -32,6 +32,7 @@ namespace ScatteredLogic.Internal
         private readonly ThreadLocal<ChangeQueue> changeQueue;
 
         private readonly PackedArray<Entity> entitiesToDestroy;
+        private readonly List<ChangeQueue> changeQueues = new List<ChangeQueue>();
 
         public EntityWorld(int maxEntities, int maxEvents, int maxComponentTypes)
         {
@@ -45,7 +46,13 @@ namespace ScatteredLogic.Internal
             entityManager = new HandleManager(maxEntities);
             sparseComponents = new SparseComponentArray(maxComponentTypes, maxEntities);
 
-            changeQueue = new ThreadLocal<ChangeQueue>(() => new ChangeQueue(maxComponentTypes, maxEvents), true);
+            changeQueue = new ThreadLocal<ChangeQueue>(() =>
+            {
+                var cq = new ChangeQueue(maxComponentTypes, maxEvents);
+                changeQueues.Add(cq);
+                return cq;
+            });
+
             dirtyEntities = new PackedArray<Entity>(maxEntities);
             entitiesToDestroy = new PackedArray<Entity>(maxEntities);
         }
@@ -121,6 +128,12 @@ namespace ScatteredLogic.Internal
             return array != null ? array.Data[entity.Index] : default(T);
         }
 
+        public T[] GetComponents<T>()
+        {
+            int typeId = typeIndexer.GetIndex(typeof(T));
+            return sparseComponents.GetArray<T>(typeId).Data;
+        }
+
         public IAspect CreateAspect(Type[] types)
         {
             Aspect<B> aspect = new Aspect<B>(sparseComponents, typeIndexer, maxEntities, maxComponentTypes, types);
@@ -130,7 +143,7 @@ namespace ScatteredLogic.Internal
 
         public void Commit()
         {
-            foreach (var cq in changeQueue.Values) cq.Flush(this);
+            foreach (var cq in changeQueues) cq.Flush(this);
 
             Entity[] dirtyEntityData = dirtyEntities.Data;
             Entity[] entitiesToDestroyData = entitiesToDestroy.Data;

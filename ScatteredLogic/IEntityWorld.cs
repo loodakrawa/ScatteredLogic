@@ -20,6 +20,7 @@ namespace ScatteredLogic
         void AddComponent<T>(Entity entity, T component);
         void RemoveComponent<T>(Entity entity);
         T GetComponent<T>(Entity entity);
+        T[] GetComponents<T>();
 
         void Commit();
 
