@@ -130,7 +130,7 @@ namespace ScatteredLogic.Internal
 
         public void Commit()
         {
-            changeQueue.Value.Flush(this);
+            foreach (var cq in changeQueue.Values) cq.Flush(this);
 
             Entity[] dirtyEntityData = dirtyEntities.Data;
             Entity[] entitiesToDestroyData = entitiesToDestroy.Data;
