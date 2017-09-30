@@ -24,7 +24,7 @@ namespace ScatteredLogic.Internal
         private readonly B[] entityMasks;
         private readonly TypeIndexer typeIndexer;
         private readonly SparseComponentArray sparseComponents;
-        private readonly HandleManager entityManager;
+        private readonly EntityManager entityManager;
 
         private readonly List<Aspect<B>> aspects = new List<Aspect<B>>();
 
@@ -43,7 +43,7 @@ namespace ScatteredLogic.Internal
             entityMasks = new B[maxEntities];
 
             typeIndexer = new TypeIndexer(maxComponentTypes);
-            entityManager = new HandleManager(maxEntities);
+            entityManager = new EntityManager(maxEntities);
             sparseComponents = new SparseComponentArray(maxComponentTypes, maxEntities);
 
             changeQueue = new ThreadLocal<ChangeQueue>(() =>

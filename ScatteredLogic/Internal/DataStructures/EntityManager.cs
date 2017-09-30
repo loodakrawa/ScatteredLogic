@@ -7,18 +7,14 @@ using System.Diagnostics;
 
 namespace ScatteredLogic.Internal.DataStructures
 {
-    internal sealed class HandleManager
+    internal sealed class EntityManager
     {
         private readonly Entity[] handles;
         private readonly RingBuffer<int> freeIndices;
 
-        private readonly int maxHandles;
-
-        public HandleManager(int maxHandles)
+        public EntityManager(int maxHandles)
         {
             Debug.Assert(maxHandles > 0 && maxHandles <= Entity.IndexMask);
-
-            this.maxHandles = maxHandles;
 
             handles = new Entity[maxHandles];
             freeIndices = new RingBuffer<int>(maxHandles);
@@ -50,7 +46,7 @@ namespace ScatteredLogic.Internal.DataStructures
         public bool Contains(Entity entity)
         {
             int index = entity.Index;
-            return index >= 0 && index < maxHandles && handles[index].Version == entity.Version;
+            return index >= 0 && index < handles.Length && handles[index].Version == entity.Version;
         }
 
         private static Entity IncrementVersion(Entity entity)
