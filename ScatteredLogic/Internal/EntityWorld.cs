@@ -128,6 +128,25 @@ namespace ScatteredLogic.Internal
             return array != null ? array.Data[entity.Index] : default(T);
         }
 
+        public bool GetComponent<T>(Entity entity, out T component)
+        {
+            Debug.Assert(entityManager.Contains(entity), "Entity not managed: " + entity);
+
+            int typeId = typeIndexer.GetIndex(typeof(T));
+            int index = entity.Index;
+
+            if (!entityMasks[index].Get(typeId))
+            {
+                component = default(T);
+                return false;
+            }
+
+            if (changeQueue.Value.GetComponent(entity, typeId, out component)) return true;
+
+            component = sparseComponents.GetArray<T>(typeId).Data[index];
+            return true;
+        }
+
         public T[] GetComponents<T>()
         {
             int typeId = typeIndexer.GetIndex(typeof(T));
