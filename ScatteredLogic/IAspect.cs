@@ -10,12 +10,6 @@ namespace ScatteredLogic
         int EntityCount { get; }
         Entity[] Entities { get; }
 
-        int AddedEntityCount { get; }
-        Entity[] AddedEntities { get; }
-
-        int RemovedEntityCount { get; }
-        Entity[] RemovedEntities { get; }
-
         T[] GetComponents<T>();
     }
 }

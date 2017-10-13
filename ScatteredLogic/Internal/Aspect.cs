@@ -17,12 +17,6 @@ namespace ScatteredLogic.Internal
         public int EntityCount => entities.Count;
         public Entity[] Entities => entities.Data;
 
-        public int AddedEntityCount => addedEntitiesCount;
-        public Entity[] AddedEntities => addedEntities;
-
-        public int RemovedEntityCount => removedEntitiesCount;
-        public Entity[] RemovedEntities => removedEntities;
-
         private readonly int maxEntities;
 
         private readonly SparseComponentArray sparseComponents;
