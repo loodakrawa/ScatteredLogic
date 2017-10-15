@@ -4,20 +4,19 @@
 // of the zlib license. See the LICENSE file for details.
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace ScatteredLogic.Internal.DataStructures
 {
     internal sealed class TypeIndexer
     {
-        private readonly ConcurrentDictionary<Type, int?> typeIndices = new ConcurrentDictionary<Type, int?>();
+        private readonly Dictionary<Type, int?> typeIndices = new Dictionary<Type, int?>();
         private readonly int maxTypes;
 
         public TypeIndexer(int maxTypes)
         {
             Debug.Assert(maxTypes > 0);
-
             this.maxTypes = maxTypes;
         }
 
@@ -26,10 +25,14 @@ namespace ScatteredLogic.Internal.DataStructures
             typeIndices.TryGetValue(type, out int? typeId);
             if (typeId.HasValue) return typeId.Value;
 
-            typeId = typeIndices.Count;
-            Debug.Assert(typeId < maxTypes, "Number of types Exceeded: " + maxTypes);
+            lock (typeIndices)
+            {
+                typeId = typeIndices.Count;
+                Debug.Assert(typeId < maxTypes, "Number of types Exceeded: " + maxTypes);
 
-            typeIndices[type] = typeId;
+                typeIndices[type] = typeId;
+            }
+
             return typeId.Value;
         }
     }

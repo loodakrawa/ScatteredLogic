@@ -197,6 +197,7 @@ namespace ScatteredLogic.Internal
                 sparseComponents.RemoveAll(index);
                 entityManager.Destroy(entity);
                 entityMasks[index] = default(B);
+                entities.Remove(index, out int a, out int b);
             }
             entitiesToDestroy.Clear();
         }
