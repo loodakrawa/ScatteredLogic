@@ -28,7 +28,7 @@ namespace ScatteredLogic
         public override int GetHashCode() => Id;
 
 #if DEBUG
-        public override string ToString() => string.Format("({0}:{1})", Index, Version);
+        public override string ToString() => $"{Index}:{Version}";
 #endif
     }
 }
