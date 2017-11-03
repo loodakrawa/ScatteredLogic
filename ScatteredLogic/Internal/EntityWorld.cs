@@ -150,7 +150,7 @@ namespace ScatteredLogic.Internal
         public T[] GetComponents<T>()
         {
             int typeId = typeIndexer.GetIndex(typeof(T));
-            return sparseComponents.GetArray<T>(typeId).Data;
+            return sparseComponents.GetArray<T>(typeId)?.Data;
         }
 
         public IAspect CreateAspect(Type[] types)
