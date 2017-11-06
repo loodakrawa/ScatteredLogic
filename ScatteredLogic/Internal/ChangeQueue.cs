@@ -7,7 +7,7 @@ using ScatteredLogic.Internal.Bitmasks;
 
 namespace ScatteredLogic.Internal
 {
-    internal class ChangeQueue
+    internal sealed class ChangeQueue
     {
         private readonly int maxEvents;
 
