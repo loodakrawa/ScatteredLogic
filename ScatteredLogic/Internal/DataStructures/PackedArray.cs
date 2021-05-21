@@ -21,7 +21,7 @@ namespace ScatteredLogic.Internal.DataStructures
         }
 
         public T[] Data => data.Data;
-        public int Count => data.Count;
+        public int Count => map.Count;
 
         public bool Contains(int index) => map.Contains(index);
 
@@ -29,7 +29,6 @@ namespace ScatteredLogic.Internal.DataStructures
         {
             int packedIndex = map.Add(index);
             data[packedIndex] = element;
-            data.Count = map.Count;
             return packedIndex;
         }
 
@@ -39,7 +38,6 @@ namespace ScatteredLogic.Internal.DataStructures
 
             if (packedIndex != lastPackedIndex) data.Swap(packedIndex, lastPackedIndex);
             data.RemoveElementAt(lastPackedIndex);
-            data.Count = map.Count;
         }
 
         internal void Clear()

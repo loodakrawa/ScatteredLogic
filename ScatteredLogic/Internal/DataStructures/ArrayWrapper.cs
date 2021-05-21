@@ -19,7 +19,6 @@ namespace ScatteredLogic.Internal.DataStructures
             data = new T[size];
         }
 
-        public int Count { get; set; }
         public T[] Data => data;
 
         public T this[int index]
@@ -65,14 +64,12 @@ namespace ScatteredLogic.Internal.DataStructures
 
         public void Clear()
         {
-            Array.Clear(data, 0, Count);
-            Count = 0;
+            Array.Clear(data, 0, data.Length);
         }
     }
 
     internal interface IArrayWrapper
     {
-        int Count { get; set; }
         void RemoveElementAt(int index);
         void Swap(int firstIndex, int secondIndex);
         void AddFrom(int index, IArrayWrapper other, int otherIndex);

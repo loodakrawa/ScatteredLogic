@@ -82,7 +82,6 @@ namespace ScatteredLogic.Internal
                 IArrayWrapper array = components[i];
                 IArrayWrapper sparseArray = sparseComponents.GetArrayWrapper(typeIndex);
                 array.AddFrom(packedIndex, sparseArray, entity.Index);
-                array.Count = entities.Count;
             }
 
             addedEntities[addedEntitiesCount++] = entity;
@@ -101,7 +100,6 @@ namespace ScatteredLogic.Internal
                 IArrayWrapper array = components[i];
                 if (packedIndex != lastPackedIndex) array.Swap(packedIndex, lastPackedIndex);
                 array.RemoveElementAt(lastPackedIndex);
-                array.Count = entities.Count;
             }
 
             removedEntities[removedEntitiesCount++] = entity;
